@@ -141,7 +141,7 @@ const onGenReport = async () => {
 
 const onJump = (id) => {
   uni.navigateTo({
-    url: `/pages/loading/index?id=${id}`,
+    url: `/pages/chat/index?reportId=${id}`,
   });
 };
 </script>

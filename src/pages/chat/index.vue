@@ -24,12 +24,16 @@
 
     <!-- Messages -->
     <div class="messages-container">
+      <!-- 使用新的步骤组件渲染AI报告生成过程 -->
+      <ReportSteps :messages="structuredMessages" />
+      
+      <!-- 用户消息仍按原有方式显示 -->
       <div 
-        v-for="(message, index) in messages" 
-        :key="index"
-        :class="['message-item', message.role === 'user' ? 'user-message' : 'ai-message']"
+        v-for="(message, index) in userMessages" 
+        :key="'user-' + index"
+        class="message-item user-message"
       >
-        <div :class="['message-content', message.role === 'user' ? 'user-content' : 'ai-content']">
+        <div class="message-content user-content">
           <p class="message-text">{{ message.content }}</p>
         </div>
       </div>
@@ -41,6 +45,12 @@
           <div class="typing-dot"></div>
         </div>
       </div>
+
+      <!-- 报告完成后的跳转卡片 -->
+      <ReportCard 
+        v-if="showReportCard" 
+        @click="goToReport"
+      />
 
       <div ref="messagesEndRef" />
     </div>
@@ -76,34 +86,36 @@
       </div>
     </div>
 
-    <!-- Tabbar -->
-    <Tabbar :current="1" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from 'vue';
-import Tabbar from '@/components/Tabbar.vue';
-import { onLoad } from '@dcloudio/uni-app';
+import { ref, nextTick, onMounted, computed } from 'vue';
+import { onLoad, onUnload } from '@dcloudio/uni-app';
+import useChatSSE from '@/hooks/useChatSSE';
+import ReportSteps from '@/components/ReportSteps.vue';
+import ReportCard from './components/ReportCard.vue'; // 导入ReportCard组件
 
 type Message = {
   role: 'user' | 'ai';
   content: string;
 };
 
-const messages = ref<Message[]>([
-  {
-    role: 'ai',
-    content: '你好！我是你的 AI 命师，可以基于你的八字报告为你解答疑问。请问有什么想了解的吗？',
-  },
-]);
+// 用于存储结构化消息（AI报告生成过程）
+const structuredMessages = ref<any[]>([]);
+
+// 用于存储用户消息
+const userMessages = ref<Message[]>([]);
+
 const input = ref('');
 const remainingQuestions = ref(3);
 const isTyping = ref(false);
 const messagesEndRef = ref<HTMLElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
+const showReportCard = ref(false);
 
 let chatId: string | null = null;
+let sseClient: any = null;
 
 onLoad((options) => {
   if (options.chatId) {
@@ -111,7 +123,75 @@ onLoad((options) => {
     // 这里可以添加加载聊天历史的逻辑
   }
   if (options.reportId) {
-    // 这里可以添加加载报告相关信息的逻辑
+    // 连接到 SSE 服务器
+    connectSSE(options.reportId);
+  }
+});
+
+// 连接到 SSE
+const connectSSE = (reportId: string) => {
+  const sseUrl = `/api/v1/reports/structured-thinking-sse/${reportId}`;
+  
+  sseClient = useChatSSE({
+    url: sseUrl,
+    onOpen: (event) => {
+
+      console.log('SSE 连接已打开', event);
+    },
+    onMessage: (event) => {
+      console.log('收到 SSE 消息', event);
+      isTyping.value = false;
+      
+      // 根据消息类型处理
+      try {
+        // 检查是否是结构化消息
+        if (event && typeof event === 'object' && 'stage' in event) {
+          // 这是一个结构化消息，添加到structuredMessages
+          structuredMessages.value.push(event);
+          
+          // 检查是否是完成状态
+          if (event.messages && 
+              (event.messages.type === 'completed' || 
+               (event.messages.type === 'generater_report' && event.messages.content.includes('完成')))) {
+            showReportCard.value = true;
+          }
+        } else {
+          // 这是一个普通消息，添加到用户消息
+          const messageContent = typeof event === 'string' ? event : JSON.stringify(event);
+          userMessages.value.push({
+            role: 'ai',
+            content: messageContent
+          });
+        }
+      } catch (e) {
+        console.error('处理SSE消息失败:', e);
+        // 如果解析失败，仍然尝试显示原始数据
+        userMessages.value.push({
+          role: 'ai',
+          content: typeof event === 'string' ? event : JSON.stringify(event)
+        });
+      }
+      updateMessages();
+    },
+    onError: (event) => {
+      console.error('SSE 连接错误', event);
+      userMessages.value.push({
+        role: 'ai',
+        content: '连接出现问题，请稍后重试。'
+      });
+      isTyping.value = false;
+      updateMessages();
+    },
+    onClosed: (event) => {
+      console.log('SSE 连接已关闭', event);
+    }
+  });
+};
+
+onUnload(() => {
+  // 页面卸载时关闭 SSE 连接
+  if (sseClient && sseClient.close) {
+    sseClient.close();
   }
 });
 
@@ -148,20 +228,21 @@ const handleSend = () => {
     content: input.value,
   };
 
-  messages.value.push(userMessage);
+  userMessages.value.push(userMessage);
   input.value = '';
   isTyping.value = true;
   remainingQuestions.value -= 1;
 
   updateMessages();
 
-  // 模拟AI思考和回复
-  setTimeout(() => {
-    const aiResponse = generateAIResponse(input.value);
-    messages.value.push({ role: 'ai', content: aiResponse });
-    isTyping.value = false;
-    updateMessages();
-  }, 2000);
+  // 如果有 SSE 连接，则发送消息
+  if (sseClient && sseClient.isConnected.value) {
+    sseClient.sendMessage({
+      type: 'chat_message',
+      content: userMessage.content,
+      timestamp: Date.now()
+    });
+  }
 };
 
 const handleKeyPress = (e: KeyboardEvent) => {
@@ -171,89 +252,18 @@ const handleKeyPress = (e: KeyboardEvent) => {
   }
 };
 
-const generateAIResponse = (question: string): string => {
-  const lowerQuestion = question.toLowerCase();
-
-  // 关键词匹配
-  if (lowerQuestion.includes('工作') || lowerQuestion.includes('换') || lowerQuestion.includes('事业')) {
-    return `从你的命盘来看，你当前处于"金水为喜"的阶段。
-
-换工作适合寻找更结构化、流程清晰的团队。
-
-你现在的犹豫来自"身弱容易多想"的特质。
-你可以问自己两个问题：
-1）这个新公司是否更稳定？
-2）是否能提供明确角色定位？
-
-如果两者都更明确，那换是对你有利的。`;
-  }
-
-  if (lowerQuestion.includes('感情') || lowerQuestion.includes('恋爱') || lowerQuestion.includes('结婚')) {
-    return `根据你的八字分析，你对感情很敏感，也容易吸引异性注意。
-
-但你可能会遇到需要做选择的情况，或者在两个人之间犹豫不决。
-
-建议：
- 选择那个让你感觉舒服、能理解你敏感内心的人
-• 在感情中要更果断一些，不要拖泥带水
-• 信任自己的直觉，它通常是对的
-
-现在这个阶段适合理性思考感情问题，不要冲动做决定。`;
-  }
-
-  if (lowerQuestion.includes('财运') || lowerQuestion.includes('钱') || lowerQuestion.includes('投资')) {
-    return `从你的命盘看，你有赚钱的机会和想法，但需要注意：
-
-你的身弱特质意味着：如果步子迈太大，容易把自己累垮。
-
-理财建议：
-• 小步快跑比大刀阔斧更适合你
-• 避免高风险投资
-• 通过积累和复利的方式，长期来看会更有收获
-• 稳健的投资策略会让你走得更远
-
-记住：稳定增长比一夜暴富更适合你的命格。`;
-  }
-
-  if (lowerQuestion.includes('健康') || lowerQuestion.includes('身体') || lowerQuestion.includes('累')) {
-    return `根据你的命盘，你可能容易感觉疲累，或者某些方面比较敏感。
-
-健康建议：
-• 每周保持 3 次以上的运动
-• 多喝温水，保持充足睡眠
-• 避免熬夜，这对你尤其重要
-• 户外活动会让你精神状态更好
-
-保持规律的作息和运动对你特别重要。你的能量需要通过良好的生活习惯来补充。`;
-  }
-
-  if (lowerQuestion.includes('什么时候') || lowerQuestion.includes('时间') || lowerQuestion.includes('何时')) {
-    return `关于时机的问题，从命理角度来说：
-
-你的命格特点是"思虑多而行动少"，所以与其等待完美时机，不如：
-
-1. 先做小范围尝试，边做边调整
-2. 不要等到完全准备好才开始
-3. 给自己设定具体的启动日期
-
-记住：对你来说，"开始行动"本身就是最好的时机。完美的时机往往是在行动中创造出来的。`;
-  }
-
-  // 默认回复
-  return `感谢你的提问。
-
-针对你的疑问，我建议：
-• 多运用理性思考和清晰表达，这是你的强项
-• 不要因为想太多而迟迟不行动
-• 找到能支持你、理解你的伙伴很重要
-
-如果你能具体描述一下你的情况，比如涉及事业、感情、还是财运方面，我可以给你更有针对性的建议。`;
+// 跳转到报告页面
+const goToReport = () => {
+  uni.navigateTo({
+    url: '/pages/report/index'
+  });
 };
 </script>
 
 <style lang="scss" scoped>
 .chat-page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: $color-white;
   display: flex;
   flex-direction: column;
@@ -267,6 +277,8 @@ const generateAIResponse = (question: string): string => {
   position: relative;
   z-index: 10;
   margin-bottom: 0;
+  position: sticky;
+  top: 0;
   
   .header-content {
     display: flex;
@@ -388,6 +400,8 @@ const generateAIResponse = (question: string): string => {
 }
 
 .input-container {
+  position: sticky;
+  bottom: 0;
   padding: 16px 20px;
   background: $color-white;
   border-top: 1px solid $color-slate-200;
