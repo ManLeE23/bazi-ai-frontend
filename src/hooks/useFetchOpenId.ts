@@ -13,6 +13,9 @@ export default function useFetchOpenId() {
           uni.setStorageSync('openId', data.openid);
         });
       },
+      fail: (err) => {
+        console.log('Login error:', err);
+      },
     });
   };
 

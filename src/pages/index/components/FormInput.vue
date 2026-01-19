@@ -37,15 +37,16 @@ const props = defineProps({
 
 <style lang="scss" scoped>
 .form-input {
+  height: 48px;
   padding: 12px 16px;
-  border: 1px solid $color-slate-200;
+  border: 1.5px solid rgba(99, 102, 241, 0.2);
   border-radius: $border-radius-base;
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  background-color: $color-slate-50;
+  background-color: #fff;
   outline: none;
-  font-size: $text-base;
+  font-size: 14px;
   justify-content: space-between;
   color: $color-slate-900;
   .input-field {
@@ -55,9 +56,11 @@ const props = defineProps({
   .suffix-icon {
     margin-left: $spacing-sm;
   }
-  &:active, &:focus-within, &:focus, &:hover {
-    border-color: $color-amber-400;
-    border-width: 2px;
+  &:active, &:focus-within, &:focus {
+    // border-color: $color-amber-400;
+    // border-width: 2px;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
   }
 }
 </style>

@@ -4,7 +4,7 @@
       <CheckTag
         v-for="option in options"
         :key="option"
-        :selected="modelValue.includes(option)"
+        :selected="modelValue === option"
         @update:selected="handleSelect(option)"
       >
         {{ option }}
@@ -19,8 +19,8 @@ import CheckTag from '@/components/CheckTag.vue'
 
 const props = defineProps({
   modelValue: {
-    type: Array,
-    default: () => []
+    type: String,
+    default: ''
   },
   options: {
     type: Array,
@@ -28,25 +28,20 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['change'])
 
 const handleSelect = (option) => {
-  const newSelected = [...props.modelValue]
-  if (newSelected.includes(option)) {
-    const index = newSelected.indexOf(option)
-    newSelected.splice(index, 1)
-  } else {
-    newSelected.push(option)
-  }
-  emit('update:modelValue', newSelected)
+  // 如果当前选中项已经是该选项，则取消选择，否则选择该项
+  const newValue = props.modelValue === option ? '' : option;
+  emit('change', newValue)
 }
 </script>
 
 <style lang="scss" scoped>
 .options-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 10px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-top: 8px;
 }
 </style>

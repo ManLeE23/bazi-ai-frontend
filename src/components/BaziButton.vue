@@ -1,7 +1,7 @@
 <template>
   <button
     :style="customStyle"
-    :class="['custom-button', type, { 'show-shadow': showShadow, 'disabled': disabled }]" 
+    :class="['custom-button', type, `size-${size}`, { 'show-shadow': showShadow, 'disabled': disabled }]" 
     @click="handleClick"
     :disabled="disabled"
   >
@@ -11,17 +11,19 @@
 
 <script setup lang="ts">
 interface Props {
-  type?: 'primary' | 'secondary';
+  type?: 'primary' | 'secondary' | 'default';
   disabled?: boolean;
   showShadow?: boolean;
   customStyle: Record<string, any>;
+  size?: 'small' | 'medium' | 'large';
 }
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'primary',
   disabled: false,
   showShadow: false,
-  customStyle: {}
+  customStyle: {},
+  size: 'large'
 });
 
 const emit = defineEmits<{
@@ -38,7 +40,7 @@ const handleClick = () => {
 <style lang="scss" scoped>
 .custom-button {
   width: 100%;
-  height: 56px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,6 +54,21 @@ const handleClick = () => {
   outline: none;
   cursor: pointer;
 
+  &.size-small {
+    height: 40px;
+    font-size: 12px;
+  }
+
+  &.size-medium {
+    height: 48px;
+    font-size: 14px;
+  }
+
+  &.size-large {
+    height: 56px;
+    font-size: 14px;
+  }
+
   &:hover {
     transform: scale(1.02);
   }
@@ -61,18 +78,28 @@ const handleClick = () => {
   }
 
   &.primary {
-    background: linear-gradient(135deg, $color-amber-400, $color-orange-500);
+    background: #4f46e5;
     color: $color-white;
   }
 
   &.secondary {
-    background: $color-white;
-    color: $color-orange-500;
-    border: 1px solid $color-orange-500;
+    background: #111827;
+    color: #fff;
+    border: 1px solid #111827;
+  }
+
+  &.default {
+    background: #fff;
+    color: #4f46e5;
+    border: none;
+
+    // &.show-shadow {
+    //   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    // }
   }
   
   &.show-shadow {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 25px -5px #e0e7ff, 0 8px 10px -6px #e0e7ff;
   }
 
   &.disabled {

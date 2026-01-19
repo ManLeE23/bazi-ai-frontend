@@ -1,459 +1,252 @@
 <template>
-  <div class="profile-page">
-    <!-- Header -->
-    <div class="profile-header">
-      <div class="circle-bg"></div>
-      <div class="bottom-circle"></div>
-      <u-navbar
-        :is-back="false"
-        :is-fixed="true"
-        background="transparent"
-        :border-bottom="false"
-      />
-      
-      <div class="header-content">
-        <div class="user-avatar">
-          <image src="@/static/icon/default-calendar.svg" class="avatar-icon" />
-        </div>
-        <h1 class="header-title">我的</h1>
-        <p class="header-subtitle">管理你的命理服务</p>
-      </div>
-    </div>
+  <view class="root">
+    <view class="flex-1 px-6 pt-12">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">个人中心</h2>
 
-    <div class="content-container">
-      <!-- Membership Status Card -->
-      <div :class="['membership-card', isMember ? 'member' : 'normal']">
-        <div class="card-header">
-          <div class="member-info">
-            <div :class="['member-icon', isMember ? 'member-icon-member' : 'member-icon-normal']">
-              <image :src="crownIcon" class="icon" />
-            </div>
-            <div class="member-text">
-              <h3 :class="['member-title', isMember ? 'member-title-member' : '']">
-                {{ isMember ? 'AI 高级会员' : '普通用户' }}
-              </h3>
-              <p v-if="isMember && memberExpiry" class="member-expiry">有效期至：{{ memberExpiry }}</p>
-            </div>
-          </div>
-          <image v-if="isMember" :src="checkIcon" class="check-icon" />
-        </div>
+      <view class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-3xl p-6 text-white mb-6 relative overflow-hidden">
+        <view class="relative z-10">
+          <p class="text-xs opacity-60">人生趋势 VIP 会员</p>
 
-        <div v-if="isMember" class="member-benefits">
-          <div class="benefit-item">
-            <image :src="checkIcon" class="benefit-icon" />
-            <span>无限次 AI 命理咨询</span>
-          </div>
-          <div class="benefit-item">
-            <image :src="checkIcon" class="benefit-icon" />
-            <span>深度命盘分析报告</span>
-          </div>
-          <div class="benefit-item">
-            <image :src="checkIcon" class="benefit-icon" />
-            <span>优先体验新功能</span>
-          </div>
-        </div>
-        <div v-else class="upgrade-btn-container">
-          <button @click="onNavigate('membership')" class="upgrade-btn">升级会员，解锁全部功能</button>
-        </div>
-      </div>
+          <p class="text-xl font-bold mt-1">未订阅会员</p>
 
-      <!-- Menu Items -->
-      <div class="menu-container">
-        <div @click="onNavigate('history')" class="menu-item">
-          <div class="menu-icon">
-            <image :src="fileIcon" class="icon" />
-          </div>
-          <div class="menu-text">
-            <h4 class="menu-title">历史报告</h4>
-            <p class="menu-desc">查看往期命理分析</p>
-          </div>
-          <image :src="chevronIcon" class="chevron-icon" />
-        </div>
-        
-        <div class="divider"></div>
-        
-        <div @click="onNavigate('orders')" class="menu-item">
-          <div class="menu-icon">
-            <image :src="shoppingIcon" class="icon" />
-          </div>
-          <div class="menu-text">
-            <h4 class="menu-title">我的订单</h4>
-            <p class="menu-desc">查看购买记录</p>
-          </div>
-          <image :src="chevronIcon" class="chevron-icon" />
-        </div>
-        
-        <div v-if="!isMember" class="divider"></div>
-        
-        <div v-if="!isMember" @click="onNavigate('membership')" class="menu-item highlighted">
-          <div class="menu-icon highlighted">
-            <image :src="crownIcon" class="icon" />
-          </div>
-          <div class="menu-text">
-            <h4 class="menu-title highlighted">升级会员</h4>
-            <p class="menu-desc">解锁更多权益</p>
-          </div>
-          <image :src="chevronIcon" class="chevron-icon" />
-        </div>
-      </div>
+          <button class="mt-4 px-4 py-2 bg-indigo-500 text-xs font-bold rounded-xl">
+            升级会员，获取无限分析
+          </button>
+        </view>
 
-      <!-- Stats Card -->
-      <div class="stats-card">
-        <h3 class="stats-title">我的统计</h3>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-value">3</div>
-            <div class="stat-label">分析次数</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">8</div>
-            <div class="stat-label">提问次数</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">15</div>
-            <div class="stat-label">使用天数</div>
-          </div>
-        </div>
-      </div>
-    </div>
+        <view class="absolute -right-4 -bottom-4 text-6xl opacity-20">
+          💎
+        </view>
+      </view>
 
-    <!-- Tabbar -->
-    <Tabbar :current="2" />
-  </div>
+      <view class="space-y-4">
+        <template v-for="(item, index) in [1,2,3]" :key="index">
+          <view class="glass p-4 rounded-2xl flex justify-between items-center">
+            <view>
+              <p class="text-sm font-bold text-gray-700">
+                2026-01-{{ item }} 趋势诊断
+              </p>
+
+              <p class="text-xs-small text-gray-400">关注点：事业发展</p>
+            </view>
+
+            <span class="text-indigo-500 text-xs font-bold">已完成 ></span>
+          </view>
+        </template>
+      </view>
+
+      <view class="mt-8 space-y-2">
+        <view class="glass p-4 rounded-2xl text-sm text-gray-600">
+          我的订单
+        </view>
+
+        <view class="glass p-4 rounded-2xl text-sm text-gray-600">
+          意见反馈
+        </view>
+
+        <view class="p-4 text-center text-sm text-red-400">退出登录</view>
+      </view>
+    </view>
+
+    <!-- 底部导航栏 -->
+    <view class="glass h-20 px-10 flex items-center justify-between mt-auto border-t border-white">
+      <button @click="navigateTo('/pages/index')" class="flex flex-col items-center gap-1">
+        <span
+          class="text-xl transition-all"
+          :class="currentPage === 'home' ? 'scale-110 opacity-100' : 'opacity-20'"
+          >🏠</span
+        >
+        <span
+          class="text-xs-small font-bold uppercase tracking-tighter"
+          :class="currentPage === 'home' ? 'active-tab' : 'text-gray-400'"
+          >Home</span
+        >
+      </button>
+      <button @click="navigateTo('/pages/report-list')" class="flex flex-col items-center gap-1">
+        <span
+          class="text-xl transition-all"
+          :class="currentPage === 'reports' ? 'scale-110 opacity-100' : 'opacity-20'"
+          >📊</span
+        >
+        <span
+          class="text-xs-small font-bold uppercase tracking-tighter"
+          :class="currentPage === 'reports' ? 'active-tab' : 'text-gray-400'"
+          >Report</span
+        >
+      </button>
+      <button @click="navigateTo('/pages/profile')" class="flex flex-col items-center gap-1">
+        <span
+          class="text-xl transition-all"
+          :class="currentPage === 'me' ? 'scale-110 opacity-100' : 'opacity-20'"
+          >👤</span
+        >
+        <span
+          class="text-xs-small font-bold uppercase tracking-tighter"
+          :class="currentPage === 'me' ? 'active-tab' : 'text-gray-400'"
+          >Me</span
+        >
+      </button>
+    </view>
+  </view>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
 import { ref } from 'vue';
-import Tabbar from '@/components/Tabbar.vue';
 
-// 使用项目中的图标
-import crownIcon from '@/static/icon/user.svg';
-import checkIcon from '@/static/icon/default-calendar.svg';
-import fileIcon from '@/static/icon/default-calendar.svg';
-import shoppingIcon from '@/static/icon/default-clock.svg';
-import chevronIcon from '@/static/icon/default-clock.svg';
+export default {
+  name: 'ProfilePage',
+  setup() {
+    const currentPage = ref('me'); // 设置当前页面为个人中心
+    
+    const navigateTo = (url: string) => {
+      if(url !== '/pages/profile') {  // 如果不是当前页面则跳转
+        uni.navigateTo({
+          url
+        });
+      }
+    };
 
-type ProfilePageProps = {
-  onNavigate: (page: 'membership' | 'orders' | 'history') => void;
-  isMember: boolean;
-  memberExpiry?: string;
-};
-
-const props = withDefaults(defineProps<ProfilePageProps>(), {
-  isMember: false,
-  memberExpiry: undefined,
-});
-
-const onNavigate = (page: 'membership' | 'orders' | 'history') => {
-  props.onNavigate(page);
+    return {
+      currentPage,
+      navigateTo
+    };
+  }
 };
 </script>
 
-<style lang="scss" scoped>
-.profile-page {
-  min-height: 100vh;
-  background: linear-gradient(to bottom, $color-slate-50, $color-slate-100);
-  padding-bottom: 70px;
-  position: relative;
+<style lang="scss">
+.root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 0% 0%, rgba(212, 226, 255, 0.5) 0, transparent 50%),
+    radial-gradient(circle at 100% 0%, rgba(255, 226, 241, 0.5) 0, transparent 50%),
+    // radial-gradient(circle at 100% 100%, rgba(226, 255, 241, 0.5) 0, transparent 50%),
+    radial-gradient(circle at 0% 100%, rgba(241, 226, 255, 0.5) 0, transparent 50%),
+    #ffffff;
 }
 
-.profile-header {
-  background: linear-gradient(135deg, $color-amber-400, $color-orange-500);
-  position: relative;
-  overflow: hidden;
-  padding: 48px 24px 96px 24px;
-  box-sizing: border-box;
-  
-  .circle-bg {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 256px;
-    height: 256px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    margin-right: -128px;
-    margin-top: -128px;
-  }
-  
-  .bottom-circle {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 384rpx;
-    height: 384rpx;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    margin-left: -192rpx;
-    margin-bottom: -192rpx;
-  }
-  
-  .header-content {
-    position: relative;
-    z-index: 10;
-    text-align: center;
-    
-    .user-avatar {
-      width: 80px;
-      height: 80px;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      
-      .avatar-icon {
-        width: 40px;
-        height: 40px;
-      }
-    }
-    
-    .header-title {
-      color: $color-white;
-      font-size: $text-lg;
-      margin: 0 0 8px 0;
-      font-weight: 600;
-    }
-    
-    .header-subtitle {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: $text-base;
-      margin: 0;
-    }
-  }
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-.content-container {
-  max-width: 768px;
-  margin: -64px 20px 0;
-  position: relative;
-  z-index: 10;
+.active-tab {
+  color: #6366f1;
+  font-weight: 800;
 }
 
-.membership-card {
-  border-radius: 24px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  margin-bottom: 16px;
-  
-  &.member {
-    background: linear-gradient(135deg, $color-amber-400, $color-orange-500);
-  }
-  
-  &.normal {
-    background: $color-white;
-  }
-  
-  .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    
-    .member-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      
-      .member-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        
-        &.member-icon-member {
-          background: rgba(255, 255, 255, 0.2);
-        }
-        
-        &.member-icon-normal {
-          background: linear-gradient(135deg, $color-amber-400, $color-orange-500);
-        }
-        
-        .icon {
-          width: 24px;
-          height: 24px;
-        }
-      }
-      
-      .member-text {
-        .member-title {
-          margin: 0;
-          font-size: $text-lg;
-          
-          &.member-title-member {
-            color: $color-white;
-          }
-        }
-        
-        .member-expiry {
-          color: rgba(255, 255, 255, 0.9);
-          font-size: $text-sm;
-          margin: 0;
-        }
-      }
-    }
-    
-    .check-icon {
-      width: 32px;
-      height: 32px;
-    }
-  }
-  
-  .member-benefits {
-    .benefit-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: $color-white;
-      margin-bottom: 8px;
-      
-      &:last-child {
-        margin-bottom: 0;
-      }
-      
-      .benefit-icon {
-        width: 16px;
-        height: 16px;
-      }
-    }
-  }
-  
-  .upgrade-btn-container {
-    .upgrade-btn {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, $color-amber-400, $color-orange-500);
-      color: $color-white;
-      border: none;
-      border-radius: 12px;
-      font-size: $text-base;
-      font-weight: 600;
-      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
-      transition: all 0.2s ease;
-      
-      &:active {
-        transform: scale(0.98);
-      }
-    }
-  }
-}
+/* 字体大小类 */
+.text-xs-tiny { font-size: 16rpx; }
+.text-xs-small { font-size: 18rpx; }
+.text-sm { font-size: 24rpx; }
+.text-base { font-size: 28rpx; }
+.text-lg { font-size: 32rpx; }
+.text-xl { font-size: 36rpx; }
+.text-2xl { font-size: 48rpx; }
+.text-3xl { font-size: 48rpx; }
+.text-4xl { font-size: 64rpx; }
 
-.menu-container {
-  background: $color-white;
-  border-radius: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  margin-bottom: 16px;
-  
-  .divider {
-    height: 1px;
-    background: $color-slate-100;
-    margin: 0 24px;
-  }
-  
-  .menu-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 24px;
-    transition: background 0.2s ease;
-    
-    &.highlighted {
-      .menu-icon {
-        background: linear-gradient(135deg, $color-amber-400, $color-orange-500) !important;
-      }
-      
-      .menu-title {
-        color: $color-amber-600 !important;
-      }
-    }
-    
-    .menu-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: $color-slate-100;
-      
-      &.highlighted {
-        background: linear-gradient(135deg, $color-amber-400, $color-orange-500);
-      }
-      
-      .icon {
-        width: 20px;
-        height: 20px;
-      }
-    }
-    
-    .menu-text {
-      flex: 1;
-      
-      .menu-title {
-        margin: 0;
-        font-size: $text-base;
-        font-weight: 500;
-        
-        &.highlighted {
-          color: $color-amber-600;
-        }
-      }
-      
-      .menu-desc {
-        color: $color-slate-600;
-        font-size: $text-sm;
-        margin: 0;
-      }
-    }
-    
-    .chevron-icon {
-      width: 20px;
-      height: 20px;
-      color: $color-slate-400;
-    }
-    
-    &:active {
-      background: $color-slate-50;
-    }
-  }
-}
+/* 间距类 */
+.mb-6 { margin-bottom: 48rpx; }
+.mt-1 { margin-top: 8rpx; }
+.mt-4 { margin-top: 32rpx; }
+.mt-6 { margin-top: 48rpx; }
+.mb-10 { margin-bottom: 80rpx; }
+.mb-2 { margin-bottom: 16rpx; }
+.p-4 { padding: 32rpx; }
+.p-6 { padding: 48rpx; }
+.py-2 { padding-top: 16rpx; padding-bottom: 16rpx; }
+.px-4 { padding-left: 32rpx; padding-right: 32rpx; }
+.px-6 { padding-left: 48rpx; padding-right: 48rpx; }
+.py-8 { padding-top: 64rpx; padding-bottom: 64rpx; }
+.pt-12 { padding-top: 96rpx; }
+.pb-24 { padding-bottom: 192rpx; }
+.pt-20 { padding-top: 160rpx; }
+.pb-20 { padding-bottom: 160rpx; }
+.px-7 { padding-left: 56rpx; padding-right: 56rpx; }
+.py-6 { padding-top: 48rpx; padding-bottom: 48rpx; }
+.space-y-4 { margin-top: 32rpx; }
+.space-y-2 { margin-top: 16rpx; }
+.gap-1 { gap: 8rpx; }
+.gap-4 { gap: 32rpx; }
+.gap-3 { gap: 24rpx; }
+.gap-2 { gap: 16rpx; }
+.gap-5 { gap: 40rpx; }
 
-.stats-card {
-  background: linear-gradient(135deg, $color-slate-50, $color-slate-100);
-  border-radius: 24px;
-  padding: 24px;
-  border: 1px solid $color-slate-200;
-  
-  .stats-title {
-    margin: 0 0 16px 0;
-    font-size: $text-lg;
-    font-weight: 600;
-  }
-  
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    
-    .stat-item {
-      text-align: center;
-      
-      .stat-value {
-        font-size: $text-2lg;
-        margin-bottom: 4px;
-      }
-      
-      .stat-label {
-        color: $color-slate-600;
-        font-size: $text-sm;
-        margin: 0;
-      }
-    }
-  }
-}
+/* 布局类 */
+.items-start { align-items: flex-start; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+.justify-center { justify-content: center; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.flex { display: flex; }
+.flex-1 { flex: 1; }
+.flex-col { flex-direction: column; }
+.overflow-hidden { overflow: hidden; }
+.overflow-y-auto { overflow-y: auto; }
+
+/* 文本样式 */
+.font-bold { font-weight: 700; }
+.font-black { font-weight: 900; }
+.uppercase { text-transform: uppercase; }
+.tracking-tighter { letter-spacing: -0.05em; }
+.tracking-wider { letter-spacing: 0.05em; }
+.tracking-widest { letter-spacing: 0.1em; }
+
+/* 颜色类 */
+.text-gray-800 { color: #1f2937; }
+.text-gray-700 { color: #374151; }
+.text-gray-400 { color: #9ca3af; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-indigo-500 { color: #6366f1; }
+.text-indigo-400 { color: #818cf8; }
+.text-indigo-600 { color: #4f46e5; }
+.text-red-400 { color: #f87171; }
+.opacity-20 { opacity: 0.2; }
+.opacity-60 { opacity: 0.6; }
+
+/* 背景类 */
+.bg-indigo-500 { background-color: #6366f1; }
+.bg-gray-100 { background-color: #f3f4f6; }
+.bg-green-100 { background-color: #dcfce7; }
+.bg-white-40 { background-color: rgba(255, 255, 255, 0.4); }
+.bg-white-50 { background-color: rgba(255, 255, 255, 0.5); }
+.bg-white-70 { background-color: rgba(255, 255, 255, 0.7); }
+.bg-white-80 { background-color: rgba(255, 255, 255, 0.8); }
+
+/* 边框类 */
+.border-white { border-color: #fff; }
+.border-t { border-top: 1rpx solid currentColor; }
+
+/* 圆角类 */
+.rounded-2xl { border-radius: 32rpx; }
+.rounded-3xl { border-radius: 48rpx; }
+.rounded-xl { border-radius: 24rpx; }
+
+/* 尺寸类 */
+.w-full { width: 100%; }
+.h-20 { height: 160rpx; }
+.h-full { height: 100%; }
+
+/* 定位类 */
+.absolute { position: absolute; }
+.relative { position: relative; }
+.top-0 { top: 0; }
+.right-0 { right: 0; }
+.-right-4 { right: -32rpx; }
+.-bottom-4 { bottom: -32rpx; }
+.z-10 { z-index: 10; }
+
+/* 动画过渡类 */
+.transition-all { transition: all 0.3s; }
+.scale-110 { transform: scale(1.1); }
+
+/* 其他样式 */
+.backdrop-filter { backdrop-filter: blur(14px); }
 </style>

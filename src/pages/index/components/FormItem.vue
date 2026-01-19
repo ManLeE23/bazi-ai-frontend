@@ -44,9 +44,10 @@ const iconClass = computed(() => {
 .label {
   display: flex;
   align-items: center;
-  color: $color-slate-700;
-  font-size: $text-base;
-  margin-bottom: 12px;
+  color: #9ca3af;
+  font-size: 12px;
+  margin-bottom: 8rpx;
+  font-weight: 500;
 }
 
 .prefix-icon {

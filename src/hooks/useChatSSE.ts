@@ -83,16 +83,30 @@ const useChatSSE = (options: SSEOptions) => {
 
           const data = JSON.parse(rawData);
 
+          console.log('data', data);
+
           if (!data) {
             console.warn('解析出空的SSE数据');
             continue;
           }
 
-          // console.log('处理后的data', data);
           errorCount = 0; // 重置错误计数
 
+          console.log('data.payload.content', data.payload.content);
+
+          if (data.payload && data.payload.content) {
+            // 如果content是数组，转换为字符串
+            if (Array.isArray(data.payload.content)) {
+              console.log(
+                '将payload.content数组转换为字符串',
+                data.payload.content
+              );
+              data.payload.content = data.payload.content.join('');
+            }
+          }
+
           // 检查是否收到最终报告准备好的信号
-          if (data.messages && data.messages.final_report_ready === true) {
+          if (data.type === 'completed') {
             console.log(
               '收到最终报告准备好的信号，将在1秒后关闭SSE连接以确保数据完整传输'
             );

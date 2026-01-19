@@ -3,6 +3,7 @@
     <CheckTag
       v-for="option in options"
       :key="option"
+      size="large"
       :selected="modelValue === option"
       @update:selected="handleSelect(option)"
     >

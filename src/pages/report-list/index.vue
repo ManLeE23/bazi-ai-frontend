@@ -98,7 +98,7 @@ const handleViewReport = (reportId: string) => {
   console.log('查看报告', reportId);
   // 实现查看报告逻辑，跳转到报告详情页
   uni.navigateTo({
-    url: `/pages/report/index?id=${reportId}`
+    url: `/pages/report-detail/index?id=${reportId}`
   });
 };
 

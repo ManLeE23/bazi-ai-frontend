@@ -25,3 +25,7 @@ export const fetchGenReport = (params: GenReportParams) => {
 export const fetchReportById = (reportId: string) => {
   return httpGet({ url: `/api/v1/reports/detail/${reportId}`, params: {} });
 };
+
+export const fetchProgressfromReportId = (reportId: string) => {
+  return httpGet({ url: `/api/v1/reports/progress/${reportId}`, params: {} });
+};
