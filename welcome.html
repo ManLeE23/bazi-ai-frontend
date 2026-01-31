@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Trenlify - 洞察未来趋势</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #000; }
+        [x-cloak] { display: none !important; }
+
+        /* 呼吸感背景光晕 */
+        .glow-bg {
+            background: radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+        }
+
+        /* IP 漂浮动画 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+
+        /* 排盘扫描旋转 */
+        @keyframes rotate-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-rotate { animation: rotate-slow 20s linear infinite; }
+
+        /* 自定义滚动条 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body x-data="{ 
+    step: 'slogan', 
+    chats: [
+        { id: 1, title: '2026 丙午年核心转机报告', date: 'JAN 28, 2026', type: 'Career' },
+        { id: 2, title: '个人能量场波动诊断', date: 'JAN 15, 2026', type: 'Energy' }
+    ] 
+}">
+
+    <div class="w-full max-w-md min-h-screen mx-auto bg-[#F8FAFF] relative flex flex-col shadow-2xl overflow-hidden">
+        
+        <div x-show="step === 'slogan'" 
+             x-transition:leave="transition ease-in duration-500 transform translate-y-full"
+             class="fixed inset-0 bg-[#F8FAFF] z-[100] flex flex-col justify-between px-10 py-20">
+            
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none flex items-center justify-center">
+                <div class="w-[500px] h-[500px] border border-indigo-900 rounded-full animate-rotate"></div>
+                <div class="absolute w-[300px] h-[300px] border border-indigo-900 rounded-full opacity-30"></div>
+            </div>
+
+            <div class="relative z-10">
+                <div class="w-12 h-1.5 bg-indigo-600 mb-8 rounded-full"></div>
+                <h1 class="text-[52px] font-[900] text-slate-900 leading-[1.05] tracking-tighter">
+                    把复杂的<br/>
+                    <span class="text-slate-300">人生，</span><br/>
+                    变成<span class="text-indigo-600">可行趋势。</span>
+                </h1>
+                <p class="mt-6 text-slate-400 font-bold text-[11px] tracking-[0.4em] uppercase">
+                    Digital Wisdom & Destiny Algorithms
+                </p>
+            </div>
+
+            <div class="relative flex-1 flex items-center justify-center animate-float">
+                <div class="absolute w-64 h-64 bg-indigo-500/20 rounded-full blur-[80px]"></div>
+                <div class="relative z-10 w-[280px] h-[340px] flex items-end justify-center">
+                    <div class="text-center">
+                        <div class="flex gap-2 justify-center opacity-40 mb-4">
+                            <div class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                            <div class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse delay-75"></div>
+                            <div class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse delay-150"></div>
+                        </div>
+                        <div class="px-6 py-2 border border-indigo-200 rounded-full text-[10px] font-bold text-indigo-400 tracking-widest bg-white/50 backdrop-blur-sm">
+                            IP CHARACTER PLACEHOLDER
+                        </div>
+                        <p class="text-[9px] text-slate-400 mt-2 uppercase tracking-tighter">请替换为你下载的男女 IP 合影图</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative z-10">
+                <button @click="step = 'list'" class="w-full h-20 bg-slate-900 text-white rounded-[32px] flex items-center justify-center gap-4 shadow-2xl active:scale-95 transition-all">
+                    <span class="font-black text-sm tracking-[0.2em] uppercase">洞察我的 2026 档案</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div x-show="step === 'list'" x-cloak class="flex-1 flex flex-col bg-[#FBFBFF] px-8 pt-16">
+            
+            <div class="flex flex-col items-center mb-10">
+                <div class="relative w-24 h-24 mb-4">
+                    <div class="w-full h-full bg-slate-900 rounded-[24%] flex items-center justify-center shadow-lg border-4 border-white overflow-hidden">
+                        <div class="w-full h-full bg-indigo-600/20 animate-pulse"></div>
+                    </div>
+                    <div class="absolute -right-1 -top-1 w-4 h-4 bg-green-500 border-4 border-white rounded-full"></div>
+                </div>
+                <h2 class="text-2xl font-[800] text-slate-900 tracking-tight">趋势诊断档案库</h2>
+                <p class="text-[10px] text-slate-400 font-bold mt-2 tracking-[0.2em] uppercase">Core Algorithm: Ready</p>
+            </div>
+
+            <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-32">
+                <template x-for="chat in chats" :key="chat.id">
+                    <div class="bg-white border border-slate-100 p-6 rounded-[32px] flex justify-between items-center group active:scale-[0.98] transition-all shadow-sm hover:shadow-md">
+                        <div class="flex items-center gap-5">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center" 
+                                 :class="chat.type === 'Career' ? 'bg-slate-900 text-white' : 'bg-indigo-50 text-indigo-600'">
+                                <span class="text-xs font-black" x-text="chat.type === 'Career' ? '职' : '场'"></span>
+                            </div>
+                            <div>
+                                <p class="text-[15px] font-[800] text-slate-800" x-text="chat.title"></p>
+                                <p class="text-[10px] text-slate-400 font-bold mt-1 tracking-widest uppercase" x-text="chat.date"></p>
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 group-hover:text-indigo-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                    </div>
+                </template>
+
+                <button class="w-full py-6 border-2 border-dashed border-slate-200 text-slate-400 rounded-[32px] font-black text-[11px] tracking-[0.2em] uppercase mt-4 hover:border-indigo-300 hover:text-indigo-600 transition-all">
+                    + 开启新趋势诊断
+                </button>
+            </div>
+        </div>
+
+        <nav x-show="step === 'list'" x-cloak class="fixed bottom-10 left-1/2 -translate-x-1/2 w-[240px] h-16 bg-slate-900 rounded-full flex items-center justify-around px-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-[150]">
+            <button class="text-white">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/></svg>
+            </button>
+            <button class="text-slate-600 hover:text-indigo-400 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </button>
+            <button class="text-slate-600 hover:text-indigo-400 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            </button>
+        </nav>
+
+    </div>
+
+</body>
+</html>

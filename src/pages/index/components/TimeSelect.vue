@@ -13,6 +13,7 @@
       v-model="show"
       confirm-color="#f59e0b"
       :mask-close-able="false"
+      :default-index="defaultIndex"
       @confirm="handleConfirm"
     >
     </u-picker>
@@ -49,6 +50,14 @@ const emit = defineEmits(['update:modelValue']);
 
 const show = ref(false);
 
+const defaultIndex = computed(() => {
+  if (!props.modelValue) {
+    return 0;
+  }
+  const selectedIndex = timeOptions.findIndex(option => option.value === props.modelValue);
+  return selectedIndex >= 0 ? selectedIndex : 0;
+});
+
 const displayValue = computed(() => {
   if (!props.modelValue) return '';
   const selectedOption = timeOptions.find(option => option.value === props.modelValue);
@@ -70,16 +79,5 @@ const handleConfirm = (event) => {
 <style scoped>
 .time-select {
   position: relative;
-}
-
-.select-field {
-  width: 100%;
-  height: 44px;
-  padding: 0 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
-  box-sizing: border-box;
-  background-color: #fff;
 }
 </style>

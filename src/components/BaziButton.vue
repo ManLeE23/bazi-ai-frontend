@@ -44,7 +44,7 @@ const handleClick = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: $spacing-md 0;
+  padding: $spacing-md;
   box-sizing: border-box;
   border-radius: $border-radius-base;
   font-size: 14px;

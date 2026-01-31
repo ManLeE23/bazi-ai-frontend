@@ -7,7 +7,19 @@
 	},
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
+			"path": "pages/slogan/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/index/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/bazi/detail",
 			"style": {
 				"navigationStyle": "custom"
 			}
@@ -37,12 +49,6 @@
 			}
 		},
 		{
-			"path": "pages/chat/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
 			"path": "pages/profile/index",
 			"style": {
 				"navigationStyle": "custom"
@@ -50,6 +56,30 @@
 		},
 		{
 			"path": "pages/new-chat/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/my/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/chat-history/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/feedback/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/upgrade/index",
 			"style": {
 				"navigationStyle": "custom"
 			}

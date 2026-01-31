@@ -21,6 +21,8 @@
 import { ref } from 'vue';
 
 // 使用import ?url的方式导入SVG文件
+import analyzeSvg from '@/static/icon/analiyze.svg?url';
+import analyzeActiveSvg from '@/static/icon/analiyze-active.svg?url';
 import homeSvg from '@/static/icon/home.svg?url';
 import homeActiveSvg from '@/static/icon/home-active.svg?url';
 import reportSvg from '@/static/icon/report.svg?url';
@@ -39,26 +41,26 @@ const emit = defineEmits(['update:current']);
 
 const list = ref([
   {
-    iconPath: homeSvg,
-    selectedIconPath: homeActiveSvg,
-    text: '首页',
+    iconPath: analyzeSvg,
+    selectedIconPath: analyzeActiveSvg,
+    text: '分析',
     pagePath: '/pages/index/index',
   },
-  {
-    iconPath: reportSvg,
-    selectedIconPath: reportActiveSvg,
-    text: '报告',
-    pagePath: '/pages/report-list/index',
-  },
+  // {
+  //   iconPath: reportSvg,
+  //   selectedIconPath: reportActiveSvg,
+  //   text: '报告',
+  //   pagePath: '/pages/report-list/index',
+  // },
   {
     iconPath: userSvg,
     selectedIconPath: userActiveSvg,
     text: '我的',
-    pagePath: '/pages/profile/index',
+    pagePath: '/pages/my/index',
   },
 ]);
 
-const handleTabChange = (index) => {
+const handleTabChange = (index: number) => {
   emit('update:current', index);
   uni.redirectTo({
     url: list.value[index].pagePath,
@@ -71,7 +73,7 @@ const handleTabChange = (index) => {
   display: flex;
   height: 70px;
   background-color: $color-white;
-  border-top: 1px solid $color-slate-200;
+  // border-top: 1px solid $color-slate-200;
   justify-content: space-around;
   align-items: center;
   width: 100vw;
@@ -89,7 +91,8 @@ const handleTabChange = (index) => {
 
   &.active {
     .tabbar-text {
-      color: $color-amber-600;
+      color: #4f46e5;
+      font-weight: 600;
     }
   }
 }

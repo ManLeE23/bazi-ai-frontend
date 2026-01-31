@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>LifeFlow AI - 灵动对话</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        body { background: #F8F9FF; overflow: hidden; height: 100vh; font-family: -apple-system, sans-serif; }
+        .energy-blob { position: fixed; width: 400px; height: 400px; filter: blur(100px); z-index: -1; opacity: 0.25; animation: move 25s infinite alternate ease-in-out; }
+        @keyframes move { from { transform: translate(-20%, -20%); } to { transform: translate(30%, 40%); } }
+        
+        .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.5); }
+        /* 五行标准色 */
+        .mu { color: #10B981; } .huo { color: #EF4444; } .tu { color: #B45309; } .jin { color: #64748B; } .shui { color: #3B82F6; }
+        
+        .message-in { animation: springUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.2) both; }
+        @keyframes springUp { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body x-data="chatApp()" class="flex flex-col relative">
+
+    <div class="energy-blob bg-indigo-200 top-0 left-0"></div>
+    <div class="energy-blob bg-rose-100 bottom-0 right-0"></div>
+
+    <div x-show="showSidebar" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="translate-x-full"
+         class="fixed inset-y-0 right-0 w-64 glass-card z-[100] shadow-2xl p-6 flex flex-col gap-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-black text-slate-800">历史对话</h3>
+            <button @click="showSidebar = false" class="text-slate-400">✕</button>
+        </div>
+        <template x-for="chat in chatHistory">
+            <div class="p-4 bg-white/50 rounded-2xl border border-slate-100 text-[12px] font-bold text-slate-600 active:scale-95 transition-all">
+                <p x-text="chat.title"></p>
+                <span class="text-[9px] text-slate-300 font-normal" x-text="chat.date"></span>
+            </div>
+        </template>
+        <button class="mt-auto py-3 bg-indigo-600 text-white rounded-2xl text-[12px] font-black shadow-lg shadow-indigo-100">+ 开启新对话</button>
+    </div>
+    <div x-show="showSidebar" @click="showSidebar = false" class="fixed inset-0 bg-black/5 backdrop-blur-[2px] z-[90]"></div>
+
+    <header class="flex items-center justify-between px-6 pt-14 pb-4 z-50">
+        <button class="w-10 h-10 flex items-center justify-center rounded-2xl bg-white shadow-sm text-slate-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="flex-1 text-center">
+            <h2 class="text-sm font-black text-slate-800 tracking-tight">玥美灵</h2>
+            <div class="flex items-center justify-center gap-1">
+                <span class="w-1 h-1 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_#34d399]"></span>
+                <p class="text-[8px] font-black text-slate-300 uppercase tracking-[0.2em]">Connected</p>
+            </div>
+        </div>
+        <button @click="showSidebar = true" class="w-10 h-10 flex items-center justify-center rounded-2xl bg-white shadow-sm text-slate-500 active:scale-90 transition-all">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+        </button>
+    </header>
+
+    <main class="flex-1 overflow-y-auto px-6 space-y-8 py-4 no-scrollbar">
+        
+        <div class="flex justify-start message-in">
+            <div class="max-w-[85%] glass-card p-4 rounded-[24px] rounded-tl-none shadow-sm shadow-indigo-100/10">
+                <p class="text-[14px] font-bold text-slate-700 leading-relaxed">
+                    你好～ 我已经为你生成了专属排盘。
+                </p>
+            </div>
+        </div>
+
+        <div class="flex justify-start message-in" style="animation-delay: 0.1s">
+            <div class="max-w-[280px] w-full glass-card p-5 rounded-[28px] rounded-tl-none shadow-sm border-white/80">
+                <div class="grid grid-cols-4 gap-4">
+                    <template x-for="item in baziPreview">
+                        <div class="flex flex-col items-center">
+                            <span class="text-[9px] font-bold text-slate-300 mb-0.5" x-text="item.label"></span>
+                            <span class="text-[9px] font-bold text-slate-400 mb-2" x-text="item.ss"></span>
+                            <div class="flex flex-col items-center leading-tight mb-2">
+                                <span :class="item.tColor" class="text-xl font-black" x-text="item.t"></span>
+                                <span :class="item.dColor" class="text-xl font-black" x-text="item.d"></span>
+                            </div>
+                            <span class="text-[9px] font-bold text-slate-300" x-text="item.zang"></span>
+                        </div>
+                    </template>
+                </div>
+                <button class="w-full mt-6 py-2.5 bg-slate-900 text-white rounded-full text-[11px] font-black tracking-widest active:scale-95 transition-all">
+                    查看详细排盘
+                </button>
+            </div>
+        </div>
+
+        <div class="flex justify-end message-in" style="animation-delay: 0.2s">
+            <div class="max-w-[80%] bg-indigo-500 px-5 py-3.5 rounded-[24px] rounded-tr-none shadow-lg shadow-indigo-100/50">
+                <p class="text-[14px] font-bold text-white leading-relaxed text-right">查看我的事业报告</p>
+            </div>
+        </div>
+
+        <div class="flex justify-start message-in" style="animation-delay: 0.3s">
+            <div class="max-w-[90%] w-full glass-card p-6 rounded-[28px] rounded-tl-none border-indigo-50 shadow-sm">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-[13px] font-black text-slate-800">2026 流年事业诊断</h4>
+                        <p class="text-[10px] font-bold text-emerald-400">● 诊断已就绪</p>
+                    </div>
+                </div>
+                <p class="text-[12px] font-bold text-slate-500 leading-relaxed mb-4">
+                    你的“壬水”日主在流年遇“丙午”，形成了财星坐旺的局势。明年初春将是你职场跳跃的关键期...
+                </p>
+                <button class="w-full py-3 bg-indigo-50 text-indigo-600 rounded-2xl text-[12px] font-black tracking-widest hover:bg-indigo-100 transition-colors">
+                    阅读完整报告 ➔
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="p-6 pb-10 bg-gradient-to-t from-[#fbfbff] via-[#fbfbff] to-transparent">
+        <div class="glass-card h-14 rounded-[28px] flex items-center px-2 gap-3 shadow-xl shadow-indigo-50/50">
+            <button class="w-10 h-10 flex items-center justify-center text-slate-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14m7-7H5"/></svg>
+            </button>
+            <input type="text" placeholder="向美灵追问细节..." class="flex-1 bg-transparent text-[14px] font-bold outline-none text-slate-700 placeholder:opacity-30" />
+            <button class="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center active:scale-90 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        function chatApp() {
+            return {
+                showSidebar: false,
+                chatHistory: [
+                    { title: '财富运势分析', date: '2026-01-25' },
+                    { title: '事业转型建议', date: '2026-01-20' },
+                    { title: '五行能量补足', date: '2026-01-15' }
+                ],
+                baziPreview: [
+                    { label: '年柱', ss: '七杀', t: '戊', d: '寅', tColor: 'tu', dColor: 'mu', zang: '食神' },
+                    { label: '月柱', ss: '偏印', t: '庚', d: '申', tColor: 'jin', dColor: 'jin', zang: '偏印' },
+                    { label: '日柱', ss: '日主', t: '壬', d: '寅', tColor: 'shui', dColor: 'mu', zang: '食神' },
+                    { label: '时柱', ss: '正官', t: '己', d: '酉', tColor: 'tu', dColor: 'jin', zang: '正印' }
+                ]
+            }
+        }
+    </script>
+</body>
+</html>

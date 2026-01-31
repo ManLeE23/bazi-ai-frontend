@@ -1,142 +1,332 @@
 <template>
   <view class="root">
-    <!-- Header -->
-    <!-- <view class="px-6 py-4 flex items-center justify-between bg-white">
-      <button @click="goBack" class="text-gray-400 text-sm font-bold">
-        ← 返回
-      </button>
-      <view class="text-center">
-        <p class="font-black text-gray-800 text-sm">深度趋势模拟</p>
-        <p class="text-xs-small font-bold text-indigo-500 animate-pulse uppercase tracking-tighter">
-          AI Analysis in Progress
-        </p>
-      </view>
-      <view class="w-8 h-8 rounded-full border-2 border-white shadow-sm overflow-hidden">
-        <image src="https://i.pravatar.cc/100?img=12" class="w-full h-full" />
-      </view>
-    </view> -->
+    <!-- Background Blobs -->
+    <view class="energy-blob blob-1"></view>
+    <view class="energy-blob blob-2"></view>
 
-    <u-navbar :is-back="true" :is-fixed="true" title="人生趋势官" title-color="#1f2937" background="transparent" back-icon-color="#1f2937"
-      :border-bottom="false" />
+    <!-- Custom Header -->
+    <u-navbar :is-back="true" :is-fixed="true" background="transparent" :border-bottom="false">
+    </u-navbar>
 
     <!-- Chat Messages -->
-    <scroll-view class="flex-1 px-4 overflow-y-auto" scroll-y :scroll-into-view="scrollToView"
-      style="box-sizing: border-box;">
-      <view class="think-box relative">
-        <!-- Thinking line -->
-        <view class="think-line think-line-position"></view>
-
-        <!-- Existing thinking steps -->
-        <view v-for="item in structuredMessages" :key="item.stage" class="relative flex items-start gap-4">
-          <block v-if="item.type === 'text'">
-            <view class="think-dot think-dot-default" :class="step === item.stage ? 'think-dot-active' : ''"></view>
-            <view class="flex-1 -mt-1">
-              <p class="text-sm font-bold text-gray-800">{{ item.title }}</p>
-              <block v-if="item.payload.content">
-                <block v-if="Array.isArray(item.payload.content)">
-                  <view v-for="(subItem, index) in item.payload.content" :key="index"
-                    class="mt-2 flex items-center gap-2">
-                    <span class="text-xs-tiny"
-                      :class="step === item.stage ? 'text-indigo-400 animate-pulse' : 'text-gray-300'">●</span>
-                    <span class="text-xs-small text-gray-400 font-mono">{{ subItem }}</span>
-                  </view>
-                </block>
-                <block v-else>
-                  <view class="mt-2 flex items-center gap-2">
-                    <span class="text-xs-tiny"
-                      :class="step === item.stage ? 'text-indigo-400 animate-pulse' : 'text-gray-300'">●</span>
-                    <span class="text-xs-small text-gray-400 font-mono">{{ item.payload.content }}</span>
-                  </view>
-                </block>
-              </block>
-            </view>
-          </block>
-        </view>
-
-        <!-- Insight Card -->
-        <view v-if="showInsightCard"
-          class="insight-card glass border-indigo-100 bg-indigo-50-opacity translate-y-2 transition-all">
-          <p class="text-xs font-black text-indigo-600 mb-2 uppercase tracking-widest">
-            人生趋势报告
-          </p>
-          <p class="text-sm text-gray-700 leading-relaxed font-bold" style="margin-bottom: 8px;">
-            分析完毕。你的格局属于"印绶护身"，目前正处于一个长达两年的上升周期起点。点击下方卡片看全维度数据。
-          </p>
-          <BaziButton type="default" size="small" show-shadow @click="goToDetail">
-            查看完整趋势报告
-          </BaziButton>
-        </view>
-      </view>
+    <view class="scroll-box">
+      <ReportGeneration ref="reportGenerationRef" :report-id="reportId" />
 
       <!-- Chat Message List -->
-      <view class="chat-message-list mt-4">
-        <view v-for="(message, index) in chatMessages" :key="index" class="message-item mb-4">
-          <view :class="['message-content', message.role === 'user' ? 'user-message' : 'ai-message']">
-            <view class="message-text">
-              <view :class="['bubble', message.role === 'user' ? 'user-bubble' : 'ai-bubble']">
-                <text>{{ message.content }}</text>
+      <view class="chat-message-list">
+        <!-- Initial Greeting (Static or Dynamic?) - keeping dynamic for now -->
+        
+        <view v-for="(message, index) in chatMessages" :key="index" class="message-wrapper message-in">
+          
+          <!-- Thinking Chain Display -->
+          <view v-if="message.reasoning_content" class="thinking-box animate-fade-in">
+            <view @click="toggleReasoning(message)" class="thinking-header">
+              <view class="thinking-header-left">
+                <view class="thinking-icon" :class="{ 'animate-spin': isThinking && index === chatMessages.length - 1 }">
+                  <view class="icon-svg"></view>
+                </view>
+                <text class="status-text-thinking">
+                  {{ (isThinking && index === chatMessages.length - 1) ? '深度思考中...' : '已完成深度思考' }}
+                </text>
               </view>
-              <!-- <view class="message-time text-xs text-gray-400 mt-1">
-                {{ formatTime(message.timestamp) }}
-              </view> -->
             </view>
+          </view>
+
+          <!-- Message Bubble -->
+          <view :class="['message-row', message.role === 'user' ? 'justify-end' : 'justify-start']">
+            <template v-if="message.type === 'bazi'">
+               <BaziCard :data="message.baziData" :userInfo="userInfo" />
+            </template>
+            <view v-else :class="['bubble', message.role === 'user' ? 'user-bubble' : 'ai-bubble']">
+              <view class="bubble-content">
+                <text v-if="message.role === 'user' && message.content" :user-select="true" :selectable="true" class="message-text user-text">{{ message.content }}</text>
+                <MarkDown v-else-if="message.role === 'assistant' && message.content" :content="message.content" />
+              </view>
+            </view>
+          </view>
+          
+        </view>
+
+        <!-- Typing indicator -->
+        <view v-if="isTyping" class="message-wrapper">
+          <view class="message-row justify-start">
+             <view class="bubble ai-bubble typing-bubble">
+                <LoadingIndicator />
+             </view>
           </view>
         </view>
         
-        <!-- Typing indicator -->
-        <view v-if="isTyping" class="message-item mb-4">
-          <view class="message-content ai-message">
-            <view class="message-text">
-              <view class="bubble ai-bubble typing-indicator">
-                <view class="dot"></view>
-                <view class="dot"></view>
-                <view class="dot"></view>
-              </view>
-            </view>
-          </view>
-        </view>
+        <view id="chat-bottom" style="height: 1rpx;"></view>
       </view>
-    </scroll-view>
+    </view>
+
+    <!-- Scroll to Bottom Button -->
+    <view class="scroll-to-bottom" v-if="!isUserAtBottom" @click.stop="scrollToBottom(true)">
+      <view class="arrow-icon">
+        <image :src="downSvg" class="icon-img" mode="aspectFit" />
+      </view>
+    </view>
 
     <!-- Input Area -->
-    <InputWithButton :model-value="inputText" @update:model-value="onInputUpdate" @click="sendQuestion" @confirm="sendQuestion" />
+    <InputWithButton :model-value="inputText" @update:model-value="onInputUpdate" @click="sendQuestion"
+      @generate-report="startReportGeneration" @show-bazi="handleShowBazi" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { onLoad } from '@dcloudio/uni-app';
+import { onLoad, onPageScroll } from '@dcloudio/uni-app';
 import BaziButton from '@/components/BaziButton.vue';
-import { ref, onMounted } from 'vue';
-import useChatSSE from '@/hooks/useChatSSE';
-import { fetchReportById, fetchProgressfromReportId } from '@/api/services';
+import { ref, onMounted, nextTick } from 'vue';
+import HeaderBar from '@/components/HeaderBar.vue';
+import useSSEMessage from './hooks/useSSEMessage'; // 导入新的hook
+import { fetchReportById, fetchProgressfromReportId, fetchChatHistory, fetchSendMessage, fetchBaziCalculate, fetchCreateSession, fetchSessionUserInfo } from '@/api/services';
 import InputWithButton from '@/components/InputWithButton.vue';
+import ReportGeneration from '@/components/ReportGeneration.vue';
+import LoadingIndicator from '@/components/LoadingIndicator.vue';
+import MarkDown from '../components/MarkDown/index.vue';
+import BaziCard from './components/BaziCard.vue';
+import { watch } from 'vue'; // 导入watch
+import downSvg from '@/static/icon/down.svg?url';
+
+const reportGenerationRef = ref<InstanceType<typeof ReportGeneration> | null>(null);
+const reportId = ref<string>('');
+const isUserAtBottom = ref(true); // Track if user is at bottom
 
 const structuredMessages = ref<any[]>([]);
-const chatMessages = ref<{role: string, content: string, timestamp: Date}[]>([]);
+const chatMessages = ref<{ 
+  role: string; 
+  content: string; 
+  timestamp: Date; 
+  id: string; 
+  reasoning_content?: string; 
+  isReasoningExpanded?: boolean; 
+  isStreaming?: boolean;
+  type?: 'text' | 'bazi';
+  baziData?: any;
+}[]>([]);
 const inputText = ref('');
-const scrollToView = ref('');
 const isTyping = ref(false);
 const showInsightCard = ref(false);
 const step = ref(0);
 const reportData = ref(null);
+const isGenerating = ref(false);
+const showChatInterface = ref(true);
+const sessionId = ref<string>('');
+const isFromIndexPage = ref(false);
 
-// const startAnalysis = () => {
-//   step.value = 0;
+// 思维链相关状态
+const isThinking = ref(false);
 
-//   // 模拟思考步骤递进
-//   setTimeout(() => step.value = 1, 1000);
-//   setTimeout(() => step.value = 2, 2200);
-//   setTimeout(() => step.value = 3, 3500);
-// };
+const userInfo = ref<any>(null);
+const baziFetchPromise = ref<Promise<any> | null>(null);
 
 const goBack = () => {
-  uni.navigateBack();
+  const pages = getCurrentPages();
+  if (pages.length > 1) {
+    uni.navigateBack();
+  } else {
+    uni.switchTab({
+      url: '/pages/index/index'
+    });
+  }
 };
 
-const goToDetail = () => {
-  uni.navigateTo({
-    url: `/pages/report-detail/index?id=${reportId}`
+onLoad((options: any) => {
+  if (options.sessionId) {
+    sessionId.value = options.sessionId;
+
+    // 检查是否从首页进入
+    isFromIndexPage.value = options.from === 'index' || !options.from;
+
+    getChatHistory();
+  }
+  if (options.message && isFromIndexPage) {
+    inputText.value = options.message;
+  }
+
+  const initBaziData = (info: any) => {
+    baziFetchPromise.value = fetchBaziCalculate(info)
+      .then(res => ({ success: true, res }))
+      .catch(error => {
+        console.error('Bazi pre-fetch failed:', error);
+        return { success: false, error };
+      });
+  };
+
+  if (options.userInfo) {
+    try {
+      userInfo.value = JSON.parse(decodeURIComponent(options.userInfo));
+      initBaziData(userInfo.value);
+    } catch (e) {
+      console.error('Parse userInfo error:', e);
+    }
+  } else if (sessionId.value) {
+    // Historical session: fetch user info
+    fetchSessionUserInfo(sessionId.value).then(res => {
+      if (res.data) {
+        userInfo.value = res.data;
+        initBaziData(userInfo.value);
+      }
+    }).catch(err => {
+      console.error('Fetch session user info error:', err);
+    });
+  } else {
+    // New session: create session first
+    fetchCreateSession({}).then(res => {
+      const data = res.data as any;
+      if (data) {
+        sessionId.value = data.session_id;
+        if (data.user_info) {
+          userInfo.value = data.user_info;
+          initBaziData(userInfo.value);
+        }
+      }
+    }).catch(err => {
+      console.error('Create session error:', err);
+    });
+  }
+});
+
+onPageScroll(() => {
+  checkIfAtBottom();
+});
+
+const checkIfAtBottom = () => {
+  const query = uni.createSelectorQuery();
+  query.select('#chat-bottom').boundingClientRect();
+  query.exec((res) => {
+    if (!res[0]) return;
+    const bottomRect = res[0];
+    const windowHeight = uni.getSystemInfoSync().windowHeight;
+    // Allow 100px threshold to be more sensitive to upward scrolling
+    isUserAtBottom.value = bottomRect.top <= windowHeight - 100;
   });
+};
+
+const scrollToBottom = (force = false) => {
+  if (!force && !isUserAtBottom.value) return;
+
+  nextTick(() => {
+    uni.pageScrollTo({
+      scrollTop: 999999,
+      duration: 300,
+      success: () => {
+         if (force) {
+            isUserAtBottom.value = true;
+         }
+      }
+    });
+  });
+};
+
+const getChatHistory = async () => {
+  try {
+    const res = await fetchChatHistory(sessionId.value);
+    console.log('Chat history response:', res);
+
+    if (Array.isArray(res.data)) {
+      // 清空现有消息
+      chatMessages.value = [];
+
+      // 遍历聊天历史数据并添加到消息列表
+      res.data.forEach(item => {
+        // 添加用户消息
+        if (item.role === 'user') {
+          chatMessages.value.push({
+            role: 'user',
+            content: item.content,
+            timestamp: new Date(item.created_at),
+            id: item.id
+          });
+        } else if (item.role === 'assistant') {
+          // 如果有AI消息，也可以添加
+          chatMessages.value.push({
+            role: 'assistant',
+            reasoning_content: item.reasoning_content,
+            content: item.content,
+            timestamp: new Date(item.created_at),
+            id: item.id,
+            isReasoningExpanded: false // 历史消息默认收起
+          });
+        }
+      });
+
+      scrollToBottom(true);
+
+      // 检查是否需要自动触发
+      if (res.data.length === 0) {
+        sendQuestion();
+      }
+    }
+  } catch (error) {
+    console.error('获取聊天历史失败:', error);
+  }
+};
+
+// 切换思维链显示/隐藏
+const toggleReasoning = (message: any) => {
+  message.isReasoningExpanded = !message.isReasoningExpanded;
+};
+
+const handleShowBazi = async () => {
+  // Simulate user asking "看生辰"
+  chatMessages.value.push({
+    role: 'user',
+    content: '看生辰',
+    timestamp: new Date(),
+    id: `user_${Date.now()}`,
+    type: 'text'
+  });
+  
+  scrollToBottom(true);
+  isTyping.value = true;
+  
+  try {
+    let result;
+    
+    // Use pre-fetched promise if available
+    if (baziFetchPromise.value) {
+      result = await baziFetchPromise.value;
+    } else {
+      // Fallback if promise is missing (e.g. component reloaded but onLoad didn't fire appropriately?)
+      // or just direct call if logic changes.
+      try {
+        if (!userInfo.value) {
+           throw new Error('User info not ready');
+        }
+        const res = await fetchBaziCalculate(userInfo.value);
+        result = { success: true, res };
+      } catch (error) {
+        result = { success: false, error };
+      }
+    }
+
+    if (result.success && result.res && result.res.data) {
+       chatMessages.value.push({
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        id: `ai_${Date.now()}`,
+        type: 'bazi',
+        baziData: result.res.data
+      });
+      scrollToBottom(true);
+    } else {
+       throw result.error || new Error('Unknown error');
+    }
+  } catch (error) {
+    console.error('获取八字数据失败:', error);
+    chatMessages.value.push({
+        role: 'assistant',
+        content: '获取八字数据失败，请稍后再试。',
+        timestamp: new Date(),
+        id: `ai_${Date.now()}`,
+        type: 'text'
+    });
+  } finally {
+    isTyping.value = false;
+    scrollToBottom(true);
+  }
 };
 
 const sendQuestion = async () => {
@@ -145,128 +335,94 @@ const sendQuestion = async () => {
     chatMessages.value.push({
       role: 'user',
       content: inputText.value,
-      timestamp: new Date()
+      timestamp: new Date(),
+      id: `temp_${Date.now()}`
     });
-    
+
+    scrollToBottom(true);
+
     // 清空输入框
     const question = inputText.value;
     inputText.value = '';
-    
+
     // 显示打字指示器
     isTyping.value = true;
-    
+    isThinking.value = true;
+
     try {
-      // 发送问题到后端
-      // 这里应该调用实际的API来获取AI回复
-      // 模拟API调用
-      setTimeout(() => {
-        // 添加AI回复到聊天列表
-        chatMessages.value.push({
-          role: 'assistant',
-          content: `关于"${question}"的问题，我为您详细分析一下。根据您的八字格局，这个问题与您命盘中的XX因素相关，建议您可以从以下几个方面着手处理...`,
-          timestamp: new Date()
-        });
-        isTyping.value = false;
-      }, 1500);
-      
+      // 使用SSE获取流式响应
+      const { messageList, isLoading, startSSE, stopSSE } = useSSEMessage({
+        session_id: sessionId.value,
+        user_input: question
+      });
+
+      // 开始SSE连接
+      startSSE();
+
+      // 监听SSE消息更新
+      const unwatch = watch(messageList, (newMessages) => {
+        if (newMessages.length > 0) {
+          const latestMessage = newMessages[newMessages.length - 1];
+          const existingMessage = chatMessages.value.find((msg) => msg.id === latestMessage.id);
+          const startedContent =
+            latestMessage.role === 'assistant' &&
+            typeof latestMessage.content === 'string' &&
+            latestMessage.content.length > 0;
+
+          if (startedContent) {
+            isTyping.value = false;
+            isThinking.value = false;
+            if (existingMessage) {
+              existingMessage.isReasoningExpanded = false;
+            }
+          }
+          if (existingMessage) {
+            existingMessage.content = latestMessage.content;
+            existingMessage.reasoning_content = latestMessage.reasoning_content;
+            existingMessage.timestamp = new Date(latestMessage.created_at || Date.now());
+            existingMessage.isStreaming = true;
+          } else if (latestMessage.role === 'assistant') {
+            chatMessages.value.push({
+              role: 'assistant',
+              reasoning_content: latestMessage.reasoning_content,
+              content: latestMessage.content,
+              timestamp: new Date(latestMessage.created_at || Date.now()),
+              id: latestMessage.id,
+              isReasoningExpanded: false,
+              isStreaming: true
+            });
+          }
+        }
+
+        scrollToBottom();
+      }, { deep: true });
+
+      // 监听加载状态
+      const unwatchLoading = watch(isLoading, (loading) => {
+        if (!loading) {
+          // 加载完成，停止监听
+          unwatch();
+          unwatchLoading();
+          isTyping.value = false;
+          isThinking.value = false;
+          for (let i = chatMessages.value.length - 1; i >= 0; i--) {
+            const msg = chatMessages.value[i];
+            if (msg.role === 'assistant' && msg.isStreaming) {
+              msg.isStreaming = false;
+              break;
+            }
+          }
+          scrollToBottom();
+        }
+      });
+
     } catch (error) {
       console.error('发送问题失败:', error);
       isTyping.value = false;
+      isThinking.value = false;
     }
   }
 };
-
-// onMounted(() => {
-//   startAnalysis();
-// });
-
-let reportId: string | null = null;
-let sseClient: any = null;
-
-onLoad((options) => {
-  if (options.reportId) {
-    reportId = options.reportId;
-    connectSSE(options.reportId);
-  }
-});
-
-const onInit = () => {
-  const pages = getCurrentPages();
-  const prevPage = pages[pages.length - 2];
-  if (prevPage.route?.includes('pages/index/index')) {
-    connectSSE(reportId);
-    return;
-  }
-  
-  // 获取报告详情
-  if (reportId) {
-    fetchReportById(reportId).then((data) => {
-      reportData.value = data;
-    });
-  }
-};
-
-// 连接到 SSE
-const connectSSE = (reportId: string) => {
-  const sseUrl = `/api/v1/reports/structured-thinking-sse/${reportId}`;
-
-  sseClient = useChatSSE({
-    url: sseUrl,
-    onOpen: (event) => {
-      console.log('SSE 连接已打开', event);
-    },
-    onMessage: (event) => {
-      // console.log('收到 SSE 消息', event);
-      isTyping.value = false;
-
-      // 根据消息类型处理
-      try {
-        // 检查是否是结构化消息
-        if (event && typeof event === 'object' && 'stage' in event) {
-          // 这是一个结构化消息，添加到structuredMessages
-          step.value = event.stage;
-
-          const existingIndex = structuredMessages.value.findIndex(msg => msg.stage === event.stage);
-
-          if (existingIndex !== -1) {
-            const content = structuredMessages.value[existingIndex].payload.content;
-            if (Array.isArray(content)) {
-              structuredMessages.value[existingIndex].payload.content.push(event.payload.content);
-              return;
-            } else {
-              structuredMessages.value[existingIndex].payload.content = [content, event.payload.content];
-            }
-          } else {
-            structuredMessages.value.push(event);
-          }
-
-          if (event.type === 'completed') {
-            getReportDetail();
-          }
-
-        } else {
-          // 这是一个普通消息，可以根据需要处理
-          console.log('收到普通消息:', event);
-        }
-      } catch (e) {
-        console.error('处理SSE消息失败:', e);
-      }
-    },
-    onError: (event) => {
-      console.error('SSE 连接错误', event);
-      isTyping.value = false;
-    },
-    onClosed: (event) => {
-      console.log('SSE 连接已关闭', event);
-    }
-  });
-
-  const getReportDetail = async () => {
-    const res = await fetchReportById(reportId);
-    reportData.value = res.data;
-    showInsightCard.value = true;
-  }
-}
 
 const onInputUpdate = (value: string) => {
   inputText.value = value;
@@ -276,22 +432,106 @@ const formatTime = (date: Date) => {
   return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 };
 
+const startReportGeneration = () => {
+  console.log('reportGenerationRef', reportGenerationRef.value);
+  // 设置生成状态为true，开始报告生成流程
+  isGenerating.value = true;
+
+  // 使用nextTick确保组件渲染完成后再调用
+  nextTick(() => {
+    if (reportGenerationRef.value) {
+      reportGenerationRef.value.startGeneration();
+    }
+  });
+};
+
+const onGenerationComplete = () => {
+  // 生成完成后，隐藏生成界面，显示聊天界面
+  isGenerating.value = false;
+  showChatInterface.value = true;
+};
+
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .root {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: radial-gradient(circle at 0% 0%, rgba(212, 226, 255, 0.5) 0, transparent 50%),
-    radial-gradient(circle at 100% 0%, rgba(255, 226, 241, 0.5) 0, transparent 50%),
-    // radial-gradient(circle at 100% 100%, rgba(226, 255, 241, 0.5) 0, transparent 50%),
-    radial-gradient(circle at 0% 100%, rgba(241, 226, 255, 0.5) 0, transparent 50%),
-    #ffffff;
+  min-height: 100vh;
+  background-color: #F8F9FF;
+  position: relative;
 
   view {
     box-sizing: border-box;
+  }
+}
+
+/* Energy Blobs */
+.energy-blob {
+  position: fixed;
+  width: 600rpx;
+  height: 600rpx;
+  filter: blur(80px);
+  z-index: 0;
+  opacity: 0.4;
+  border-radius: 50%;
+  animation: move 25s infinite alternate ease-in-out;
+  pointer-events: none;
+}
+
+.blob-1 {
+  background-color: #c7d2fe;
+  top: -10%;
+  left: -10%;
+}
+
+.blob-2 {
+  background-color: #ffe4e6;
+  bottom: -10%;
+  right: -10%;
+  animation-delay: -10s;
+}
+
+@keyframes move {
+  from {
+    transform: translate(-20%, -20%);
+  }
+  to {
+    transform: translate(30%, 40%);
+  }
+}
+
+/* Custom Header */
+/* .custom-header removed - replaced by HeaderBar component */
+
+.header-btn {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+  color: #94a3b8;
+  transition: transform 0.2s;
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+/* .header-center, .app-title removed */
+
+
+@keyframes pulse-green {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(0.9);
   }
 }
 
@@ -309,50 +549,63 @@ const formatTime = (date: Date) => {
   width: 100%;
 }
 
-.think-box {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.scroll-box {
+  width: 100%;
+  box-sizing: border-box;
+  padding-bottom: 152px;
 }
 
-.think-dot {
-  width: 24rpx;
-  height: 24rpx;
+.scroll-to-bottom {
+  position: fixed;
+  bottom: 240rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80rpx;
+  height: 80rpx;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
   border-radius: 50%;
-  border: 3rpx solid white;
-  z-index: 10;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
   transition: all 0.3s;
-}
+  border: 1px solid rgba(255, 255, 255, 0.8);
 
-.think-dot-default {
-  background: #6366f1;
-  z-index: 1;
-}
+  .arrow-icon {
+    width: 40rpx;
+    height: 40rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.think-dot-active {
-  background: #6366f1 !important;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
-  animation: pulse 2s infinite;
-}
+  .icon-img {
+    width: 100%;
+    height: 100%;
+  }
 
-.think-line {
-  position: absolute;
-  width: 3rpx;
-  background: rgba(99, 102, 241, 0.1);
-}
-
-.think-line-position {
-  left: 12rpx;
-  top: 4px;
-  bottom: 0;
+  &:active {
+    transform: translateX(-50%) scale(0.95);
+    background: rgba(255, 255, 255, 1);
+  }
 }
 
 /* Chat Message Styles */
 .chat-message-list {
-  margin-top: 24rpx;
+  padding: 0 16px;
+}
+
+.loading-icon {
+  background: transparent !important;
+  width: fit-content !important;
 }
 
 .message-item {
+  &:last-child {
+    margin-bottom: 0;
+  }
   margin-bottom: 32rpx;
 }
 
@@ -373,40 +626,62 @@ const formatTime = (date: Date) => {
   flex: 1;
   display: flex;
   flex-direction: column;
+  font-size: 28rpx;
+  line-height: 1.8;
 }
 
 .bubble {
-  padding: 20rpx;
+  padding: 24rpx;
   border-radius: 24rpx;
-  max-width: 90%;
+  max-width: 95%;
   position: relative;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .user-bubble {
-  background-color: #4f46e5;
+  background: #4f46e5;
+  // background: linear-gradient(to bottom, #6366f1, #6b72e8, #8b5cf6);
   color: white;
-  border-bottom-right-radius: 8rpx;
+  // border-bottom-right-radius: 8rpx;
   margin-left: auto;
+  box-shadow: 0 10px 15px -3px rgb(224 231 255 / 0.5), 0 4px 6px -4px rgb(224 231 255 / 0.5);
+  border-radius: 24px;
+  border-top-right-radius: 0;
 }
 
 .ai-bubble {
   background-color: rgba(255, 255, 255, 0.8);
-  color: #374151;
-  border-bottom-left-radius: 8rpx;
+  color: #334155;
+  // border-bottom-left-radius: 8rpx;
   backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border-top-left-radius: 0px;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid #e0e7ff4d;
+}
+
+.response-content {
+  display: block;
+  font-weight: bold;
+  color: #4f46e5;
+  margin-bottom: 8rpx;
+  font-size: 30rpx;
+  line-height: 1.5;
 }
 
 .typing-indicator {
   display: flex;
   align-items: center;
   padding: 20rpx 24rpx !important;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .dot {
   width: 12rpx;
   height: 12rpx;
-  background-color: #9ca3af;
+  background-color: #a5b4fc;
   border-radius: 50%;
   margin-right: 12rpx;
   animation: bounce 1.5s infinite;
@@ -421,8 +696,15 @@ const formatTime = (date: Date) => {
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5rpx); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5rpx);
+  }
 }
 
 .message-time {
@@ -469,39 +751,48 @@ const formatTime = (date: Date) => {
 
 /* Font sizes */
 .text-xs-tiny {
-  font-size: 22rpx;  /* 增加4rpx */
+  font-size: 22rpx;
+  /* 增加4rpx */
 }
 
 .text-xs-small {
-  font-size: 24rpx;  /* 增加4rpx */
+  font-size: 24rpx;
+  /* 增加4rpx */
 }
 
 .text-sm {
-  font-size: 28rpx;  /* 增加4rpx */
+  font-size: 28rpx;
+  /* 增加4rpx */
 }
 
 .text-base {
-  font-size: 32rpx;  /* 增加4rpx */
+  font-size: 32rpx;
+  /* 增加4rpx */
 }
 
 .text-lg {
-  font-size: 36rpx;  /* 增加4rpx */
+  font-size: 36rpx;
+  /* 增加4rpx */
 }
 
 .text-xl {
-  font-size: 40rpx;  /* 增加4rpx */
+  font-size: 40rpx;
+  /* 增加4rpx */
 }
 
 .text-2xl {
-  font-size: 52rpx;  /* 增加4rpx */
+  font-size: 52rpx;
+  /* 增加4rpx */
 }
 
 .text-3xl {
-  font-size: 52rpx;  /* 增加4rpx */
+  font-size: 52rpx;
+  /* 增加4rpx */
 }
 
 .text-4xl {
-  font-size: 68rpx;  /* 增加4rpx */
+  font-size: 68rpx;
+  /* 增加4rpx */
 }
 
 .leading-relaxed {
@@ -806,5 +1097,179 @@ const formatTime = (date: Date) => {
 
 .backdrop-filter {
   backdrop-filter: blur(14px);
+}
+
+/* Thinking Chain Styles */
+.thinking-box {
+  background-color: rgba(238, 242, 255, 0.5); /* bg-indigo-50/50 */
+  border-left: 8rpx solid rgba(129, 140, 248, 0.3); /* border-l-4 border-indigo-400/30 */
+  border-top-right-radius: 24rpx; /* rounded-r-[20px] */
+  border-bottom-right-radius: 24rpx;
+  border-bottom-left-radius: 24rpx; /* rounded-bl-[20px] */
+  border-top-left-radius: 0;
+  overflow: hidden;
+  box-shadow: 0 2rpx 4rpx 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+  margin-bottom: 24rpx;
+  max-width: 95%;
+}
+
+.thinking-header {
+  padding: 20rpx 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.3s;
+
+  &:active {
+    background-color: rgba(224, 231, 255, 0.3); /* hover:bg-indigo-100/30 equivalent */
+  }
+}
+
+.thinking-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.thinking-icon {
+  width: 28rpx;
+  height: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .icon-svg {
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234f46e5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M13 10V3L4 14h7v7l9-11h-7z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+  }
+
+  &.animate-spin .icon-svg {
+    animation: spin 1s linear infinite;
+  }
+}
+
+.status-text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #818cf8; /* text-indigo-400 */
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.toggle-text {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #a5b4fc; /* text-indigo-300 */
+}
+
+.thinking-content {
+  padding: 24rpx 32rpx;
+  border-top: 1px solid rgba(255, 255, 255, 0.5); /* border-white/50 */
+}
+
+.thought-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.thought-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background-color: #818cf8; /* bg-indigo-400 */
+  margin-top: 12rpx;
+  flex-shrink: 0;
+  box-shadow: 0 0 8rpx rgba(129, 140, 248, 0.5); /* shadow-[0_0_4px_rgba(129,140,248,0.5)] */
+}
+
+.thought-text {
+  font-size: 28rpx;
+  color: #475569; /* text-slate-600 */
+  font-weight: 500;
+  line-height: 1.625;
+}
+
+.thinking-loading {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 8rpx;
+}
+
+.loading-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background-color: #6366f1; /* bg-indigo-500 */
+  animation: pulse 2s infinite;
+}
+
+.loading-bar {
+  height: 12rpx;
+  width: 128rpx;
+  background-color: rgba(199, 210, 254, 0.5); /* bg-indigo-200/50 */
+  border-radius: 9999rpx;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message-wrapper {
+  width: 100%;
+  margin-bottom: 32rpx;
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.message-row {
+  display: flex;
+  width: 100%;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.message-in {
+  animation: springUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.2) both;
+}
+
+@keyframes springUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30rpx);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

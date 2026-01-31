@@ -453,7 +453,7 @@ page {
 }
 
 .jin {
-  color: #d97706;
+  color: #D99014;
 }
 
 .energy-section {

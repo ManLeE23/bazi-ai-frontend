@@ -4,7 +4,6 @@
       <CheckTag
         v-for="option in options"
         :key="option"
-        :selected="modelValue === option"
         @update:selected="handleSelect(option)"
       >
         {{ option }}

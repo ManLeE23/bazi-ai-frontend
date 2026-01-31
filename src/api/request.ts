@@ -25,11 +25,19 @@ uni.addInterceptor('request', {
   },
   async success(res) {
     const { statusCode, data } = res;
-    const { code, msg } = data;
+    const isObject = data !== null && typeof data === 'object';
+    const code = isObject && 'code' in data ? (data as any).code : undefined;
+    const msg = isObject && 'msg' in data ? (data as any).msg : undefined;
 
-    // 统一处理业务码
-    if (statusCode === 200 && code === 200) {
-      return Promise.resolve(data); // 正常数据
+    console.log('请求成功:', res);
+
+    if (statusCode === 200) {
+      if (code === 200) {
+        return Promise.resolve(data);
+      }
+      if (!isObject || code === undefined) {
+        return Promise.resolve(res);
+      }
     }
     // if (code === 1401) {
     //   // 未登录
@@ -40,8 +48,7 @@ uni.addInterceptor('request', {
     //   return Promise.reject(res);
     // }
 
-    // HTTP错误
-    uni.showToast({ title: msg ? msg : '数据出错', icon: 'error' });
+    uni.showToast({ title: msg ? msg : '数据出错', icon: 'none' });
     return Promise.reject(res);
   },
   fail(err) {

@@ -106,7 +106,7 @@ const handleContinueChat = (reportId: string) => {
   console.log('继续提问', reportId);
   // 实现继续提问逻辑
   uni.navigateTo({
-    url: `/pages/chat/index?reportId=${reportId}` // 假设有一个聊天页面
+    url: `/pages/new-chat/index?reportId=${reportId}` // 假设有一个聊天页面
   });
 };
 

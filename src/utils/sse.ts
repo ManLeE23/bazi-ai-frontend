@@ -40,7 +40,7 @@ export const createSSEConnection = (
   reportId,
   onMessage,
   onError,
-  options = {}
+  options = {},
 ) => {
   // 默认配置
   const config = {
@@ -94,8 +94,9 @@ export const createSSEConnection = (
 
     // 小程序流式请求配置
     socketTask = uni.request({
-      url: `/api/v1/reports/${reportId}/sse`,
+      url: `/api/reports/${reportId}/sse`,
       method: 'GET',
+      dataType: 'text',
       responseType: 'stream', // 关键：流式响应
       header: {
         'Content-Type': 'application/json',

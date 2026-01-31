@@ -137,7 +137,7 @@ const getReportDetail = async () => {
 
 const jumpToChat = () => {
   uni.navigateTo({
-    url: `/pages/chat/index?reportId=${reportId.value}`,
+    url: `/pages/new-chat/index?reportId=${reportId.value}`,
   });
 }
 
