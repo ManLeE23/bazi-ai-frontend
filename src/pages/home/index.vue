@@ -5,11 +5,26 @@
     <view class="energy-blob blob-2"></view>
 
     <!-- Custom Header -->
-    <u-navbar :is-back="true" :is-fixed="true" background="transparent" :border-bottom="false">
-    </u-navbar>
+    <HeaderBar :fixed="true" :show-back="false">
+      <template #left>
+        <button @click="showSidebar = true" class="sidebar-toggle-btn">
+          <view class="hamburger-icon">
+            <view class="bar long"></view>
+            <view class="bar short"></view>
+          </view>
+        </button>
+      </template>
+    </HeaderBar>
+    
+    <!-- Sidebar -->
+    <u-popup v-model="showSidebar" mode="left" width="600">
+      <view class="sidebar-content">
+        <!-- Sidebar content placeholder -->
+      </view>
+    </u-popup>
 
     <!-- Chat Messages -->
-    <view class="scroll-box">
+    <view class="scroll-box" :style="{ paddingTop: headerHeight + 'px' }">
       <ReportGeneration ref="reportGenerationRef" :report-id="reportId" />
 
       <!-- Chat Message List -->
@@ -91,6 +106,8 @@ import downSvg from '@/static/icon/down.svg?url';
 const reportGenerationRef = ref<InstanceType<typeof ReportGeneration> | null>(null);
 const reportId = ref<string>('');
 const isUserAtBottom = ref(true); // Track if user is at bottom
+const showSidebar = ref(false);
+const headerHeight = ref(0);
 
 const structuredMessages = ref<any[]>([]);
 const chatMessages = ref<{ 
@@ -218,6 +235,21 @@ const scrollToBottom = (force = false) => {
     });
   });
 };
+
+onMounted(() => {
+  // Calculate header height for padding
+  const sysInfo = uni.getSystemInfoSync();
+  const statusBarHeight = sysInfo.statusBarHeight || 20;
+  let navBarHeight = 44;
+
+  // #ifdef MP-WEIXIN
+  const menuButtonInfo = uni.getMenuButtonBoundingClientRect();
+  const gap = menuButtonInfo.top - statusBarHeight;
+  navBarHeight = menuButtonInfo.height + (gap * 2);
+  // #endif
+
+  headerHeight.value = statusBarHeight + navBarHeight;
+});
 
 const getChatHistory = async () => {
   try {
@@ -1271,5 +1303,50 @@ const onGenerationComplete = () => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.sidebar-toggle-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+  padding: 0;
+  margin: 0;
+  border: none;
+  
+  &:active {
+    transform: scale(0.9);
+  }
+
+  .hamburger-icon {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+    
+    .bar {
+      height: 2px;
+      background-color: #1e293b;
+      border-radius: 999px;
+      
+      &.long {
+        width: 18px;
+      }
+      
+      &.short {
+        width: 10px;
+      }
+    }
+  }
+}
+
+.sidebar-content {
+  padding: 40px 20px;
 }
 </style>

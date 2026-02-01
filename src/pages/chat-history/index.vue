@@ -124,7 +124,7 @@ const handleBack = () => {
 
 const handleChatClick = (chat: ChatItem) => {
   uni.navigateTo({
-    url: `/pages/new-chat/index?sessionId=${chat.session_id}`,
+    url: `/pages/home/index?sessionId=${chat.session_id}`,
   });
 };
 

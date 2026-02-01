@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>LifeFlow | 引导</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        [x-cloak] { display: none !important; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #fbfcff;
+        }
+        
+        /* 极致呼吸感背景：更淡的渐变 */
+        .mesh-bg {
+            background: 
+                radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.4) 0, transparent 40%),
+                radial-gradient(at 100% 100%, rgba(245, 232, 255, 0.4) 0, transparent 40%);
+        }
+
+        /* 软阴影：消除边缘感 */
+        .soft-shadow {
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.03);
+        }
+
+        /* 输入框去框化 */
+        .clean-input {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .clean-input:focus {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* 步进动效 */
+        .step-enter { animation: stepFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes stepFadeIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* 进度点 */
+        .dot-active {
+            width: 24px;
+            background: #6366f1;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body class="mesh-bg flex justify-center items-center h-screen overflow-hidden" x-data="appContext()">
+
+    <div class="w-full max-w-[400px] h-full md:h-[800px] md:rounded-[40px] relative flex flex-col bg-white/20 md:shadow-2xl md:border md:border-white/50 overflow-hidden">
+        
+        <header class="px-8 pt-12 pb-6 flex items-center justify-between">
+            <button @click="prevStep()" x-show="step > 1" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 text-slate-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div x-show="step === 1" class="w-10 h-10"></div> <div class="flex gap-1.5 items-center">
+                <template x-for="i in 3">
+                    <div class="h-1.5 rounded-full transition-all duration-500"
+                         :class="step === i ? 'dot-active' : 'w-1.5 bg-slate-200'"></div>
+                </template>
+            </div>
+            
+            <div class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50">
+                <div class="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+            </div>
+        </header>
+
+        <main class="flex-1 px-10 pt-8 flex flex-col">
+            
+            <div x-show="step === 1" class="step-enter flex flex-col h-full">
+                <h2 class="text-[32px] font-bold text-slate-800 tracking-tight leading-tight">
+                    你好，<br/>该如何称呼你？
+                </h2>
+                <p class="text-slate-400 mt-4 text-base font-medium">开启专属你的时空校准</p>
+                
+                <div class="mt-16 space-y-8">
+                    <div class="group">
+                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-[0.2em] ml-4">你的名字</label>
+                        <input type="text" x-model="form.name" placeholder="Name" 
+                               class="w-full h-16 px-6 mt-2 clean-input rounded-[24px] text-lg font-semibold text-slate-700 outline-none" />
+                    </div>
+
+                    <div class="flex items-start gap-3 px-4 pt-4 opacity-40">
+                        <div class="w-8 h-8 rounded-full bg-indigo-500 flex-shrink-0 flex items-center justify-center text-white">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 4.946-2.597 9.282-6.5 11.777a11.94 11.94 0 01-1.498.81L10 20l-.002-.012a11.95 11.95 0 01-1.498-.81C4.597 16.281 2 11.946 2 7c0-.68.056-1.35.166-2.001zM10 5a1 1 0 100 2 1 1 0 000-2zm0 4a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </div>
+                        <p class="text-[10px] leading-relaxed text-slate-600 font-medium">数据经过端到端加密存储，仅用于生成你的私人报告，任何第三方无法访问。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="step === 2" x-cloak class="step-enter flex flex-col h-full">
+                <h2 class="text-[32px] font-bold text-slate-800 tracking-tight leading-tight">
+                    你的<br/>生辰坐标
+                </h2>
+                <p class="text-slate-400 mt-4 text-base font-medium">精准的时刻决定了能量的初始分布</p>
+                
+                <div class="mt-16 space-y-6">
+                    <div class="group">
+                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-[0.2em] ml-4">出生日期</label>
+                        <input type="date" x-model="form.birthday" 
+                               class="w-full h-16 px-6 mt-2 clean-input rounded-[24px] text-lg font-semibold text-slate-700 outline-none" />
+                    </div>
+                    <div class="group">
+                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-[0.2em] ml-4">具体时刻</label>
+                        <input type="time" x-model="form.birthtime" 
+                               class="w-full h-16 px-6 mt-2 clean-input rounded-[24px] text-lg font-semibold text-slate-700 outline-none" />
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="step === 3" x-cloak class="step-enter flex flex-col h-full">
+                <h2 class="text-[32px] font-bold text-slate-800 tracking-tight leading-tight">
+                    最后一件事，<br/>确认你的原点
+                </h2>
+                <p class="text-slate-400 mt-4 text-base font-medium">不同的原点参数会产生完全不同的演化路径</p>
+                
+                <div class="mt-16 grid grid-cols-2 gap-6">
+                    <button @click="form.gender = '男'" 
+                            :class="form.gender === '男' ? 'bg-indigo-600 text-white soft-shadow scale-105' : 'bg-white/60 text-slate-400 border border-white'"
+                            class="h-44 rounded-[32px] flex flex-col items-center justify-center gap-4 transition-all duration-500 active:scale-95">
+                        <span class="text-4xl">乾</span>
+                        <span class="text-xs font-bold uppercase tracking-widest">男命</span>
+                    </button>
+                    <button @click="form.gender = '女'" 
+                            :class="form.gender === '女' ? 'bg-indigo-600 text-white soft-shadow scale-105' : 'bg-white/60 text-slate-400 border border-white'"
+                            class="h-44 rounded-[32px] flex flex-col items-center justify-center gap-4 transition-all duration-500 active:scale-95">
+                        <span class="text-4xl">坤</span>
+                        <span class="text-xs font-bold uppercase tracking-widest">女命</span>
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="px-10 pb-16 pt-8">
+            <button @click="nextStep()" 
+                    :disabled="!isValid()"
+                    class="w-full h-18 py-5 bg-indigo-600 text-white rounded-[26px] font-bold text-sm tracking-[0.1em] shadow-lg shadow-indigo-100 disabled:opacity-20 active:scale-[0.97] transition-all">
+                <span x-text="step < 3 ? '继续' : '开始计算趋势'"></span>
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        function appContext() {
+            return {
+                step: 1,
+                form: {
+                    name: '',
+                    birthday: '2000-01-01',
+                    birthtime: '12:00',
+                    gender: ''
+                },
+                isValid() {
+                    if (this.step === 1) return this.form.name.trim().length > 0;
+                    if (this.step === 2) return this.form.birthday && this.form.birthtime;
+                    if (this.step === 3) return this.form.gender !== '';
+                    return false;
+                },
+                nextStep() {
+                    if (this.step < 3) {
+                        this.step++;
+                    } else {
+                        alert('正在生成您的专属趋势报告...');
+                    }
+                },
+                prevStep() {
+                    if (this.step > 1) this.step--;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

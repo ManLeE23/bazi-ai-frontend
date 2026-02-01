@@ -255,7 +255,7 @@ const jumpToChat = () => {
     return;
   }
   uni.navigateTo({
-    url: '/pages/new-chat/index',
+    url: '/pages/home/index',
   });
 }
 

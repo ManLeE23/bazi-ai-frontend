@@ -19,6 +19,12 @@
 			}
 		},
 		{
+			"path": "pages/step/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/bazi/detail",
 			"style": {
 				"navigationStyle": "custom"
@@ -55,7 +61,7 @@
 			}
 		},
 		{
-			"path": "pages/new-chat/index",
+			"path": "pages/home/index",
 			"style": {
 				"navigationStyle": "custom"
 			}

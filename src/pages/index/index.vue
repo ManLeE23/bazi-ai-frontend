@@ -294,7 +294,7 @@ const onCreateChat = async () => {
   const sessionId = (res as any).data.session_id;
   const userInfo = (res as any).data.user_info;
   uni.navigateTo({
-    url: `/pages/new-chat/index?sessionId=${sessionId}&message=${mainConcern.value}&userInfo=${encodeURIComponent(JSON.stringify(userInfo))}`,
+    url: `/pages/home/index?sessionId=${sessionId}&message=${mainConcern.value}&userInfo=${encodeURIComponent(JSON.stringify(userInfo))}`,
   });
 };
 
@@ -320,7 +320,7 @@ const onGenReport = async () => {
 
 const onJump = (id: string) => {
   uni.navigateTo({
-    url: `/pages/new-chat/index?reportId=${id}`,
+    url: `/pages/home/index?reportId=${id}`,
   });
 };
 
