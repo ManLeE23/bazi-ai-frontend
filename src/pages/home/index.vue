@@ -18,14 +18,27 @@
     
     <!-- Sidebar -->
     <u-popup v-model="showSidebar" mode="left" width="600">
-      <view class="sidebar-content">
-        <!-- Sidebar content placeholder -->
-      </view>
+      <SidebarMenu 
+        :current-profile="userInfo"
+        @open-user-center="handleOpenUserCenter" 
+        @switch-profile="handleSwitchProfile" 
+      />
     </u-popup>
 
+    <!-- User Center Popup -->
+    <UserCenterPopup v-model="showUserPopup" @open-upgrade="handleOpenUpgrade" />
+
+    <!-- Upgrade Popup -->
+    <UpgradePopup v-model="showUpgradePopup" />
+
     <!-- Chat Messages -->
-    <view class="scroll-box" :style="{ paddingTop: headerHeight + 'px' }">
+    <view class="scroll-box" :style="{ paddingTop: (headerHeight + 16) + 'px' }">
       <ReportGeneration ref="reportGenerationRef" :report-id="reportId" />
+
+      <!-- Profile Guide Card -->
+      <view v-if="showProfileGuide" class="profile-guide-wrapper">
+        <ProfileGuideCard />
+      </view>
 
       <!-- Chat Message List -->
       <view class="chat-message-list">
@@ -49,7 +62,7 @@
 
           <!-- Message Bubble -->
           <view :class="['message-row', message.role === 'user' ? 'justify-end' : 'justify-start']">
-            <template v-if="message.type === 'bazi'">
+            <template v-if="message.type === 'bazi' && userInfo">
                <BaziCard :data="message.baziData" :userInfo="userInfo" />
             </template>
             <view v-else :class="['bubble', message.role === 'user' ? 'user-bubble' : 'ai-bubble']">
@@ -70,6 +83,18 @@
              </view>
           </view>
         </view>
+
+        <!-- Quick Questions -->
+        <view v-if="showQuickQuestions" class="quick-questions-container">
+          <button 
+            v-for="(q, index) in quickQuestions" 
+            :key="index" 
+            class="quick-btn"
+            @click="sendQuickQuestion(q)"
+          >
+            {{ q }}
+          </button>
+        </view>
         
         <view id="chat-bottom" style="height: 1rpx;"></view>
       </view>
@@ -83,33 +108,37 @@
     </view>
 
     <!-- Input Area -->
-    <InputWithButton :model-value="inputText" @update:model-value="onInputUpdate" @click="sendQuestion"
+    <InputWithButton :model-value="inputText" :show-bazi="hasProfile" @update:model-value="onInputUpdate" @click="sendQuestion"
       @generate-report="startReportGeneration" @show-bazi="handleShowBazi" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { onLoad, onPageScroll } from '@dcloudio/uni-app';
-import BaziButton from '@/components/BaziButton.vue';
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, computed, watch } from 'vue';
+import { userStore, type UserInfo } from '@/store/user';
 import HeaderBar from '@/components/HeaderBar.vue';
+import ProfileGuideCard from './components/ProfileGuideCard.vue';
+import SidebarMenu from './components/SidebarMenu.vue';
+import UserCenterPopup from './components/UserCenterPopup.vue';
+import UpgradePopup from './components/UpgradePopup.vue';
 import useSSEMessage from './hooks/useSSEMessage'; // 导入新的hook
-import { fetchReportById, fetchProgressfromReportId, fetchChatHistory, fetchSendMessage, fetchBaziCalculate, fetchCreateSession, fetchSessionUserInfo } from '@/api/services';
+import { fetchChatHistory, fetchBaziCalculate, fetchSessionUserInfo, fetchProfilesList, fetchCreateSession } from '@/api/services';
 import InputWithButton from '@/components/InputWithButton.vue';
 import ReportGeneration from '@/components/ReportGeneration.vue';
 import LoadingIndicator from '@/components/LoadingIndicator.vue';
 import MarkDown from '../components/MarkDown/index.vue';
 import BaziCard from './components/BaziCard.vue';
-import { watch } from 'vue'; // 导入watch
 import downSvg from '@/static/icon/down.svg?url';
 
 const reportGenerationRef = ref<InstanceType<typeof ReportGeneration> | null>(null);
 const reportId = ref<string>('');
 const isUserAtBottom = ref(true); // Track if user is at bottom
 const showSidebar = ref(false);
+const showUserPopup = ref(false);
+const showUpgradePopup = ref(false);
 const headerHeight = ref(0);
 
-const structuredMessages = ref<any[]>([]);
 const chatMessages = ref<{ 
   role: string; 
   content: string; 
@@ -123,32 +152,156 @@ const chatMessages = ref<{
 }[]>([]);
 const inputText = ref('');
 const isTyping = ref(false);
-const showInsightCard = ref(false);
-const step = ref(0);
-const reportData = ref(null);
-const isGenerating = ref(false);
-const showChatInterface = ref(true);
+
 const sessionId = ref<string>('');
 const isFromIndexPage = ref(false);
 
 // 思维链相关状态
 const isThinking = ref(false);
 
-const userInfo = ref<any>(null);
+const userInfo = computed({
+  get: () => userStore.userInfo,
+  set: (val) => {
+    if (val) {
+      userStore.setUserInfo(val);
+    } else {
+      userStore.clearUserInfo();
+    }
+  }
+});
+
+const isLoadingUserInfo = ref(true);
 const baziFetchPromise = ref<Promise<any> | null>(null);
 
-const goBack = () => {
-  const pages = getCurrentPages();
-  if (pages.length > 1) {
-    uni.navigateBack();
-  } else {
-    uni.switchTab({
-      url: '/pages/index/index'
-    });
-  }
+const showQuickQuestions = ref(false);
+const quickQuestions = [
+  '待业中，该选什么工作方向？',
+  '现在辞职转型合适吗？',
+  '我和对象相处节奏合拍吗？'
+];
+
+const isProfileListEmpty = ref(false);
+
+const welcomeTimers = ref<number[]>([]);
+
+const clearWelcomeTimers = () => {
+  welcomeTimers.value.forEach(timer => clearTimeout(timer));
+  welcomeTimers.value = [];
 };
 
-onLoad((options: any) => {
+const sendQuickQuestion = (q: string) => {
+  inputText.value = q;
+  sendQuestion();
+  showQuickQuestions.value = false;
+};
+
+const simulateWelcomeMessages = () => {
+  clearWelcomeTimers();
+  const name = userInfo.value?.name || '你';
+  
+  // Message 1
+  chatMessages.value.push({
+    role: 'assistant',
+    content: `你好，${name}，档案收到啦～`,
+    timestamp: new Date(),
+    id: `welcome-1-${Date.now()}`
+  });
+  
+  const timer1 = setTimeout(() => {
+    // Message 2
+    chatMessages.value.push({
+      role: 'assistant',
+      content: '我是 Trenlify，现在可以聊聊你当下最关心的人生方向啦',
+      timestamp: new Date(),
+      id: `welcome-2-${Date.now()}`
+    });
+    scrollToBottom(true);
+    
+    const timer2 = setTimeout(() => {
+      // Message 3
+      chatMessages.value.push({
+        role: 'assistant',
+        content: '不管是事业、情感还是其他选择，都可以跟我说，我帮你拆解趋势～',
+        timestamp: new Date(),
+        id: `welcome-3-${Date.now()}`
+      });
+      scrollToBottom(true);
+      
+      const timer3 = setTimeout(() => {
+        showQuickQuestions.value = true;
+        nextTick(() => {
+          scrollToBottom(true);
+        });
+      }, 600);
+      welcomeTimers.value.push(timer3);
+    }, 1000);
+    welcomeTimers.value.push(timer2);
+  }, 800);
+  welcomeTimers.value.push(timer1);
+};
+
+const hasProfile = computed(() => {
+  return !!(userInfo.value && userInfo.value.name);
+});
+
+const showProfileGuide = computed(() => {
+  if (chatMessages.value.length > 0) return false;
+  return isProfileListEmpty.value || (!isLoadingUserInfo.value && !hasProfile.value);
+});
+
+const initBaziData = (info: any) => {
+  baziFetchPromise.value = fetchBaziCalculate(info)
+    .then(res => ({ success: true, res }))
+    .catch(error => {
+      console.error('Bazi pre-fetch failed:', error);
+      return { success: false, error };
+    });
+};
+
+onLoad(async (options: any) => {
+  try {
+    const profilesRes: any = await fetchProfilesList();
+    if (profilesRes.data && Array.isArray(profilesRes.data.items) && profilesRes.data.items.length === 0) {
+      // No profiles, show guide
+      isProfileListEmpty.value = true;
+      userInfo.value = null;
+    } else {
+      // Has profiles, try to get history for current or first profile
+      const profiles = profilesRes.data?.items || (Array.isArray(profilesRes.data) ? profilesRes.data : []);
+      if (profiles.length > 0) {
+        let targetProfile = profiles[0];
+        
+        try {
+          const lastUser = userStore.userInfo;
+          if (lastUser && lastUser.id) {
+            const foundProfile = profiles.find((p: any) => p.id === lastUser.id);
+            if (foundProfile) {
+              targetProfile = foundProfile;
+            }
+          }
+        } catch (e) {
+          console.error('Restoring last profile failed:', e);
+        }
+
+       userInfo.value = targetProfile;
+
+        if (targetProfile.session_id) {
+          sessionId.value = targetProfile.session_id;
+          await getChatHistory();
+        } else {
+          // Profile exists but no session, simulate welcome
+          simulateWelcomeMessages();
+        }
+      } else {
+        // Fallback
+        simulateWelcomeMessages();
+      }
+    }
+  } catch (e) {
+    console.error('Failed to check profiles:', e);
+    // Fallback to welcome messages on error
+    simulateWelcomeMessages();
+  }
   if (options.sessionId) {
     sessionId.value = options.sessionId;
 
@@ -157,50 +310,37 @@ onLoad((options: any) => {
 
     getChatHistory();
   }
-  if (options.message && isFromIndexPage) {
-    inputText.value = options.message;
-  }
-
-  const initBaziData = (info: any) => {
-    baziFetchPromise.value = fetchBaziCalculate(info)
-      .then(res => ({ success: true, res }))
-      .catch(error => {
-        console.error('Bazi pre-fetch failed:', error);
-        return { success: false, error };
-      });
-  };
 
   if (options.userInfo) {
     try {
-      userInfo.value = JSON.parse(decodeURIComponent(options.userInfo));
-      initBaziData(userInfo.value);
+      const parsedInfo = JSON.parse(decodeURIComponent(options.userInfo));
+      userInfo.value = parsedInfo;
+      initBaziData(parsedInfo);
+
+      // Handle new profile creation flow
+      if (options.isNewProfile === 'true') {
+         simulateWelcomeMessages();
+      }
     } catch (e) {
       console.error('Parse userInfo error:', e);
     }
-  } else if (sessionId.value) {
-    // Historical session: fetch user info
+    isLoadingUserInfo.value = false;
+  } else if (sessionId.value && (options.sessionId || !userInfo.value)) {
+    // Historical session: fetch user info (only if deep linked or no user loaded)
     fetchSessionUserInfo(sessionId.value).then(res => {
       if (res.data) {
-        userInfo.value = res.data;
-        initBaziData(userInfo.value);
+        userInfo.value = res.data as UserInfo;
+        initBaziData(res.data);
       }
     }).catch(err => {
       console.error('Fetch session user info error:', err);
+    }).finally(() => {
+      isLoadingUserInfo.value = false;
     });
   } else {
-    // New session: create session first
-    fetchCreateSession({}).then(res => {
-      const data = res.data as any;
-      if (data) {
-        sessionId.value = data.session_id;
-        if (data.user_info) {
-          userInfo.value = data.user_info;
-          initBaziData(userInfo.value);
-        }
-      }
-    }).catch(err => {
-      console.error('Create session error:', err);
-    });
+    // New session: do not create session immediately if user profile is missing
+    // Instead, let showProfileGuide handle the UI
+    isLoadingUserInfo.value = false;
   }
 });
 
@@ -224,17 +364,26 @@ const scrollToBottom = (force = false) => {
   if (!force && !isUserAtBottom.value) return;
 
   nextTick(() => {
-    uni.pageScrollTo({
-      scrollTop: 999999,
-      duration: 300,
-      success: () => {
-         if (force) {
-            isUserAtBottom.value = true;
-         }
-      }
-    });
+    // Add a small delay to ensure layout (including header height) is complete
+    setTimeout(() => {
+      uni.pageScrollTo({
+        scrollTop: 9999999,
+        duration: 300,
+        success: () => {
+           if (force) {
+              isUserAtBottom.value = true;
+           }
+        }
+      });
+    }, 150);
   });
 };
+
+watch(headerHeight, () => {
+  if (isUserAtBottom.value) {
+    scrollToBottom(true);
+  }
+});
 
 onMounted(() => {
   // Calculate header height for padding
@@ -251,12 +400,59 @@ onMounted(() => {
   headerHeight.value = statusBarHeight + navBarHeight;
 });
 
+const handleOpenUserCenter = () => {
+  showSidebar.value = false;
+  showUserPopup.value = true;
+};
+
+const handleOpenUpgrade = () => {
+  showUserPopup.value = false; // Ensure previous popup is closed
+  showUpgradePopup.value = true;
+};
+
+const handleSwitchProfile = async (profile: UserInfo) => {
+  // 如果切换的是同一个档案，直接关闭侧边栏返回
+  if (userInfo.value && userInfo.value.id === profile.id) {
+    showSidebar.value = false;
+    return;
+  }
+
+  showSidebar.value = false;
+
+  // 重置状态
+  showQuickQuestions.value = false;
+  clearWelcomeTimers();
+
+  // Update local user info
+  userInfo.value = profile;
+  
+  // Initialize/Update Bazi data for the new profile
+  initBaziData(profile);
+  
+  // Check if session exists
+  if (profile.session_id) {
+    sessionId.value = profile.session_id;
+    chatMessages.value = [];
+    await getChatHistory();
+  } else {
+    // No session yet, just show welcome messages
+    sessionId.value = '';
+    chatMessages.value = [];
+    simulateWelcomeMessages();
+  }
+};
+
 const getChatHistory = async () => {
   try {
     const res = await fetchChatHistory(sessionId.value);
     console.log('Chat history response:', res);
 
     if (Array.isArray(res.data)) {
+      // 如果有历史记录，确保隐藏快捷提问
+      if (res.data.length > 0) {
+        showQuickQuestions.value = false;
+      }
+
       // 清空现有消息
       chatMessages.value = [];
 
@@ -285,9 +481,23 @@ const getChatHistory = async () => {
 
       scrollToBottom(true);
 
-      // 检查是否需要自动触发
-      if (res.data.length === 0) {
-        sendQuestion();
+      // 检查是否需要自动触发 (如果历史记录为空，且已录入档案)
+      if (res.data.length === 0 && hasProfile.value) {
+        simulateWelcomeMessages();
+      } else if (hasProfile.value && isFromIndexPage.value) {
+        // 如果不是空历史，且是从首页进入（或者是初始化加载），不需要发 "回来啦"
+        // 只有在特定场景下才可能需要，但根据用户需求："if the chat history is empty, you can display the welcome message, if not, you should show the chat history"
+        // 所以这里不需要额外发消息，除非有明确需求。
+        // 为了保持逻辑简洁，只在空历史时发欢迎语。
+        // 如果需要 "回来啦" 提示，可以在这里加，但目前先注释掉，严格遵循用户指令。
+        // const name = userInfo.value?.name || '你';
+        // chatMessages.value.push({
+        //   role: 'assistant',
+        //   content: `Hi, ${name} 你回来啦～`,
+        //   timestamp: new Date(),
+        //   id: `welcome-back-${Date.now()}`
+        // });
+        // scrollToBottom(true);
       }
     }
   } catch (error) {
@@ -301,6 +511,19 @@ const toggleReasoning = (message: any) => {
 };
 
 const handleShowBazi = async () => {
+  // 新增：交互时立即隐藏快捷提问并清除可能存在的欢迎语定时器
+  showQuickQuestions.value = false;
+  clearWelcomeTimers();
+
+  // Check if profile exists
+  if (showProfileGuide.value) {
+    uni.showToast({
+      title: '请先录入档案',
+      icon: 'none'
+    });
+    return;
+  }
+
   // Simulate user asking "看生辰"
   chatMessages.value.push({
     role: 'user',
@@ -362,7 +585,20 @@ const handleShowBazi = async () => {
 };
 
 const sendQuestion = async () => {
+  // Check if profile exists
+  if (showProfileGuide.value) {
+    uni.showToast({
+      title: '请先录入档案',
+      icon: 'none'
+    });
+    return;
+  }
+
   if (inputText.value.trim()) {
+    // 新增：发送消息时同样执行隐藏和清除操作
+    showQuickQuestions.value = false;
+    clearWelcomeTimers();
+
     // 添加用户消息到聊天列表
     chatMessages.value.push({
       role: 'user',
@@ -382,8 +618,38 @@ const sendQuestion = async () => {
     isThinking.value = true;
 
     try {
+      // If no session ID, create one first
+      if (!sessionId.value) {
+        if (userInfo.value && userInfo.value.id) {
+          try {
+            const sessionRes: any = await fetchCreateSession({
+              profile_id: userInfo.value.id
+            });
+            if (sessionRes && sessionRes.data && sessionRes.data.session_id) {
+              sessionId.value = sessionRes.data.session_id;
+              // Update local user info with new session ID
+              const updatedUser = { ...userInfo.value, session_id: sessionId.value };
+              userInfo.value = updatedUser;
+            } else {
+              throw new Error('Invalid session response');
+            }
+          } catch (e) {
+            console.error('Failed to create session:', e);
+            uni.showToast({ title: '创建会话失败', icon: 'none' });
+            isTyping.value = false;
+            isThinking.value = false;
+            return;
+          }
+        } else {
+          console.error('Missing user info for session creation');
+          isTyping.value = false;
+          isThinking.value = false;
+          return;
+        }
+      }
+
       // 使用SSE获取流式响应
-      const { messageList, isLoading, startSSE, stopSSE } = useSSEMessage({
+      const { messageList, isLoading, startSSE } = useSSEMessage({
         session_id: sessionId.value,
         user_input: question
       });
@@ -460,15 +726,9 @@ const onInputUpdate = (value: string) => {
   inputText.value = value;
 };
 
-const formatTime = (date: Date) => {
-  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-};
-
 const startReportGeneration = () => {
   console.log('reportGenerationRef', reportGenerationRef.value);
-  // 设置生成状态为true，开始报告生成流程
-  isGenerating.value = true;
-
+  
   // 使用nextTick确保组件渲染完成后再调用
   nextTick(() => {
     if (reportGenerationRef.value) {
@@ -477,58 +737,53 @@ const startReportGeneration = () => {
   });
 };
 
-const onGenerationComplete = () => {
-  // 生成完成后，隐藏生成界面，显示聊天界面
-  isGenerating.value = false;
-  showChatInterface.value = true;
-};
-
 </script>
 
 <style lang="scss" scoped>
 .root {
+  width: 100%;
   min-height: 100vh;
-  background-color: #F8F9FF;
+  background-color: #F2F4F8;
   position: relative;
+  display: flex;
+  flex-direction: column;
 
   view {
     box-sizing: border-box;
   }
 }
 
-/* Energy Blobs */
+.profile-guide-wrapper {
+  padding: 0 16rpx;
+  margin-top: 32rpx;
+  animation: fade-in 0.5s ease-out;
+}
+
+/* Energy Blobs - Updated for Soft Glow */
 .energy-blob {
   position: fixed;
-  width: 600rpx;
-  height: 600rpx;
-  filter: blur(80px);
+  width: 100vw;
+  height: 800rpx;
+  filter: blur(120px);
   z-index: 0;
-  opacity: 0.4;
+  opacity: 0.5;
   border-radius: 50%;
-  animation: move 25s infinite alternate ease-in-out;
   pointer-events: none;
 }
 
 .blob-1 {
-  background-color: #c7d2fe;
-  top: -10%;
-  left: -10%;
+  background: radial-gradient(circle at center, #E0E7FF 0%, rgba(199, 210, 254, 0.5) 100%);
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .blob-2 {
-  background-color: #ffe4e6;
-  bottom: -10%;
-  right: -10%;
-  animation-delay: -10s;
-}
-
-@keyframes move {
-  from {
-    transform: translate(-20%, -20%);
-  }
-  to {
-    transform: translate(30%, 40%);
-  }
+  background: radial-gradient(circle at center, #F3E8FF 0%, rgba(233, 213, 255, 0.5) 100%);
+  top: -10%;
+  right: -20%;
+  width: 600rpx;
+  height: 600rpx;
 }
 
 /* Custom Header */
@@ -1312,16 +1567,15 @@ const onGenerationComplete = () => {
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;
   padding: 0;
   margin: 0;
-  border: none;
   
   &:active {
     transform: scale(0.9);
+    background-color: rgba(255, 255, 255, 0.5);
   }
 
   .hamburger-icon {
@@ -1348,5 +1602,48 @@ const onGenerationComplete = () => {
 
 .sidebar-content {
   padding: 40px 20px;
+}
+
+.quick-questions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+  animation: springUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.2) both;
+  
+  .quick-btn {
+    margin: 0;
+    width: fit-content;
+    // background-color: rgba(255, 255, 255, 0.8);
+    // border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 16rpx;
+    padding: 24rpx 32rpx;
+    font-size: 28rpx;
+    color: #000;
+    text-align: left;
+    transition: all 0.3s ease;
+    line-height: 1.4;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(224, 231, 255, 0.3019607843);
+    background-color: rgba(255, 255, 255, 0.8);
+    
+    &:active {
+      background-color: rgba(99, 102, 241, 0.1);
+      transform: scale(0.99);
+    }
+
+    &::after {
+      border: none;
+    }
+  }
+}
+
+.empty-sidebar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #94a3b8;
+  font-size: 28rpx;
 }
 </style>

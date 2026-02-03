@@ -1,7 +1,7 @@
 <template>
   <view class="root">
     <!-- Quick Actions -->
-    <view class="quick-actions">
+    <view class="quick-actions" v-if="showBazi">
       <view class="action-chip" @click="emit('showBazi')">
         <image :src="baguaSvg" class="chip-icon-img" mode="aspectFit" />
         <text class="chip-text">看生辰</text>
@@ -12,7 +12,7 @@
 
       <!-- Input Field -->
       <textarea
-        placeholder="向美灵追问细节..."
+        placeholder="快和 Trenlify 畅所欲言吧～"
         class="input-field"
         :value="modelValue"
         @input="onInput"
@@ -21,6 +21,7 @@
         :show-confirm-bar="false"
         :cursor-spacing="20"
         maxlength="1000"
+        placeholder-style="color: #94a3b8; font-size: 14px" 
       ></textarea>
 
       <!-- Right Send Button -->
@@ -28,20 +29,20 @@
         @click="onButtonClick"
         class="icon-btn send-btn"
       >
-        <image :src="rightSvg" class="send-icon" mode="aspectFit" />
+        <image :src="upSvg" style="width: 20px; height: 20px;" />
       </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import rightSvg from '@/static/icon/right.svg?url';
-import baguaSvg from '@/static/icon/bagua.svg?url'; // Assuming this works similar to right.svg
+import baguaSvg from '@/static/icon/bagua.svg?url';
+const upSvg = '/static/icon/up.svg';
 
 interface Props {
   modelValue?: string;
   placeholder?: string;
+  showBazi?: boolean;
 }
 
 interface Emits {
@@ -55,7 +56,8 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: '向美灵追问细节...',
-  modelValue: ''
+  modelValue: '',
+  showBazi: true
 });
 
 const emit = defineEmits<Emits>();
@@ -95,25 +97,27 @@ const onConfirm = (e: any) => {
   gap: 16rpx;
   
   .action-chip {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(8px);
-    border: 1rpx solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1rpx solid rgba(255, 255, 255, 0.5);
     border-radius: 32rpx;
-    padding: 8rpx 20rpx;
+    padding: 10rpx 24rpx;
     display: flex;
     align-items: center;
     gap: 8rpx;
-    box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
-    transition: transform 0.1s;
+    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
     
     &:active {
         transform: scale(0.95);
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.6);
     }
 
     .chip-icon-img {
         width: 32rpx;
         height: 32rpx;
+        opacity: 0.8;
     }
 
     .chip-text {
@@ -148,10 +152,6 @@ const onConfirm = (e: any) => {
   flex-shrink: 0;
 }
 
-.left-btn {
-  /* text-slate-300 handled by stroke color in svg */
-}
-
 .send-btn {
   background-color: #0f172a; /* bg-slate-900 */
   color: white;
@@ -165,7 +165,7 @@ const onConfirm = (e: any) => {
 .input-field {
   flex: 1;
   background: transparent;
-  font-size: 28rpx; /* text-[14px] */
+  font-size: 32rpx; /* text-[14px] */
   font-weight: 700; /* font-bold */
   color: #334155; /* text-slate-700 */
   min-height: 48rpx;
@@ -183,7 +183,7 @@ const onConfirm = (e: any) => {
 }
 
 .send-icon {
-  width: 32rpx;
-  height: 32rpx;
+  width: 28rpx;
+  height: 28rpx;
 }
 </style>

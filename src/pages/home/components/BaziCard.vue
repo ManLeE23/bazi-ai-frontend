@@ -12,7 +12,6 @@
               <text class="char" :class="getWuXingClass(data.pillars?.year?.gan)">{{ data.pillars?.year?.gan || '-' }}</text>
               <text class="char" :class="getWuXingClass(data.pillars?.year?.zhi)">{{ data.pillars?.year?.zhi || '-' }}</text>
            </view>
-           <text class="zang">{{ getFirstHiddenTenGod(data.pillars?.year?.hidden_stems) }}</text>
         </view>
 
         <!-- Month Pillar -->
@@ -23,7 +22,6 @@
               <text class="char" :class="getWuXingClass(data.pillars?.month?.gan)">{{ data.pillars?.month?.gan || '-' }}</text>
               <text class="char" :class="getWuXingClass(data.pillars?.month?.zhi)">{{ data.pillars?.month?.zhi || '-' }}</text>
            </view>
-           <text class="zang">{{ getFirstHiddenTenGod(data.pillars?.month?.hidden_stems) }}</text>
         </view>
 
         <!-- Day Pillar -->
@@ -34,7 +32,6 @@
               <text class="char" :class="getWuXingClass(data.pillars?.day?.gan)">{{ data.pillars?.day?.gan || '-' }}</text>
               <text class="char" :class="getWuXingClass(data.pillars?.day?.zhi)">{{ data.pillars?.day?.zhi || '-' }}</text>
            </view>
-           <text class="zang">{{ getFirstHiddenTenGod(data.pillars?.day?.hidden_stems) }}</text>
         </view>
 
         <!-- Hour Pillar -->
@@ -45,7 +42,6 @@
               <text class="char" :class="getWuXingClass(data.pillars?.hour?.gan)">{{ data.pillars?.hour?.gan || '-' }}</text>
               <text class="char" :class="getWuXingClass(data.pillars?.hour?.zhi)">{{ data.pillars?.hour?.zhi || '-' }}</text>
            </view>
-           <text class="zang">{{ getFirstHiddenTenGod(data.pillars?.hour?.hidden_stems) }}</text>
         </view>
 
       </view>
@@ -62,7 +58,7 @@ interface UserInfo {
   name: string;
   gender: string;
   birth_date: string;
-  chinese_birth_date: string;
+  chinese_birth_date?: string;
   birth_time: string;
   birth_location: string;
 }
@@ -118,11 +114,6 @@ const getWuXingClass = (char: string | undefined) => {
         '壬': 'shui', '癸': 'shui', '亥': 'shui', '子': 'shui'
     };
     return map[char] || '';
-};
-
-const getFirstHiddenTenGod = (stems: HiddenStem[] | undefined) => {
-    if (!stems || stems.length === 0) return '-';
-    return stems[0].full_ten_god;
 };
 
 </script>
@@ -209,13 +200,6 @@ const getFirstHiddenTenGod = (stems: HiddenStem[] | undefined) => {
       font-size: 40rpx; /* xl = 1.25rem = 20px = 40rpx */
       font-weight: 900;
     }
-  }
-
-  .zang {
-    /* text-[9px] font-bold text-slate-300 */
-    font-size: 24rpx;
-    font-weight: 700;
-    color: #cbd5e1; /* slate-300 */
   }
 }
 

@@ -11,7 +11,7 @@ type GenReportParams = {
 };
 
 export const fetchOpenId = (params: { code: string }) => {
-  return httpPost({ url: '/api/auth/login', params });
+  return httpPost({ url: '/api/auth/login', params, skipAuth: true });
 };
 
 export const fetchReportList = () => {
@@ -20,6 +20,20 @@ export const fetchReportList = () => {
 
 export const fetchProfilesList = () => {
   return httpGet({ url: '/api/profiles/list', params: {} });
+};
+
+export const fetchCreateProfile = (params: {
+  name: string;
+  gender: string;
+  birth_date: string;
+  birth_time: string;
+  birth_location: string;
+}) => {
+  return httpPost({ url: '/api/profiles/create', params });
+};
+
+export const fetchDeleteProfile = (id: string) => {
+  return httpPost({ url: `/api/profiles/delete/${id}`, params: {} });
 };
 
 export const fetchGenReport = (params: GenReportParams) => {
@@ -80,6 +94,13 @@ export const fetchSessionUserInfo = (session_id: string) => {
   });
 };
 
+export const fetchSystemUserInfo = () => {
+  return httpGet({
+    url: '/api/auth/me',
+    params: {},
+  });
+};
+
 export const fetchBaziCalculate = (params: {
   name?: string;
   gender: string;
@@ -89,6 +110,17 @@ export const fetchBaziCalculate = (params: {
 }) => {
   return httpPost({
     url: '/api/bazi/calculate',
+    params,
+  });
+};
+
+export const fetchWechatPayment = (params: {
+  amount_total: number;
+  description: string;
+  currency?: string;
+}) => {
+  return httpPost({
+    url: '/api/payments/wechat/jsapi',
     params,
   });
 };

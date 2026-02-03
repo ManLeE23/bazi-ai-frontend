@@ -52,6 +52,7 @@ type HistoryReport = {
   dimensions: string[];
   birthDate: string;
   birthTime: string;
+  userName: string;
 };
 
 const reports = ref<HistoryReport[]>([]);
@@ -89,6 +90,7 @@ const getReportList = async () => {
         dimensions: ['事业', '财运'],
         birthDate: '1990-05-15',
         birthTime: '辰时',
+        userName: '张三'
       },
     ];
   }
@@ -112,7 +114,7 @@ const handleContinueChat = (reportId: string) => {
 
 const handleStartAnalysis = () => {
   uni.redirectTo({
-    url: '/pages/index/index'
+    url: '/pages/step/index'
   });
 }
 </script>

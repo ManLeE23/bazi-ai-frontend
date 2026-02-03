@@ -41,21 +41,40 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { doLogin } from '@/utils/auth';
 
 const isExiting = ref(false);
 
-onMounted(() => {
-  setTimeout(() => {
+onMounted(async () => {
+  const minDisplayTime = new Promise(resolve => setTimeout(resolve, 1500));
+  
+  try {
+    // Wait for both minimum display time and login
+    // Use .catch() on doLogin to ensure we proceed even if login fails
+    await Promise.all([
+      minDisplayTime, 
+      doLogin().catch(err => {
+        console.error('Login failed but proceeding:', err);
+        return null;
+      })
+    ]);
+    
     // Start exit animation
     isExiting.value = true;
     
     // Navigate after animation completes
     setTimeout(() => {
       uni.reLaunch({
-        url: '/pages/index/index'
-      });
+        url: '/pages/home/index'
+      }); 
     }, 1000); // 1s matches the CSS transition duration
-  }, 1500);
+  } catch (error) {
+    console.error('Startup error:', error);
+    // Ensure we navigate even if something unexpected happens
+    uni.reLaunch({
+      url: '/pages/home/index'
+    });
+  }
 });
 </script>
 
@@ -70,8 +89,8 @@ onMounted(() => {
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 80px 40px;
+  justify-content: flex-start;
+  padding: 200px 40px 0;
   overflow: hidden;
   
   // Exit transition

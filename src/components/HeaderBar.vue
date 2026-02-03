@@ -149,7 +149,7 @@ const goBack = () => {
   align-items: center;
   justify-content: center;
   border-radius: 32rpx;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
   color: #94a3b8;
   transition: transform 0.2s;

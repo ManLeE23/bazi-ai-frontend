@@ -3,12 +3,11 @@
     <!-- <view class="content-wrapper"> -->
       <!-- Header -->
       <view class="header">
-        <!-- Left: Back Button or Placeholder -->
+        <!-- Left: Back/Close Button -->
         <view class="header-left">
-          <view v-if="formStep > 1" class="btn-back-circle" @click="formStep--">
-            <text class="icon-back">←</text>
+          <view class="btn-circle" @click="handleLeftClick">
+            <text :class="formStep > 1 ? 'icon-back' : 'icon-close'">{{ formStep > 1 ? '←' : '×' }}</text>
           </view>
-          <view v-else class="header-placeholder"></view>
         </view>
 
         <!-- Center: Progress Dots -->
@@ -21,20 +20,16 @@
           ></view>
         </view>
 
-        <!-- Right: Menu Icon (Placeholder) -->
-        <view class="header-right">
-          <view class="menu-circle">
-            <view class="menu-dot"></view>
-          </view>
-        </view>
+        <!-- Right: Placeholder (Empty to avoid capsule collision) -->
+        <view class="header-right"></view>
       </view>
 
       <view class="step-content">
         <transition name="step-fade" mode="out-in">
           <!-- Step 1: Name -->
           <view v-if="formStep === 1" class="step-inner" key="1">
-            <text class="title">你好，<br/>该如何称呼你？</text>
-            <text class="subtitle">开启专属你的时空校准</text>
+            <text class="title">你好，{{ '\n' }}该如何称呼你？</text>
+            <text class="subtitle">姓名仅用于区分档案，不影响趋势分析结果</text>
             
             <view class="form-section">
               <view class="input-group">
@@ -42,25 +37,18 @@
                 <input 
                   type="text" 
                   v-model="form.name" 
-                  placeholder="Name" 
+                  placeholder="请输入你的姓名或常用称呼" 
                   class="clean-input" 
-                  placeholder-class="input-placeholder" 
+                  placeholder-style="color: #94a3b8; font-size: 14px" 
                 />
-              </view>
-              
-              <view class="privacy-tip">
-                <view class="privacy-icon-circle">
-                  <text class="icon-lock">🔒</text>
-                </view>
-                <text class="privacy-text">数据经过端到端加密存储，仅用于生成你的私人报告，任何第三方无法访问。</text>
               </view>
             </view>
           </view>
 
           <!-- Step 2: Gender -->
           <view v-else-if="formStep === 2" class="step-inner" key="2">
-            <text class="title">确认你的原点</text>
-            <text class="subtitle">不同的原点参数会产生完全不同的演化路径</text>
+            <text class="title">选择性别</text>
+            <text class="subtitle">用于趋势计算中的基础参数，不涉及任何偏好判断</text>
             
             <view class="gender-grid">
               <view 
@@ -84,12 +72,12 @@
 
           <!-- Step 3: Birthday -->
           <view v-else-if="formStep === 3" class="step-inner" key="3">
-            <text class="title">你的<br/>生辰坐标</text>
-            <text class="subtitle">精准的时刻决定了能量的初始分布</text>
+            <text class="title">这是趋势建模中最重要的一步</text>
+            <text class="subtitle">出生时间决定了你的人生节律与关键周期</text>
             
             <view class="form-section">
               <view class="input-group">
-                <text class="input-label">出生日期与时间</text>
+                <text class="input-label">出生日期（公历）与时间</text>
                 <DateTimePicker
                   v-model:date="form.birthday"
                   v-model:time="form.birthtime"
@@ -99,12 +87,18 @@
                   </view>
                 </DateTimePicker>
               </view>
+              <view class="privacy-tip">
+                <view class="privacy-icon-circle">
+                   <image :src="SafeSvg" class="icon-lock" mode="aspectFit" />
+                </view>
+                <text class="privacy-text">你的出生信息仅用于个人趋势分析，将加密存储。</text>
+              </view>
             </view>
           </view>
 
           <!-- Step 4: Birth Address -->
           <view v-else-if="formStep === 4" class="step-inner" key="4">
-            <text class="title">你的<br/>出生地点</text>
+            <text class="title">最后一步{{ '\n' }}完善你的趋势背景</text>
             <text class="subtitle">地理经纬度决定了真太阳时的校准</text>
             
             <view class="form-section">
@@ -140,6 +134,9 @@
 import { ref, reactive, computed } from 'vue';
 import DateTimePicker from '@/pages/index/components/DateTimePicker.vue';
 import RegionPicker from '@/pages/index/components/RegionPicker.vue';
+import { fetchCreateProfile, fetchCreateSession } from '@/api/services';
+import { userStore } from '@/store/user';
+import SafeSvg from '@/static/icon/safe.svg?url'
 
 const formStep = ref(1);
 const form = reactive({
@@ -158,6 +155,18 @@ const isValid = computed(() => {
   return false;
 });
 
+const handleClose = () => {
+  uni.navigateBack();
+};
+
+const handleLeftClick = () => {
+  if (formStep.value > 1) {
+    formStep.value--;
+  } else {
+    handleClose();
+  }
+};
+
 const handleNext = () => {
   if (!isValid.value) return;
   
@@ -168,15 +177,42 @@ const handleNext = () => {
   }
 };
 
-const startAnalysis = () => {
-  uni.redirectTo({
-    url: '/pages/home/index'
-  });
-  console.log('Start Analysis', form);
-  uni.showToast({
-    title: '正在生成您的专属趋势报告...',
-    icon: 'none'
-  });
+const startAnalysis = async () => {
+  try {
+    const res: any = await fetchCreateProfile({
+      name: form.name,
+      gender: form.gender,
+      birth_date: form.birthday,
+      birth_time: form.birthtime,
+      birth_location: form.birthAddress
+    });
+    
+    uni.hideLoading();
+    
+    // Construct userInfo object to pass to home page
+    const userInfo = {
+      ...(res.data || {}),
+      name: form.name,
+      gender: form.gender,
+      birth_date: form.birthday,
+      birth_time: form.birthtime,
+      birth_location: form.birthAddress
+    };
+
+    // Create session
+    const sessionRes: any = await fetchCreateSession({
+      profile_id: userInfo.id
+    });
+
+
+    uni.redirectTo({
+        url: `/pages/home/index?userInfo=${encodeURIComponent(JSON.stringify(userInfo))}&sessionId=${sessionRes.data.session_id}&isNewProfile=true`
+      });
+    
+  } catch (error) {
+    uni.hideLoading();
+    console.error('Create profile error:', error);
+  }
 };
 </script>
 
@@ -226,7 +262,7 @@ const startAnalysis = () => {
   justify-content: center;
 }
 
-.btn-back-circle {
+.btn-circle {
   width: 40px;
   height: 40px;
   border-radius: 9999px;
@@ -237,9 +273,14 @@ const startAnalysis = () => {
   color: #94a3b8; /* text-slate-400 */
 }
 
-.icon-back {
+.icon-back, .icon-close {
   font-size: 22px;
   line-height: 1;
+}
+
+.icon-close {
+  font-size: 28px; /* Slightly larger for X */
+  margin-top: -2px; /* Visual adjustment */
 }
 
 .header-placeholder {
@@ -280,7 +321,7 @@ const startAnalysis = () => {
 .menu-dot {
   width: 6px;
   height: 6px;
-  background-color: #cbd5e1; /* bg-slate-300 */
+  background-color: #94a3b8; /* bg-slate-300 */
   border-radius: 9999px;
 }
 
@@ -342,7 +383,7 @@ const startAnalysis = () => {
 .input-label {
   font-size: 11px;
   font-weight: 700;
-  color: #cbd5e1; /* text-slate-300 */
+  color: #94a3b8; /* text-slate-300 */
   text-transform: uppercase;
   letter-spacing: 0.2em;
   margin-left: 16px; /* ml-4 */
@@ -381,10 +422,8 @@ const startAnalysis = () => {
 /* Privacy Tip */
 .privacy-tip {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-  padding: 16px;
-  opacity: 0.4;
 }
 
 .privacy-icon-circle {
@@ -399,12 +438,13 @@ const startAnalysis = () => {
 }
 
 .icon-lock {
-  font-size: 14px;
+  height: 14px;
+  width: 14px;
   color: #ffffff;
 }
 
 .privacy-text {
-  font-size: 10px;
+  font-size: 24rpx;
   line-height: 1.6;
   color: #475569; /* text-slate-600 */
   font-weight: 500;
@@ -474,7 +514,7 @@ const startAnalysis = () => {
   background-color: #4f46e5; /* bg-indigo-600 */
   color: #ffffff;
   border-radius: 26px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.1em;
   display: flex;

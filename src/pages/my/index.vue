@@ -65,11 +65,7 @@
       </template>
 
       <!-- Recent Chats Section -->
-      <RecentChats 
-        @view-more="handleViewMore"
-        @chat-click="handleChatClick"
-        ref="recentChatsRef"
-      />
+      <!-- Removed RecentChats component -->
 
       <!-- Other Options -->
       <!-- <view class="other-options">
@@ -91,45 +87,10 @@
 
 <script setup lang="ts">
 import Tabbar from '@/components/Tabbar.vue';
-import RecentChats from './components/RecentChats.vue';
 import { ref } from 'vue';
 
 const currentPage = ref('my');
 const isPro = ref(false);
-const recentChatsRef = ref<InstanceType<typeof RecentChats> | null>(null);
-
-interface UserInfo {
-  name: string;
-  gender: string;
-  birth_date: string;
-  birth_time: string;
-  birth_location: string;
-  work_status: string;
-  relationship_status: string;
-}
-
-interface ChatItem {
-  session_id: string;
-  title: string;
-  last_message: string;
-  last_message_time: string;
-  message_count: number;
-  created_at: string;
-  updated_at: string;
-  user_info: UserInfo;
-}
-
-const handleChatClick = (chat: ChatItem) => {
-  uni.navigateTo({
-    url: `/pages/home/index?sessionId=${chat.session_id}`,
-  });
-};
-
-const handleViewMore = () => {
-  uni.navigateTo({
-    url: '/pages/chat-history/index',
-  });
-};
 
 const goToOrder = () => {
   uni.navigateTo({
@@ -163,7 +124,7 @@ const goToUpgrade = () => {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  overflow: hideen;
+  overflow: hidden;
 }
 
 /* 组合式类名：glass，用于通用磨砂卡片 */
