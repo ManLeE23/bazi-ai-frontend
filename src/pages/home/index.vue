@@ -22,6 +22,7 @@
         :current-profile="userInfo"
         @open-user-center="handleOpenUserCenter" 
         @switch-profile="handleSwitchProfile" 
+        @open-fortune="handleOpenFortune"
       />
     </u-popup>
 
@@ -33,10 +34,31 @@
 
     <!-- Chat Messages -->
     <view class="scroll-box" :style="{ paddingTop: (headerHeight + 16) + 'px' }">
-      <ReportGeneration ref="reportGenerationRef" :report-id="reportId" />
+      
+      <!-- Loading State for Profile Switch -->
+      <view v-if="isSwitchingProfile" class="profile-switching-state">
+        <view class="custom-loader">
+          <view class="dot"></view>
+          <view class="dot"></view>
+          <view class="dot"></view>
+        </view>
+        <text class="loading-text">正在加载...</text>
+      </view>
 
-      <!-- Profile Guide Card -->
-      <view v-if="showProfileGuide" class="profile-guide-wrapper">
+      <template v-else>
+
+        <!-- Profile Guide Card -->
+        <view v-if="showProfileGuide" class="profile-guide-wrapper">
+        <view class="slogan-section">
+          <view class="slogan-bar"></view>
+          <view class="slogan-title">
+            <text>看清</text><text class="text-gray">趋势，</text>
+          </view>
+          <view class="slogan-title">
+            <text>走对</text><text class="text-indigo">下一步。</text>
+          </view>
+          <text class="slogan-sub">DIGITAL WISDOM & DESTINY ALGORITHMS</text>
+        </view>
         <ProfileGuideCard />
       </view>
 
@@ -86,18 +108,49 @@
 
         <!-- Quick Questions -->
         <view v-if="showQuickQuestions" class="quick-questions-container">
-          <button 
-            v-for="(q, index) in quickQuestions" 
-            :key="index" 
-            class="quick-btn"
-            @click="sendQuickQuestion(q)"
-          >
-            {{ q }}
-          </button>
+          <!-- Header -->
+          <view class="quick-header">
+            <view class="quick-header-left">
+              <view class="quick-header-bar"></view>
+              <text class="quick-header-title">猜你想问</text>
+            </view>
+            <view class="quick-header-right" @click="loadQuickQuestions">
+              <view class="refresh-icon">
+                <image src="@/static/icon/refresh.svg" class="refresh-img" />
+              </view>
+              <text class="refresh-text">换一批</text>
+            </view>
+          </view>
+          
+          <!-- Questions List -->
+          <view class="quick-list" v-if="isLoadingQuickQuestions">
+            <view 
+              v-for="i in 3" 
+              :key="i" 
+              class="quick-card skeleton-card"
+            >
+              <view class="skeleton-badge"></view>
+              <view class="skeleton-text"></view>
+            </view>
+          </view>
+          <view class="quick-list" v-else>
+            <button 
+              v-for="(q, index) in quickQuestions" 
+              :key="index" 
+              class="quick-card"
+              @click="sendQuickQuestion(q)"
+            >
+              <view class="question-badge">
+                <text class="badge-text">Q{{ index + 1 }}</text>
+              </view>
+              <text class="question-text">{{ q }}</text>
+            </button>
+          </view>
         </view>
         
         <view id="chat-bottom" style="height: 1rpx;"></view>
       </view>
+      </template>
     </view>
 
     <!-- Scroll to Bottom Button -->
@@ -108,8 +161,14 @@
     </view>
 
     <!-- Input Area -->
-    <InputWithButton :model-value="inputText" :show-bazi="hasProfile" @update:model-value="onInputUpdate" @click="sendQuestion"
-      @generate-report="startReportGeneration" @show-bazi="handleShowBazi" />
+    <InputWithButton 
+      :model-value="inputText" 
+      :show-bazi="hasProfile" 
+      :is-a-i-sending="isGenerating"
+      @update:model-value="onInputUpdate" 
+      @click="sendQuestion"
+      @show-bazi="handleShowBazi" 
+    />
   </view>
 </template>
 
@@ -123,17 +182,27 @@ import SidebarMenu from './components/SidebarMenu.vue';
 import UserCenterPopup from './components/UserCenterPopup.vue';
 import UpgradePopup from './components/UpgradePopup.vue';
 import useSSEMessage from './hooks/useSSEMessage'; // 导入新的hook
-import { fetchChatHistory, fetchBaziCalculate, fetchSessionUserInfo, fetchProfilesList, fetchCreateSession } from '@/api/services';
+import { fetchChatHistory, fetchBaziCalculate, fetchSessionUserInfo, fetchProfilesList, fetchCreateSession, fetchSuggestedQuestions } from '@/api/services';
 import InputWithButton from '@/components/InputWithButton.vue';
-import ReportGeneration from '@/components/ReportGeneration.vue';
 import LoadingIndicator from '@/components/LoadingIndicator.vue';
 import MarkDown from '../components/MarkDown/index.vue';
 import BaziCard from './components/BaziCard.vue';
 import downSvg from '@/static/icon/down.svg?url';
+import { doLogin } from '@/utils/auth';
 
-const reportGenerationRef = ref<InstanceType<typeof ReportGeneration> | null>(null);
-const reportId = ref<string>('');
 const isUserAtBottom = ref(true); // Track if user is at bottom
+
+// Auth Check
+onMounted(() => {
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    uni.reLaunch({
+      url: '/pages/login/index'
+    });
+  }
+});
+
+const isSwitchingProfile = ref(false);
 const showSidebar = ref(false);
 const showUserPopup = ref(false);
 const showUpgradePopup = ref(false);
@@ -152,6 +221,7 @@ const chatMessages = ref<{
 }[]>([]);
 const inputText = ref('');
 const isTyping = ref(false);
+const isGenerating = ref(false);
 
 const sessionId = ref<string>('');
 const isFromIndexPage = ref(false);
@@ -174,13 +244,28 @@ const isLoadingUserInfo = ref(true);
 const baziFetchPromise = ref<Promise<any> | null>(null);
 
 const showQuickQuestions = ref(false);
-const quickQuestions = [
-  '待业中，该选什么工作方向？',
-  '现在辞职转型合适吗？',
-  '我和对象相处节奏合拍吗？'
-];
+const quickQuestions = ref<string[]>([]);
+const isLoadingQuickQuestions = ref(false);
+
+const loadQuickQuestions = async () => {
+  isLoadingQuickQuestions.value = true;
+  try {
+    const res: any = await fetchSuggestedQuestions({
+      session_id: sessionId.value || undefined,
+      limit: 3
+    });
+    if (res && res.data && Array.isArray(res.data.questions)) {
+      quickQuestions.value = res.data.questions;
+    }
+  } catch (e) {
+    console.error('Failed to load suggested questions:', e);
+  } finally {
+    isLoadingQuickQuestions.value = false;
+  }
+};
 
 const isProfileListEmpty = ref(false);
+const isScrollThrottled = ref(false);
 
 const welcomeTimers = ref<number[]>([]);
 
@@ -197,12 +282,15 @@ const sendQuickQuestion = (q: string) => {
 
 const simulateWelcomeMessages = () => {
   clearWelcomeTimers();
+  // Start loading questions early
+  loadQuickQuestions();
+  
   const name = userInfo.value?.name || '你';
   
   // Message 1
   chatMessages.value.push({
     role: 'assistant',
-    content: `你好，${name}，档案收到啦～`,
+    content: `Hi，${name}`,
     timestamp: new Date(),
     id: `welcome-1-${Date.now()}`
   });
@@ -245,7 +333,7 @@ const hasProfile = computed(() => {
 });
 
 const showProfileGuide = computed(() => {
-  if (chatMessages.value.length > 0) return false;
+  // if (chatMessages.value.length > 0) return false;
   return isProfileListEmpty.value || (!isLoadingUserInfo.value && !hasProfile.value);
 });
 
@@ -355,27 +443,44 @@ const checkIfAtBottom = () => {
     if (!res[0]) return;
     const bottomRect = res[0];
     const windowHeight = uni.getSystemInfoSync().windowHeight;
-    // Allow 100px threshold to be more sensitive to upward scrolling
-    isUserAtBottom.value = bottomRect.top <= windowHeight - 100;
+    // 阈值设为 windowHeight - 130，比 padding-bottom (160) 稍大，允许用户上滑 30px 后即停止自动滚动
+    isUserAtBottom.value = bottomRect.top <= windowHeight - 130;
   });
 };
 
-const scrollToBottom = (force = false) => {
+const scrollToBottom = (force = false, delay = 150) => {
+  // If sidebar is open, do not auto-scroll as it may block UI interactions
+  if (showSidebar.value) return;
+
+  // First check
   if (!force && !isUserAtBottom.value) return;
 
-  nextTick(() => {
-    // Add a small delay to ensure layout (including header height) is complete
+  // Throttling for streaming updates
+  if (delay === 0 && !force) {
+    if (isScrollThrottled.value) return;
+    isScrollThrottled.value = true;
     setTimeout(() => {
+      isScrollThrottled.value = false;
+    }, 100);
+  }
+
+  nextTick(() => {
+    // Add a delay to ensure layout (including header height) is complete
+    setTimeout(() => {
+      // Double check: active user scrolling might have changed this state
+      if (!force && !isUserAtBottom.value) return;
+      if (showSidebar.value) return; // Re-check sidebar state
+
       uni.pageScrollTo({
         scrollTop: 9999999,
-        duration: 300,
+        duration: delay === 0 ? 100 : 300, // Faster duration for streaming updates
         success: () => {
            if (force) {
               isUserAtBottom.value = true;
            }
         }
       });
-    }, 150);
+    }, delay);
   });
 };
 
@@ -405,6 +510,13 @@ const handleOpenUserCenter = () => {
   showUserPopup.value = true;
 };
 
+const handleOpenFortune = () => {
+  showSidebar.value = false;
+  uni.navigateTo({
+    url: '/pages/daily-fortune/index'
+  });
+};
+
 const handleOpenUpgrade = () => {
   showUserPopup.value = false; // Ensure previous popup is closed
   showUpgradePopup.value = true;
@@ -418,27 +530,37 @@ const handleSwitchProfile = async (profile: UserInfo) => {
   }
 
   showSidebar.value = false;
+  isSwitchingProfile.value = true;
 
-  // 重置状态
-  showQuickQuestions.value = false;
-  clearWelcomeTimers();
+  try {
+    // 重置状态
+    showQuickQuestions.value = false;
+    clearWelcomeTimers();
 
-  // Update local user info
-  userInfo.value = profile;
-  
-  // Initialize/Update Bazi data for the new profile
-  initBaziData(profile);
-  
-  // Check if session exists
-  if (profile.session_id) {
-    sessionId.value = profile.session_id;
-    chatMessages.value = [];
-    await getChatHistory();
-  } else {
-    // No session yet, just show welcome messages
-    sessionId.value = '';
-    chatMessages.value = [];
-    simulateWelcomeMessages();
+    // Update local user info
+    userInfo.value = profile;
+    
+    // Initialize/Update Bazi data for the new profile
+    initBaziData(profile);
+    
+    // Check if session exists
+    if (profile.session_id) {
+      sessionId.value = profile.session_id;
+      chatMessages.value = [];
+      await getChatHistory();
+    } else {
+      // No session yet, just show welcome messages
+      sessionId.value = '';
+      chatMessages.value = [];
+      simulateWelcomeMessages();
+    }
+  } catch (error) {
+    console.error('Switch profile failed:', error);
+  } finally {
+    isSwitchingProfile.value = false;
+    nextTick(() => {
+      scrollToBottom(false);
+    });
   }
 };
 
@@ -451,6 +573,9 @@ const getChatHistory = async () => {
       // 如果有历史记录，确保隐藏快捷提问
       if (res.data.length > 0) {
         showQuickQuestions.value = false;
+        // 加载输入框上方的推荐问题
+        loadQuickQuestions();
+        showQuickQuestions.value = true;
       }
 
       // 清空现有消息
@@ -535,6 +660,7 @@ const handleShowBazi = async () => {
   
   scrollToBottom(true);
   isTyping.value = true;
+  isGenerating.value = true;
   
   try {
     let result;
@@ -580,6 +706,7 @@ const handleShowBazi = async () => {
     });
   } finally {
     isTyping.value = false;
+    isGenerating.value = false;
     scrollToBottom(true);
   }
 };
@@ -616,6 +743,7 @@ const sendQuestion = async () => {
     // 显示打字指示器
     isTyping.value = true;
     isThinking.value = true;
+    isGenerating.value = true;
 
     try {
       // If no session ID, create one first
@@ -638,12 +766,14 @@ const sendQuestion = async () => {
             uni.showToast({ title: '创建会话失败', icon: 'none' });
             isTyping.value = false;
             isThinking.value = false;
+            isGenerating.value = false;
             return;
           }
         } else {
           console.error('Missing user info for session creation');
           isTyping.value = false;
           isThinking.value = false;
+          isGenerating.value = false;
           return;
         }
       }
@@ -679,6 +809,7 @@ const sendQuestion = async () => {
             existingMessage.reasoning_content = latestMessage.reasoning_content;
             existingMessage.timestamp = new Date(latestMessage.created_at || Date.now());
             existingMessage.isStreaming = true;
+            scrollToBottom(false, 0);
           } else if (latestMessage.role === 'assistant') {
             chatMessages.value.push({
               role: 'assistant',
@@ -686,23 +817,26 @@ const sendQuestion = async () => {
               content: latestMessage.content,
               timestamp: new Date(latestMessage.created_at || Date.now()),
               id: latestMessage.id,
-              isReasoningExpanded: false,
-              isStreaming: true
+              isStreaming: true,
+              isReasoningExpanded: true // 新消息默认展开思维链
             });
+            scrollToBottom(true);
           }
         }
+      });
 
-        scrollToBottom();
-      }, { deep: true });
-
-      // 监听加载状态
-      const unwatchLoading = watch(isLoading, (loading) => {
-        if (!loading) {
+      // 监听加载状态，完成后获取推荐问题
+      const unwatchLoading = watch(isLoading, (newVal) => {
+        if (!newVal) {
           // 加载完成，停止监听
           unwatch();
           unwatchLoading();
+          
           isTyping.value = false;
           isThinking.value = false;
+          isGenerating.value = false;
+          
+          // 更新消息流状态
           for (let i = chatMessages.value.length - 1; i >= 0; i--) {
             const msg = chatMessages.value[i];
             if (msg.role === 'assistant' && msg.isStreaming) {
@@ -710,7 +844,17 @@ const sendQuestion = async () => {
               break;
             }
           }
+          
           scrollToBottom();
+
+          // 获取推荐问题
+          nextTick(() => {
+            loadQuickQuestions();
+            showQuickQuestions.value = true;
+            nextTick(() => {
+              scrollToBottom(true);
+            });
+          });
         }
       });
 
@@ -718,6 +862,7 @@ const sendQuestion = async () => {
       console.error('发送问题失败:', error);
       isTyping.value = false;
       isThinking.value = false;
+      isGenerating.value = false;
     }
   }
 };
@@ -726,24 +871,63 @@ const onInputUpdate = (value: string) => {
   inputText.value = value;
 };
 
-const startReportGeneration = () => {
-  console.log('reportGenerationRef', reportGenerationRef.value);
-  
-  // 使用nextTick确保组件渲染完成后再调用
-  nextTick(() => {
-    if (reportGenerationRef.value) {
-      reportGenerationRef.value.startGeneration();
-    }
-  });
-};
-
 </script>
 
 <style lang="scss" scoped>
+.profile-switching-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 200rpx;
+  width: 100%;
+  
+  .loading-text {
+    margin-top: 32rpx;
+    font-size: 28rpx;
+    color: #6366f1; /* indigo-500, matching app theme */
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+}
+
+.custom-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  
+  .dot {
+    width: 24rpx;
+    height: 24rpx;
+    background-color: #6366f1;
+    border-radius: 50%;
+    animation: loader-bounce 1.4s infinite ease-in-out both;
+    
+    &:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+    &:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+  }
+}
+
+@keyframes loader-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .root {
   width: 100%;
   min-height: 100vh;
-  background-color: #F2F4F8;
+  background-color: #f4f7ff;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -751,6 +935,10 @@ const startReportGeneration = () => {
   view {
     box-sizing: border-box;
   }
+}
+
+.fortune-content-wrapper {
+  padding: 32rpx;
 }
 
 .profile-guide-wrapper {
@@ -839,7 +1027,7 @@ const startReportGeneration = () => {
 .scroll-box {
   width: 100%;
   box-sizing: border-box;
-  padding-bottom: 152px;
+  padding-bottom: 172px;
 }
 
 .scroll-to-bottom {
@@ -926,25 +1114,24 @@ const startReportGeneration = () => {
 }
 
 .user-bubble {
-  background: #4f46e5;
+  background: #6366f1;
   // background: linear-gradient(to bottom, #6366f1, #6b72e8, #8b5cf6);
   color: white;
   // border-bottom-right-radius: 8rpx;
   margin-left: auto;
-  box-shadow: 0 10px 15px -3px rgb(224 231 255 / 0.5), 0 4px 6px -4px rgb(224 231 255 / 0.5);
+  box-shadow: none;
   border-radius: 24px;
-  border-top-right-radius: 0;
+  border-top-right-radius: 4rpx;
 }
 
 .ai-bubble {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.65);
   color: #334155;
-  // border-bottom-left-radius: 8rpx;
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  border-top-left-radius: 0px;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  border: 1px solid #e0e7ff4d;
+  border-radius: 24rpx;
+  border-top-left-radius: 4rpx;
+  box-shadow: none;
+  border: none;
+  backdrop-filter: none;
 }
 
 .response-content {
@@ -1572,6 +1759,9 @@ const startReportGeneration = () => {
   transition: all 0.3s;
   padding: 0;
   margin: 0;
+  &::after {
+    border: none !important;
+  }
   
   &:active {
     transform: scale(0.9);
@@ -1610,32 +1800,147 @@ const startReportGeneration = () => {
   gap: 16rpx;
   margin-bottom: 24rpx;
   animation: springUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.2) both;
+
+  .quick-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 8rpx;
+
+    .quick-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12rpx;
+    }
+
+    .quick-header-bar {
+      width: 6rpx;
+      height: 24rpx;
+      background-color: #6366f1;
+      border-radius: 4rpx;
+    }
+
+    .quick-header-title {
+      font-size: 26rpx;
+      // font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .quick-header-right {
+      display: flex;
+      align-items: center;
+      gap: 6rpx;
+      padding: 8rpx;
+      opacity: 0.8;
+      
+      &:active {
+        opacity: 0.6;
+      }
+    }
+
+    .refresh-icon {
+      width: 24rpx;
+      height: 24rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .refresh-img {
+      width: 100%;
+      height: 100%;
+    }
+
+    .refresh-text {
+      font-size: 24rpx;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+  }
+
+  .quick-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16rpx;
+  }
   
-  .quick-btn {
+  .quick-card {
     margin: 0;
-    width: fit-content;
-    // background-color: rgba(255, 255, 255, 0.8);
-    // border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 16rpx;
-    padding: 24rpx 32rpx;
-    font-size: 28rpx;
-    color: #000;
-    text-align: left;
-    transition: all 0.3s ease;
-    line-height: 1.4;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(224, 231, 255, 0.3019607843);
-    background-color: rgba(255, 255, 255, 0.8);
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 24rpx;
+    padding: 24rpx;
+    display: flex;
+    align-items: flex-start;
+    gap: 20rpx;
+    box-shadow: 0 4rpx 16rpx rgba(31, 38, 135, 0.05);
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.6);
     
     &:active {
-      background-color: rgba(99, 102, 241, 0.1);
-      transform: scale(0.99);
+      transform: scale(0.98);
+      background-color: rgba(255, 255, 255, 0.85);
     }
 
     &::after {
       border: none;
     }
+
+    .question-badge {
+      flex-shrink: 0;
+      width: 48rpx;
+      height: 48rpx;
+      border-radius: 50%;
+      background-color: #eef2ff; /* bg-indigo-50 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .badge-text {
+      font-size: 24rpx;
+      font-weight: 800;
+      color: #818cf8; /* text-indigo-400 */
+      font-style: italic;
+    }
+
+    .question-text {
+      font-size: 28rpx;
+      color: #1e293b;
+      line-height: 1.4;
+      text-align: left;
+      padding-top: 4rpx;
+    }
+
+    &.skeleton-card {
+      pointer-events: none;
+      
+      .skeleton-badge {
+        width: 48rpx;
+        height: 48rpx;
+        border-radius: 50%;
+        background-color: rgba(203, 213, 225, 0.4);
+        animation: skeleton-pulse 1.5s infinite ease-in-out;
+      }
+      
+      .skeleton-text {
+        height: 32rpx;
+        width: 80%;
+        border-radius: 8rpx;
+        background-color: rgba(203, 213, 225, 0.4);
+        animation: skeleton-pulse 1.5s infinite ease-in-out;
+        animation-delay: 0.1s;
+      }
+    }
   }
+}
+
+@keyframes skeleton-pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+  100% { opacity: 0.6; }
 }
 
 .empty-sidebar {
@@ -1645,5 +1950,83 @@ const startReportGeneration = () => {
   height: 100vh;
   color: #94a3b8;
   font-size: 28rpx;
+}
+
+.slogan-section {
+  padding: 40rpx 32rpx 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.slogan-bar {
+  width: 96rpx;
+  height: 12rpx;
+  background-color: #4f46e5;
+  margin-bottom: 32rpx;
+  border-radius: 999rpx;
+}
+
+.slogan-title {
+  font-size: 60rpx;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+}
+
+.text-gray {
+  color: #000000;
+}
+
+.text-indigo {
+  color: #4f46e5;
+}
+
+.slogan-sub {
+  font-size: 24rpx;
+  color: #94a3b8;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  display: block;
+  margin-top: 24rpx;
+}
+
+/* Fortune Popup Styles */
+.fortune-popup-wrapper {
+  background-color: #f8fafc;
+  border-radius: 24rpx 24rpx 0 0;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.popup-header {
+  padding: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-color: #fff;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.popup-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.close-btn {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8rpx;
+}
+
+.popup-content {
+  padding: 32rpx;
+  box-sizing: border-box;
+  max-height: 60vh;
 }
 </style>

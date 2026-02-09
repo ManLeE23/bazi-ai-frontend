@@ -1,18 +1,14 @@
 <template>
   <div class="slogan-container" :class="{ 'exit': isExiting }">
-    <!-- 背景圆环动画 -->
-    <div class="bg-circles">
-      <div class="circle-outer animate-rotate"></div>
-      <div class="circle-inner"></div>
-    </div>
+    <!-- 背景光晕 -->
+    <div class="glow-blob animate-float"></div>
 
     <!-- 标题区域 -->
     <div class="text-section">
       <div class="bar"></div>
       <h1 class="main-title">
-        把复杂的<br />
-        <span class="text-slate-300">人生，</span><br />
-        变成<span class="text-indigo">可行趋势。</span>
+        看清趋势，<br />
+        走对<span class="text-indigo">下一步。</span>
       </h1>
       <p class="sub-text">
         DIGITAL WISDOM & DESTINY ALGORITHMS
@@ -21,21 +17,20 @@
 
     <!-- IP 漂浮区域 -->
     <!-- <div class="ip-section animate-float">
-      <div class="glow-blob"></div>
-      <div class="ip-placeholder">
-        <div class="center-content">
-          <div class="dots">
-            <div class="dot"></div>
-            <div class="dot delay-1"></div>
-            <div class="dot delay-2"></div>
-          </div>
-          <div class="placeholder-tag">
-            IP CHARACTER PLACEHOLDER
-          </div>
-          <p class="placeholder-hint">请替换为你下载的男女 IP 合影图</p>
-        </div>
-      </div>
-    </div> -->
+       <div class="ip-placeholder">
+         <div class="center-content">
+           <div class="dots">
+             <div class="dot"></div>
+             <div class="dot delay-1"></div>
+             <div class="dot delay-2"></div>
+           </div>
+           <div class="placeholder-tag">
+             IP CHARACTER PLACEHOLDER
+           </div>
+           <p class="placeholder-hint">请替换为你下载的男女 IP 合影图</p>
+         </div>
+       </div>
+     </div> -->
   </div>
 </template>
 
@@ -49,15 +44,7 @@ onMounted(async () => {
   const minDisplayTime = new Promise(resolve => setTimeout(resolve, 1500));
   
   try {
-    // Wait for both minimum display time and login
-    // Use .catch() on doLogin to ensure we proceed even if login fails
-    await Promise.all([
-      minDisplayTime, 
-      doLogin().catch(err => {
-        console.error('Login failed but proceeding:', err);
-        return null;
-      })
-    ]);
+    await minDisplayTime;
     
     // Start exit animation
     isExiting.value = true;
@@ -66,7 +53,7 @@ onMounted(async () => {
     setTimeout(() => {
       uni.reLaunch({
         url: '/pages/home/index'
-      }); 
+      });
     }, 1000); // 1s matches the CSS transition duration
   } catch (error) {
     console.error('Startup error:', error);
@@ -104,31 +91,20 @@ onMounted(async () => {
   }
 }
 
-/* 背景圆环 */
-.bg-circles {
+/* 背景圆环 - 已移除 */
+
+.glow-blob {
   position: absolute;
-  inset: 0;
-  opacity: 0.05;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background-color: rgba(99, 102, 241, 0.15); /* indigo-500/15 */
+  border-radius: 50%;
+  filter: blur(120px);
   pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .circle-outer {
-    width: 500px;
-    height: 500px;
-    border: 1px solid #312e81; /* indigo-900 */
-    border-radius: 50%;
-  }
-
-  .circle-inner {
-    position: absolute;
-    width: 300px;
-    height: 300px;
-    border: 1px solid #312e81; /* indigo-900 */
-    border-radius: 50%;
-    opacity: 0.3;
-  }
+  z-index: 0;
 }
 
 /* 文本区域 */
@@ -146,11 +122,10 @@ onMounted(async () => {
   }
 
   .main-title {
-    font-size: 52px;
+    font-size: 50px;
     font-weight: 900;
     color: #0f172a; /* slate-900 */
-    line-height: 1.05;
-    letter-spacing: -0.05em;
+    line-height: 1.5;
 
     .text-slate-300 {
       color: #cbd5e1;
@@ -178,15 +153,6 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-
-  .glow-blob {
-    position: absolute;
-    width: 256px;
-    height: 256px;
-    background-color: rgba(99, 102, 241, 0.2); /* indigo-500/20 */
-    border-radius: 50%;
-    filter: blur(80px);
-  }
 
   .ip-placeholder {
     position: relative;
@@ -243,17 +209,8 @@ onMounted(async () => {
 }
 
 /* 动画定义 */
-.animate-rotate {
-  animation: rotate-slow 20s linear infinite;
-}
-
 .animate-float {
   animation: float 4s ease-in-out infinite;
-}
-
-@keyframes rotate-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 @keyframes float {

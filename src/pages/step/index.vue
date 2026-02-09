@@ -77,13 +77,15 @@
             
             <view class="form-section">
               <view class="input-group">
-                <text class="input-label">出生日期（公历）与时间</text>
+                <text class="input-label">出生日期与时间</text>
                 <DateTimePicker
                   v-model:date="form.birthday"
                   v-model:time="form.birthtime"
+                  v-model:mode="form.mode"
+                  @lunar-date="form.lunarBirthday = $event"
                 >
                   <view class="clean-input picker-display">
-                    {{ form.birthday ? form.birthday + ' ' + (form.birthtime || '00:00') : '选择日期时间' }}
+                    {{ (form.mode === 'lunar' && form.lunarBirthday) ? (form.lunarBirthday + ' ' + (form.birthtime || '00:00')) : (form.birthday ? form.birthday + ' ' + (form.birthtime || '00:00') : '选择日期时间') }}
                   </view>
                 </DateTimePicker>
               </view>
@@ -119,11 +121,12 @@
       <view class="footer">
         <button 
           class="btn-primary" 
-          :disabled="!isValid" 
-          :class="{ 'disabled': !isValid }"
+          :disabled="!isValid || isLoading" 
+          :class="{ 'disabled': !isValid || isLoading }"
+          :loading="isLoading"
           @click="handleNext"
         >
-          {{ formStep < 4 ? '继续' : '开始趋势诊断' }}
+          {{ isLoading ? '分析中...' : (formStep < 4 ? '继续' : '开始趋势诊断') }}
         </button>
       </view>
     <!-- </view> -->
@@ -131,20 +134,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import DateTimePicker from '@/pages/index/components/DateTimePicker.vue';
 import RegionPicker from '@/pages/index/components/RegionPicker.vue';
 import { fetchCreateProfile, fetchCreateSession } from '@/api/services';
 import { userStore } from '@/store/user';
 import SafeSvg from '@/static/icon/safe.svg?url'
 
+onMounted(() => {
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    uni.reLaunch({
+      url: '/pages/login/index'
+    });
+  }
+});
+
 const formStep = ref(1);
+const isLoading = ref(false);
 const form = reactive({
   name: '',
   gender: '', 
   birthday: '2000-01-01',
+  lunarBirthday: '',
   birthtime: '12:00',
-  birthAddress: ''
+  birthAddress: '',
+  mode: 'gregorian'
 });
 
 const isValid = computed(() => {
@@ -168,7 +183,7 @@ const handleLeftClick = () => {
 };
 
 const handleNext = () => {
-  if (!isValid.value) return;
+  if (!isValid.value || isLoading.value) return;
   
   if (formStep.value < 4) {
     formStep.value++;
@@ -178,16 +193,26 @@ const handleNext = () => {
 };
 
 const startAnalysis = async () => {
+  if (isLoading.value) return;
+  isLoading.value = true;
+  
+  console.log('Submitting form:', JSON.parse(JSON.stringify(form)));
+
   try {
     const res: any = await fetchCreateProfile({
       name: form.name,
       gender: form.gender,
-      birth_date: form.birthday,
+      birth_date: form.mode === 'lunar' ? form.lunarBirthday : form.birthday,
       birth_time: form.birthtime,
-      birth_location: form.birthAddress
+      birth_location: form.birthAddress,
+      mode: form.mode
     });
+
+    if (res.code !== 200) {
+      throw new Error(res.msg || '创建用户失败')
+    }
     
-    uni.hideLoading();
+    // uni.hideLoading(); // Using button loading instead
     
     // Construct userInfo object to pass to home page
     const userInfo = {
@@ -196,7 +221,8 @@ const startAnalysis = async () => {
       gender: form.gender,
       birth_date: form.birthday,
       birth_time: form.birthtime,
-      birth_location: form.birthAddress
+      birth_location: form.birthAddress,
+      mode: form.mode
     };
 
     // Create session
@@ -205,13 +231,18 @@ const startAnalysis = async () => {
     });
 
 
-    uni.redirectTo({
-        url: `/pages/home/index?userInfo=${encodeURIComponent(JSON.stringify(userInfo))}&sessionId=${sessionRes.data.session_id}&isNewProfile=true`
-      });
+    uni.reLaunch({
+      url: `/pages/home/index?userInfo=${encodeURIComponent(JSON.stringify(userInfo))}&sessionId=${sessionRes.data.session_id}&isNewProfile=true`
+    });
     
   } catch (error) {
-    uni.hideLoading();
+    // uni.hideLoading();
     console.error('Create profile error:', error);
+    uni.showToast({ title: '创建失败，请重试', icon: 'none' });
+  } finally {
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 500)
   }
 };
 </script>
@@ -395,7 +426,7 @@ const startAnalysis = async () => {
   padding: 0 24px; /* px-6 */
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 1);
+  border: 1.5px solid rgba(99, 102, 241, 0.2);
   border-radius: 24px;
   font-size: 18px; /* text-lg */
   font-weight: 600; /* font-semibold */
@@ -446,7 +477,7 @@ const startAnalysis = async () => {
 .privacy-text {
   font-size: 24rpx;
   line-height: 1.6;
-  color: #475569; /* text-slate-600 */
+  color: #94a3b8; /* text-slate-400 */
   font-weight: 500;
   flex: 1;
 }

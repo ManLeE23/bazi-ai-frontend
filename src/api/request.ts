@@ -42,14 +42,13 @@ uni.addInterceptor('request', {
         return Promise.resolve(res);
       }
     }
-    // if (code === 1401) {
-    //   // 未登录
-    //   uni.showToast({ title: '登录过期，正在重新登录', icon: 'none' });
-    //   // clearStorage();
-    //   // await checkLogin();
-    //   // uni.showToast({ title: '登录成功', icon: 'none' });
-    //   // return Promise.reject(res);
-    // }
+    if (statusCode === 401) {
+      // 未登录或登录过期
+      // uni.showToast({ title: '登录过期，请重新登录', icon: 'none' });
+      uni.removeStorageSync('token');
+      uni.reLaunch({ url: '/pages/login/index' });
+      return Promise.reject(res);
+    }
 
     let displayMsg = msg ? msg : '数据出错';
     // Prevent displaying technical errors (SQL, code dumps) to users
@@ -104,6 +103,42 @@ export const httpPost = async ({ url, params, skipAuth }: RequestParams) => {
   }
   return uni.request({
     method: 'POST',
+    url,
+    data: params,
+    // @ts-ignore
+    skipAuth,
+  });
+};
+
+export const httpPut = async ({ url, params, skipAuth }: RequestParams) => {
+  if (!skipAuth) {
+    try {
+      await ensureLoggedIn();
+    } catch (e) {
+      console.error('Login guard failed:', e);
+      return Promise.reject(e);
+    }
+  }
+  return uni.request({
+    method: 'PUT',
+    url,
+    data: params,
+    // @ts-ignore
+    skipAuth,
+  });
+};
+
+export const httpDelete = async ({ url, params, skipAuth }: RequestParams) => {
+  if (!skipAuth) {
+    try {
+      await ensureLoggedIn();
+    } catch (e) {
+      console.error('Login guard failed:', e);
+      return Promise.reject(e);
+    }
+  }
+  return uni.request({
+    method: 'DELETE',
     url,
     data: params,
     // @ts-ignore

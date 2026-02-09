@@ -1,126 +1,87 @@
 <template>
-  <u-popup
+  <CommonPopup
     v-model="show"
-    mode="bottom"
-    border-radius="32"
-    :safe-area-inset-bottom="false"
-    :mask-close-able="true"
+    background="linear-gradient(180deg, #dbeafe 0%, #ede9fe 100%)"
     @close="handleClose"
   >
-    <view class="popup-container">
-      <!-- Header with Close Button -->
-      <view class="popup-header">
-        <view class="close-btn-circle" @click="closePopup">
-          <text class="icon-close">×</text>
+    <!-- Avatar & Title -->
+    <view class="header-section">
+      <view class="avatar-ring">
+        <text class="avatar-text">{{ userInfo?.nickname?.[0] || 'Q' }}</text>
+      </view>
+      <text class="main-title">人生趋势高级会员</text>
+      <text class="sub-title">订阅后解锁全部功能，随时取消</text>
+    </view>
+
+    <!-- Pricing Cards -->
+    <view class="pricing-container">
+      <view 
+        v-for="plan in plans"
+        :key="plan.id"
+        class="plan-card" 
+        :class="{ 'premium-card': plan.id === 'vip_yearly', 'active': selectedPlanId === plan.id }"
+        @click="selectPlan(plan.id)"
+      >
+        <view class="tag-badge" :class="{ 'premium-tag': plan.id === 'vip_yearly' }">
+          <text class="tag-text">{{ plan.id === 'vip_yearly' ? '省 25% 再送 20%' : '普通' }}</text>
+        </view>
+        
+        <view class="plan-content">
+          <view class="price-row">
+             <text class="plan-duration-num">{{ plan.duration_days > 360 ? Math.floor(plan.duration_days / 30) : plan.duration_days }}</text>
+             <text class="plan-duration-unit">{{ plan.duration_days > 360 ? '个月' : '天' }}</text>
+          </view>
+          
+          <text class="plan-price">¥{{ (plan.price_cents / 100).toFixed(2) }}</text>
+          
+          <view class="plan-desc-wrapper">
+             <text class="plan-desc">{{ plan.membership_mode === 'vip_yearly' ? '每年自动续订' : '每月自动续订' }}</text>
+          </view>
         </view>
       </view>
-
-      <scroll-view scroll-y class="popup-content" :show-scrollbar="false">
-        <!-- Avatar & Title -->
-        <view class="header-section">
-          <view class="avatar-ring">
-            <image 
-              v-if="userInfo?.avatar" 
-              :src="userInfo.avatar" 
-              class="user-avatar" 
-              mode="aspectFill"
-            />
-             <view v-else class="default-avatar">
-              <text class="avatar-text">{{ userInfo?.name?.[0] || '玥' }}</text>
-            </view>
-          </view>
-          <text class="main-title">人生趋势高级会员</text>
-          <text class="sub-title">订阅后解锁全部功能，随时取消</text>
-        </view>
-
-        <!-- Testimonial Card -->
-        <view class="testimonial-card">
-          <swiper 
-            class="testimonial-swiper" 
-            circular 
-            autoplay 
-            :interval="5000"
-            :duration="500"
-            @change="onSwiperChange"
-          >
-            <swiper-item v-for="(item, index) in testimonials" :key="index">
-              <view class="testimonial-content-wrapper">
-                <text class="testimonial-title">{{ item.title }}</text>
-                <view class="stars-row">
-                  <u-icon v-for="i in 5" :key="i" name="star-fill" color="#fbbf24" size="24"></u-icon>
-                </view>
-                <text class="testimonial-content">{{ item.content }}</text>
-              </view>
-            </swiper-item>
-          </swiper>
-          
-          <view class="dots-indicator">
-            <view 
-              v-for="(item, index) in testimonials" 
-              :key="index"
-              class="dot" 
-              :class="{ active: currentSwiperIndex === index }"
-            ></view>
-          </view>
-        </view>
-
-        <!-- Pricing Cards -->
-        <view class="pricing-container">
-          <!-- Monthly Plan -->
-          <view 
-            class="plan-card" 
-            :class="{ active: selectedPlan === 'month' }"
-            @click="selectPlan('month')"
-          >
-            <view class="tag-badge">
-              <text class="tag-text">最受欢迎</text>
-            </view>
-            <text class="plan-duration"><text class="big-num">30</text>天</text>
-            <text class="plan-price">¥29.80</text>
-            <text class="plan-desc">每月自动续订</text>
-            <text class="plan-gift">赠送 4,000 算力</text>
-          </view>
-
-          <!-- Yearly Plan -->
-          <view 
-            class="plan-card" 
-            :class="{ active: selectedPlan === 'year' }"
-            @click="selectPlan('year')"
-          >
-            <view class="tag-badge purple">
-              <text class="tag-text">省 25% 再送 20%</text>
-            </view>
-            <text class="plan-duration"><text class="big-num">12</text>个月</text>
-            <text class="plan-price">¥268.00</text>
-            <text class="plan-desc">每年自动续订</text>
-            <text class="plan-gift">赠送 60,000 算力</text>
-          </view>
-        </view>
-
-        <!-- Subscribe Button -->
-        <button class="subscribe-btn" @click="handleSubscribe">
-          订阅{{ selectedPlan === 'year' ? '年度' : '月度' }}会员
-        </button>
-
-        <!-- Footer Links -->
-        <view class="footer-links">
-          <text class="footer-tip">订阅即代表您已阅读并同意以下协议与政策</text>
-          <view class="links-row">
-            <text class="link-item">恢复购买</text>
-            <text class="link-item">用户协议</text>
-            <text class="link-item">会员协议</text>
-            <text class="link-item">隐私政策</text>
-          </view>
-        </view>
-      </scroll-view>
     </view>
-  </u-popup>
+
+    <!-- Plan Benefits List -->
+    <view class="benefits-section" v-if="selectedPlan">
+       <text class="benefits-title">{{ selectedPlan.name }}权益</text>
+       <view class="benefits-list">
+          <view class="benefit-row" v-for="(benefit, index) in selectedPlan.benefits" :key="index">
+            <view class="benefit-icon-wrapper" :class="{ 'premium-icon': true }">
+              <u-icon name="checkmark" size="20" color="#ffffff"></u-icon>
+            </view>
+            <text class="benefit-text">{{ benefit }}</text>
+          </view>
+       </view>
+    </view>
+
+    <!-- Subscribe Button -->
+    <button 
+      class="subscribe-btn" 
+      :loading="isSubscribing" 
+      :disabled="isSubscribing"
+      @click="handleSubscribe"
+    >
+      订阅{{ selectedPlan ? selectedPlan.name : '' }}
+    </button>
+
+    <!-- Footer Links -->
+    <view class="footer-links">
+      <text class="footer-tip">订阅即代表您已阅读并同意以下协议与政策</text>
+      <view class="links-row">
+        <text class="link-item">用户协议</text>
+        <text class="link-item">会员协议</text>
+        <text class="link-item">隐私政策</text>
+      </view>
+    </view>
+  </CommonPopup>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import CommonPopup from '@/components/CommonPopup.vue';
 import { userStore } from '@/store/user';
 import { handleWechatPayment } from '@/utils/payment';
+import { fetchSystemUserInfo, fetchMembershipPlans } from '@/api/services';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -134,7 +95,42 @@ const show = computed({
 });
 
 const userInfo = computed(() => userStore.userInfo);
-const selectedPlan = ref<'month' | 'year'>('year');
+
+interface MembershipPlan {
+  id: string;
+  name: string;
+  membership_mode: string;
+  duration_days: number;
+  price_cents: number;
+  currency: string;
+  compute: {
+    deep_chat_priority: string;
+    max_parallel_sessions: number;
+  };
+  benefits: string[];
+}
+
+const plans = ref<MembershipPlan[]>([]);
+const selectedPlanId = ref<string>('');
+const isSubscribing = ref(false);
+
+const loadPlans = async () => {
+  try {
+    const res: any = await fetchMembershipPlans();
+    if (res && res.data && res.data.plans) {
+      plans.value = res.data.plans;
+      // Default select yearly plan if exists, otherwise first plan
+      const yearly = plans.value.find(p => p.id === 'vip_yearly');
+      selectedPlanId.value = yearly ? yearly.id : (plans.value[0]?.id || '');
+    }
+  } catch (error) {
+    console.error('Failed to load membership plans', error);
+  }
+};
+
+onMounted(() => {
+  loadPlans();
+});
 
 const currentSwiperIndex = ref(0);
 const testimonials = [
@@ -160,27 +156,54 @@ const handleClose = () => {
   emit('update:modelValue', false);
 };
 
-const closePopup = () => {
-  show.value = false;
+const selectPlan = (planId: string) => {
+  selectedPlanId.value = planId;
 };
 
-const selectPlan = (plan: 'month' | 'year') => {
-  selectedPlan.value = plan;
-};
+const selectedPlan = computed(() => plans.value.find(p => p.id === selectedPlanId.value));
 
 const handleSubscribe = async () => {
-  const isYearly = selectedPlan.value === 'year';
-  const amount = isYearly ? 26800 : 2980; // Unit: cents
-  const description = isYearly ? '年度会员订阅' : '月度会员订阅';
+  if (!selectedPlan.value) return;
+  
+  const plan = selectedPlan.value;
+  const amount = plan.price_cents;
+  const description = `${plan.name}订阅`;
 
+  if (isSubscribing.value) return;
+  isSubscribing.value = true;
   uni.showLoading({ title: '正在发起支付...' });
 
   try {
+    // Get login code for payment (required by backend to get openid)
+    const loginRes = await new Promise<any>((resolve, reject) => {
+      uni.login({
+        provider: 'weixin',
+        success: resolve,
+        fail: reject
+      });
+    });
+
+    if (!loginRes.code) {
+      throw new Error('获取登录凭证失败');
+    }
+
     await handleWechatPayment({
       amount_total: amount,
-      description: description
+      description: description,
+      mode: plan.membership_mode,
+      code: loginRes.code
     });
     
+    // Refresh user info to update VIP status
+    try {
+      const userRes: any = await fetchSystemUserInfo();
+      if (userRes.data) {
+        userStore.setSystemUser(userRes.data);
+      }
+    } catch (e) {
+      console.error('Refresh user info failed:', e);
+    }
+
     uni.showToast({
       title: '支付成功',
       icon: 'success'
@@ -189,283 +212,326 @@ const handleSubscribe = async () => {
     // Close popup on success
     handleClose();
     
-    // TODO: Refresh user info or upgrade status here if needed
-    
   } catch (error: any) {
     uni.showToast({
       title: error.message || '支付失败',
       icon: 'none'
     });
   } finally {
+    isSubscribing.value = false;
     uni.hideLoading();
   }
 };
 </script>
 
 <style lang="scss" scoped>
-.popup-container {
-  background: linear-gradient(180deg, #dbeafe 0%, #ede9fe 100%);
-  height: 85vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  padding-bottom: env(safe-area-inset-bottom); /* Handle safe area manually */
-}
-
-.popup-header {
-  position: absolute;
-  top: 24rpx;
-  right: 24rpx;
-  z-index: 10;
-}
-
-/* Close Button Style */
-.close-btn-circle {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 9999px;
-  background-color: rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-}
-
-.icon-close {
-  font-size: 36rpx;
-  margin-top: -4rpx;
-  font-weight: 300;
-}
-
-.popup-content {
-  flex: 1;
-  padding: 0 48rpx;
-  box-sizing: border-box;
-}
-
-/* Hide Scrollbar */
-.popup-content ::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
-  color: transparent;
-}
+/* Colors */
+$indigo-50: #eef2ff;
+$indigo-100: #e0e7ff;
+$indigo-500: #6366f1;
+$indigo-600: #4f46e5;
+$indigo-900: #312e81;
+$slate-50: #f8fafc;
+$slate-100: #f1f5f9;
+$slate-300: #cbd5e1;
+$slate-400: #94a3b8;
+$slate-500: #64748b;
+$slate-600: #475569;
+$slate-700: #334155;
+$slate-800: #1e293b;
+$white: #ffffff;
 
 /* Header Section */
 .header-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 80rpx;
-  margin-bottom: 48rpx;
+  margin-top: 16rpx;
+  margin-bottom: 40rpx;
 }
 
 .avatar-ring {
-  width: 160rpx;
-  height: 160rpx;
+  width: 112rpx; /* w-14 = 3.5rem = 56px = 112rpx */
+  height: 112rpx;
   border-radius: 50%;
-  padding: 6rpx;
-  background: rgba(255, 255, 255, 0.5);
-  margin-bottom: 32rpx;
-}
-
-.user-avatar, .default-avatar {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #e0e7ff;
+  background-color: $indigo-50;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.avatar-text {
-  font-size: 64rpx;
-  font-weight: 600;
-  color: #4f46e5;
+  margin-bottom: 32rpx;
+  /* ring-8 ring-indigo-50/50 */
+  box-shadow: 0 0 0 16rpx rgba(238, 242, 255, 0.5);
+  
+  .avatar-text {
+    font-size: 48rpx; /* text-2xl */
+    font-weight: 900; /* font-black */
+    font-style: italic;
+    color: $indigo-500;
+  }
 }
 
 .main-title {
-  font-size: 48rpx;
-  font-weight: 700;
-  color: #1e1b4b;
-  margin-bottom: 16rpx;
+  font-size: 48rpx; /* text-2xl */
+  font-weight: 900; /* font-black */
+  color: $slate-800;
+  letter-spacing: -0.025em; /* tracking-tight */
+  margin-bottom: 8rpx;
 }
 
 .sub-title {
-  font-size: 26rpx;
-  color: #475569;
-}
-
-/* Testimonial Card */
-.testimonial-card {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
-  border-radius: 32rpx;
-  padding: 32rpx;
-  margin-bottom: 48rpx;
-  text-align: center;
-}
-
-.testimonial-swiper {
-  height: 240rpx; /* Fixed height for swiper */
-}
-
-.testimonial-content-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100%;
-}
-
-.testimonial-title {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #1e293b;
-  display: block;
-  margin-bottom: 12rpx;
-}
-
-.stars-row {
-  display: flex;
-  justify-content: center;
-  gap: 4rpx;
-  margin-bottom: 16rpx;
-}
-
-.testimonial-content {
-  font-size: 24rpx;
-  color: #475569;
-  line-height: 1.6;
-  margin-bottom: 24rpx;
-  display: block;
-  text-align: left;
-}
-
-.dots-indicator {
-  display: flex;
-  justify-content: center;
-  gap: 12rpx;
-}
-
-.dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: #cbd5e1;
-  
-  &.active {
-    background: #64748b;
-  }
+  font-size: 26rpx; /* text-[13px] approx */
+  font-weight: 500;
+  color: $slate-400;
 }
 
 /* Pricing Cards */
 .pricing-container {
   display: flex;
-  gap: 24rpx;
-  margin-bottom: 48rpx;
+  gap: 32rpx; /* gap-4 = 1rem = 16px = 32rpx */
+  margin-bottom: 32rpx;
 }
 
 .plan-card {
   flex: 1;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 32rpx;
-  padding: 32rpx 24rpx;
+  position: relative;
+  background-color: $white;
+  border: 4rpx solid $slate-100; /* border-2 */
+  border-radius: 48rpx; /* Reduced from 64rpx for better proportion */
+  padding: 40rpx 24rpx;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
-  border: 4rpx solid transparent;
-  transition: all 0.3s;
   
+  /* Active State - Strong Highlight */
   &.active {
-    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-    border-color: #818cf8;
+    border-color: $indigo-600;
+    background-color: #eef2ff; /* indigo-50 */
+    box-shadow: 0 12rpx 32rpx -8rpx rgba(79, 70, 229, 0.3);
+    transform: translateY(-4rpx);
+    
+    /* Ensure tag badge blends or stands out */
+    .tag-badge {
+      background-color: $indigo-600;
+      .tag-text { color: $white; }
+    }
+  }
+  
+  /* Premium Card Styles (Unselected base) */
+  &.premium-card {
+    /* Subtle difference for premium even when unselected */
+    background-color: rgba(238, 242, 255, 0.6); /* indigo-50 with opacity */
+    
+    &.active {
+       /* Premium Active */
+       background-color: #eef2ff; /* indigo-50 - Matches border family */
+       border-color: $indigo-600; /* Keep consistent active border */
+       /* Shadow using indigo tone (79, 70, 229) instead of violet */
+       box-shadow: 0 20rpx 40rpx -10rpx rgba(79, 70, 229, 0.25);
+    }
   }
 }
 
 .tag-badge {
-  background: #e0e7ff;
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;
-  margin-bottom: 24rpx;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 8rpx 20rpx;
+  background-color: $slate-100;
+  border-bottom-left-radius: 24rpx;
+  transition: all 0.3s ease;
   
-  &.purple {
-    background: #c7d2fe;
+  &.premium-tag {
+    background-color: $indigo-100; /* Lighter when unselected */
+    .tag-text { color: $indigo-600; }
   }
 }
 
 .tag-text {
   font-size: 20rpx;
-  color: #4f46e5;
-  font-weight: 600;
+  font-weight: 800;
+  color: $slate-500;
 }
 
-.plan-duration {
-  font-size: 24rpx;
-  color: #1e293b;
-  margin-bottom: 8rpx;
+.plan-content {
+  margin-top: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
-.big-num {
-  font-size: 48rpx;
+.price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+.plan-duration-num {
+  font-size: 40rpx;
   font-weight: 700;
-  margin-right: 4rpx;
+  color: $slate-700;
+  
+  .active & {
+    color: $indigo-600;
+  }
+}
+
+.plan-duration-unit {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: $slate-400;
+  margin-left: 4rpx;
+  
+  .active & {
+    color: $indigo-500;
+  }
 }
 
 .plan-price {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 12rpx;
+  font-size: 36rpx;
+  font-weight: 900;
+  color: $slate-800;
+  display: block;
+  margin-top: 8rpx;
+  
+  .active & {
+    color: $indigo-900;
+  }
+}
+
+.plan-desc-wrapper {
+  margin-top: 24rpx;
+  text-align: center;
 }
 
 .plan-desc {
-  font-size: 20rpx;
-  color: #475569;
-  margin-bottom: 8rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  color: $slate-400;
+  line-height: 1.4;
+  display: block;
+  
+  &.highlight {
+    font-weight: 700;
+    color: $indigo-500;
+  }
+  
+  .active & {
+    color: $slate-600;
+    &.highlight { color: $indigo-600; }
+  }
 }
 
-.plan-gift {
-  font-size: 20rpx;
-  color: #475569;
+/* Benefits Section */
+.benefits-section {
+  background-color: rgba(248, 250, 252, 0.5); /* bg-slate-50/50 */
+  border: 2rpx solid $slate-100;
+  border-radius: 64rpx; /* rounded-[32px] */
+  padding: 48rpx; /* p-6 */
+  margin-bottom: 32rpx;
+}
+
+.benefits-title {
+  font-size: 24rpx; /* text-[11px] */
+  font-weight: 900; /* font-black */
+  color: $slate-400;
+  text-transform: uppercase;
+  letter-spacing: 0.2em; /* tracking-[0.2em] */
+  margin-bottom: 32rpx;
+  margin-left: 8rpx;
+  display: block;
+}
+
+.benefits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx; /* space-y-3 */
+}
+
+.benefit-row {
+  display: flex;
+  align-items: center;
+  gap: 24rpx; /* gap-3 */
+}
+
+.benefit-icon-wrapper {
+  width: 40rpx; /* w-5 */
+  height: 40rpx; /* h-5 */
+  border-radius: 50%;
+  background-color: rgba(199, 210, 254, 1); /* indigo-200 (fallback) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  
+  &.premium-icon {
+    background-color: $indigo-500;
+    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+  }
+}
+
+.benefit-text {
+  font-size: 26rpx; /* text-xs */
+  font-weight: 700; /* font-bold */
+  color: $slate-600;
 }
 
 /* Subscribe Button */
 .subscribe-btn {
-  background: #ffffff;
-  color: #0f172a;
-  font-size: 32rpx;
-  font-weight: 600;
-  height: 96rpx;
-  line-height: 96rpx;
-  border-radius: 48rpx;
-  margin-bottom: 48rpx;
-  box-shadow: 0 10rpx 25rpx rgba(0, 0, 0, 0.05);
+  width: 100%;
+  padding: 32rpx 0;
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+  color: $white;
+  font-size: 28rpx; /* text-sm */
+  font-weight: 900; /* font-black */
+  border-radius: 32rpx; /* rounded-2xl */
+  letter-spacing: 0.1em; /* tracking-[0.1em] */
+  box-shadow: 0 20rpx 40rpx -10rpx rgba(99, 102, 241, 0.4);
+  margin-bottom: 24rpx;
+  transition: all 0.3s;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  &[disabled] {
+    opacity: 0.8;
+    /* Maintain gradient background for loading state */
+    /* background: $slate-300; */
+    box-shadow: 0 10rpx 20rpx -5rpx rgba(99, 102, 241, 0.4);
+  }
 }
 
 /* Footer Links */
 .footer-links {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16rpx;
-  padding-bottom: 48rpx;
+  margin-top: 24rpx;
+  text-align: center;
 }
 
 .footer-tip {
-  font-size: 20rpx;
-  color: #64748b;
+  font-size: 20rpx; /* text-[9px] */
+  font-weight: 500;
+  color: $slate-500; /* Darkened from slate-300 for better readability */
+  display: block;
+  margin-bottom: 16rpx;
 }
 
 .links-row {
   display: flex;
+  justify-content: center;
   gap: 32rpx;
 }
 
 .link-item {
-    font-size: 22rpx;
-    color: #475569;
-    font-weight: 500;
-  }
+  font-size: 20rpx; /* text-[9px] */
+  font-weight: 700; /* font-bold */
+  color: $slate-400; /* Lightened from slate-600 */
+}
 </style>

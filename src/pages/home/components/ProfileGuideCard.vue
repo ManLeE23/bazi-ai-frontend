@@ -19,7 +19,7 @@
         </view>
         
         <view class="desc-wrapper">
-          <text class="desc">解锁专属运势分析，探索你的命理玄机</text>
+          <text class="desc">帮你看清趋势，走对下一步</text>
         </view>
 
         <button class="action-btn" hover-class="btn-hover" @click="goToCreateProfile">

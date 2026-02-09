@@ -1,6 +1,7 @@
 <template>
   <view class="bazi-detail-container">
     <HeaderBar :showBack="true" :fixed="true" :placeholder="true" backgroundColor="transparent" />
+    <scroll-view scroll-y="true" class="main-scroll" :show-scrollbar="false">
     <!-- Header -->
     <view class="custom-header">
       <view class="header-content">
@@ -11,8 +12,8 @@
               <text class="gender-text">{{ baziData.base_info?.gender === '女' ? '坤造' : '乾造' }}</text>
             </view>
           </view>
-          <text class="info-text">阳历：{{ baziData.base_info?.birth_date }}</text>
-          <text class="info-text">阴历：{{ baziData.base_info?.chinese_birth_date }}</text>
+          <text class="info-text">阳历：{{ baziData.base_info?.birth_datetime }}（真太阳）</text>
+          <text class="info-text">阴历：{{ baziData.base_info?.chinese_birth_datetime }}</text>
         </view>
         <!-- <view class="share-btn">
           <u-icon name="share" size="20" color="#6366f1"></u-icon>
@@ -39,8 +40,8 @@
         <view class="bazi-grid row-ten-god">
           <text class="grid-cell label">主星</text>
           <text class="grid-cell" :class="getElementClass(baziData.pillars?.year?.ten_god)">{{ baziData.pillars?.year?.ten_god }}</text>
-          <text class="grid-cell" :class="getElementClass(baziData.pillars?.month?.ten_god)">{{ baziData.pillars?.month?.ten_god }}</text>
-          <text class="grid-cell highlight">日主</text>
+          <text class="grid-cell" :class="baziData.pillars?.month?.ten_god ? getElementClass(baziData.pillars?.month?.ten_god) : ''">{{ baziData.pillars?.month?.ten_god }}</text>
+          <text class="grid-cell" :class="'highlight'">{{ baziData.pillars?.day?.ten_god }}</text>
           <text class="grid-cell" :class="getElementClass(baziData.pillars?.hour?.ten_god)">{{ baziData.pillars?.hour?.ten_god }}</text>
           <!-- Placeholder for Dayun/Liunian current ten god if needed, or static -->
           <text class="grid-cell" :class="getElementClass(currentDayun?.ten_god)">{{ currentDayun?.ten_god }}</text>
@@ -74,38 +75,67 @@
           <text class="grid-cell label">藏干</text>
           <view class="grid-cell hidden-col">
             <view v-for="(h, i) in baziData.pillars?.year?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
-              <text class="sub-text">{{ h.ten_god }}</text>
+              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
             </view>
           </view>
           <view class="grid-cell hidden-col">
             <view v-for="(h, i) in baziData.pillars?.month?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
-              <text class="sub-text">{{ h.ten_god }}</text>
+              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
             </view>
           </view>
           <view class="grid-cell hidden-col">
             <view v-for="(h, i) in baziData.pillars?.day?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
-              <text class="sub-text">{{ h.ten_god }}</text>
+              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
             </view>
           </view>
           <view class="grid-cell hidden-col">
             <view v-for="(h, i) in baziData.pillars?.hour?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
-              <text class="sub-text">{{ h.ten_god }}</text>
+              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
             </view>
           </view>
           <view class="grid-cell hidden-col">
             <view v-for="(h, i) in currentDayun?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
-              <text class="sub-text">{{ h.ten_god }}</text>
+              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
             </view>
           </view>
           <view class="grid-cell hidden-col">
             <view v-for="(h, i) in currentLiunian?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
-              <text class="sub-text">{{ h.ten_god }}</text>
+              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- Deputy Stars (Fuxing) -->
+        <view class="bazi-grid row-fuxing">
+          <text class="grid-cell label">副星</text>
+          <view class="grid-cell hidden-col">
+            <view v-for="(h, i) in baziData.pillars?.year?.hidden_stems" :key="i" class="hidden-item">
+              <text>{{ h.full_ten_god }}</text>
+            </view>
+          </view>
+          <view class="grid-cell hidden-col">
+            <view v-for="(h, i) in baziData.pillars?.month?.hidden_stems" :key="i" class="hidden-item">
+              <text>{{ h.full_ten_god }}</text>
+            </view>
+          </view>
+          <view class="grid-cell hidden-col">
+            <view v-for="(h, i) in baziData.pillars?.day?.hidden_stems" :key="i" class="hidden-item">
+              <text>{{ h.full_ten_god }}</text>
+            </view>
+          </view>
+          <view class="grid-cell hidden-col">
+            <view v-for="(h, i) in baziData.pillars?.hour?.hidden_stems" :key="i" class="hidden-item">
+              <text>{{ h.full_ten_god }}</text>
+            </view>
+          </view>
+          <view class="grid-cell hidden-col">
+            <view v-for="(h, i) in currentDayun?.hidden_stems" :key="i" class="hidden-item">
+              <text>{{ h.full_ten_god }}</text>
+            </view>
+          </view>
+          <view class="grid-cell hidden-col">
+            <view v-for="(h, i) in currentLiunian?.hidden_stems" :key="i" class="hidden-item">
+              <text>{{ h.full_ten_god }}</text>
             </view>
           </view>
         </view>
@@ -149,61 +179,65 @@
             <text class="extra-item">命宫：<text class="value">{{ baziData.extra_info?.ming_gong }}</text></text>
             <text class="extra-item">身宫：<text class="value">{{ baziData.extra_info?.shen_gong }}</text></text>
         </view>
-      </view>
 
-      <!-- Da Yun / Liu Nian / Liu Yue Section -->
-      <view class="yun-section">
-        <!-- Header -->
-        <view class="section-header">
-            <text class="title">大运走势</text>
-            <text class="subtitle">{{ baziData.da_yun?.start_age }}岁起运</text>
-        </view>
-
-        <!-- Da Yun Scroll View -->
-        <scroll-view scroll-x class="dayun-scroll" :show-scrollbar="false">
-            <view class="dayun-list">
-                <view 
-                    v-for="(yun, index) in baziData.da_yun?.list" 
-                    :key="index"
-                    class="dayun-item"
-                    :class="{ active: activeYunIndex === index }"
-                    @click="handleDayunSelect(index)"
-                >
-                    <text class="year-label">{{ yun.start_year }}年</text>
-                    <text class="age-label">{{ yun.start_age }}岁始</text>
-                    <view class="pillar-col">
-                        <text class="pillar-char">{{ yun.pillar?.[0] }}</text>
-                        <text class="pillar-char">{{ yun.pillar?.[1] }}</text>
-                    </view>
-                    <text class="ten-god-label">{{ yun.ten_god }}</text>
-                    <!-- Current indicator if needed logic exists -->
-                </view>
+        <!-- Da Yun Section -->
+        <view class="yun-merged-section">
+            <view class="section-header">
+                <text class="title">大运</text>
+                <text class="subtitle">{{ baziData.da_yun?.start_age }}起运</text>
             </view>
-        </scroll-view>
+            <scroll-view scroll-x class="dayun-scroll" :show-scrollbar="false" :enable-flex="true">
+                <view class="dayun-list">
+                    <view 
+                        v-for="(yun, index) in baziData.da_yun?.list" 
+                        :key="index"
+                        class="dayun-item"
+                        :class="{ active: activeYunIndex === index }"
+                        @click="handleDayunSelect(index)"
+                    >
+                        <view class="year-info">
+                            <text class="year-label">{{ yun.start_year }}</text>
+                            <text class="age-label">{{ yun.start_age }}岁</text>
+                        </view>
+                        <view class="pillar-col">
+                            <text class="pillar-char" :class="getWuXingClass(yun.pillar?.[0])">{{ yun.pillar?.[0] }}</text>
+                            <text class="pillar-char" :class="getWuXingClass(yun.pillar?.[1])">{{ yun.pillar?.[1] }}</text>
+                        </view>
+                        <text class="ten-god-label">{{ yun.ten_god }}</text>
+                    </view>
+                </view>
+            </scroll-view>
+        </view>
 
         <!-- Liu Nian Section -->
-        <view class="liunian-section">
-            <text class="section-title">流年</text>
-            <view class="liunian-grid">
-                <view 
-                    v-for="(ln, index) in currentLiuNianList" 
-                    :key="index"
-                    class="liunian-item"
-                    :class="{ active: activeLiunianYear === ln.year }"
-                    @click="handleLiunianSelect(ln)"
-                >
-                    <text class="year-num">{{ ln.year }}</text>
-                    <text class="pillar-text">{{ ln.pillar }}</text>
-                    <text class="ten-god-text">{{ ln.ten_god }}</text>
-                </view>
+        <view class="yun-merged-section">
+             <view class="section-header">
+                <text class="title">流年</text>
             </view>
+            <scroll-view scroll-x class="liunian-scroll" :show-scrollbar="false" :enable-flex="true">
+                <view class="liunian-list">
+                    <view 
+                        v-for="(ln, index) in currentLiuNianList" 
+                        :key="index"
+                        class="liunian-item"
+                        :class="{ active: activeLiunianYear === ln.year }"
+                        @click="handleLiunianSelect(ln)"
+                    >
+                        <text class="year-num">{{ ln.year }}</text>
+                        <view class="pillar-col">
+                            <text class="pillar-char" :class="getWuXingClass(ln.pillar?.[0])">{{ ln.pillar?.[0] }}</text>
+                            <text class="pillar-char" :class="getWuXingClass(ln.pillar?.[1])">{{ ln.pillar?.[1] }}</text>
+                        </view>
+                        <text class="ten-god-text">{{ ln.ten_god }}</text>
+                    </view>
+                </view>
+            </scroll-view>
         </view>
-
+        
         <!-- Liu Yue Section -->
-        <view class="liuyue-section" v-if="activeLiunianYear">
-             <view class="liuyue-header">
-                <view class="indicator"></view>
-                <text>{{ activeLiunianYear }}年 流月分布</text>
+        <view class="yun-merged-section" v-if="activeLiunianYear">
+             <view class="section-header">
+                <text class="title">{{ activeLiunianYear }}年流月</text>
              </view>
              <view class="liuyue-grid">
                 <view v-for="(month, index) in currentLiuYueList" :key="index" class="liuyue-item">
@@ -212,9 +246,11 @@
                 </view>
              </view>
         </view>
-
       </view>
+
+
     </view>
+    </scroll-view>
   </view>
 </template>
 
@@ -227,6 +263,7 @@ import HeaderBar from '@/components/HeaderBar.vue';
 // --- Types ---
 interface HiddenStem {
   gan: string;
+  full_gan: string;
   ten_god: string;
   full_ten_god: string;
 }
@@ -270,6 +307,8 @@ interface BaziData {
     birth_date: string;
     chinese_birth_date: string;
     birth_location: string;
+    birth_datetime: string;
+    chinese_birth_datetime: string;
   };
   pillars: {
     year: Pillar;
@@ -291,7 +330,7 @@ interface BaziData {
 
 // --- State ---
 const baziData = ref<BaziData>({
-    base_info: { name: '', gender: '', birth_date: '', chinese_birth_date: '', birth_location: '' },
+    base_info: { name: '', gender: '', birth_date: '', chinese_birth_date: '', birth_location: '', birth_datetime: '', chinese_birth_datetime: '' },
     pillars: {
         year: {} as Pillar,
         month: {} as Pillar,
@@ -434,7 +473,14 @@ const fetchData = async () => {
                 const index = baziData.value.da_yun.list.findIndex(dy => dy.start_year <= currentYear && dy.end_year >= currentYear);
                 const targetIndex = index >= 0 ? index : 0;
                 activeYunIndex.value = targetIndex;
-                handleDayunSelect(targetIndex);
+                
+                // If current year is within the range, select it
+                if (index >= 0) {
+                    activeLiunianYear.value = currentYear;
+                } else {
+                    // Fallback to first year of the selected Da Yun
+                    handleDayunSelect(targetIndex);
+                }
             }
         }
     } catch (e) {
@@ -449,9 +495,16 @@ const fetchData = async () => {
 
 <style lang="scss" scoped>
 .bazi-detail-container {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: linear-gradient(135deg, #EEF2FF 0%, #EBEFFF 50%, #F5F3FF 100%);
-  padding-bottom: 100px;
+}
+
+.main-scroll {
+  flex: 1;
+  height: 0;
 }
 
 // Colors
@@ -465,6 +518,8 @@ const fetchData = async () => {
 .text-slate-600 { color: #475569; }
 .text-emerald-500 { color: #10b981; }
 .text-indigo-600 { color: #4f46e5; }
+.text-amber-600 { color: #d97706; }
+.text-purple-600 { color: #9333ea; }
 
 .custom-header {
   padding: 16px 20px 24px; 
@@ -530,13 +585,11 @@ const fetchData = async () => {
 }
 
 .main-content {
+    padding-bottom: 100px;
     .section-card {
-        background-color: #fff;
-        padding: 24px 0;
-        margin: 0 16px 24px;
-        border-radius: 24px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.6);
+        background-color: transparent;
+        box-shadow: none;
+        border: none;
     }
 }
 
@@ -558,7 +611,8 @@ const fetchData = async () => {
     .label {
         font-size: 12px;
         font-weight: bold;
-        color: #cbd5e1;
+        color: #64748b;
+        min-height: 40rpx;
     }
 }
 
@@ -566,7 +620,7 @@ const fetchData = async () => {
     .grid-cell {
         font-size: 12px;
         font-weight: bold;
-        color: #cbd5e1;
+        color: #64748b;
     }
 }
 
@@ -601,15 +655,32 @@ const fetchData = async () => {
     .hidden-item {
         display: flex;
         align-items: center;
+        justify-content: center;
+        height: 20px;
         font-size: 13px;
         font-weight: bold;
-        
-        .sub-text {
-            font-size: 10px;
-            opacity: 0.6;
-            margin-left: 2px;
-            color: #64748b;
-        }
+    }
+}
+
+.row-fuxing {
+    align-items: flex-start;
+    margin-bottom: 8px;
+
+    .hidden-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .hidden-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        color: #64748b;
     }
 }
 
@@ -631,7 +702,7 @@ const fetchData = async () => {
     justify-content: space-around;
     margin-top: 20px;
     padding: 12px 0;
-    border-top: 1px solid #f8fafc;
+    // border-top: 1px solid #f8fafc;
     background-color: rgba(248, 250, 252, 0.5);
     
     .extra-item {
@@ -645,14 +716,15 @@ const fetchData = async () => {
     }
 }
 
-.yun-section {
-    padding: 16px;
+.yun-merged-section {
+    padding: 0 8px;
+    margin-top: 24px;
     
     .section-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         padding: 0 4px;
         
         .title {
@@ -680,50 +752,53 @@ const fetchData = async () => {
     }
     
     .dayun-item {
-        min-width: 75px;
-        padding: 16px 0;
-        border-radius: 16px;
-        background-color: #fff;
-        border: 1px solid #f1f5f9;
+        min-width: 50px;
+        padding: 8px 0;
+        margin: 0 4px;
+        border-radius: 8px;
+        background-color: transparent;
+        border: none;
         display: flex;
         flex-direction: column;
         align-items: center;
         transition: all 0.3s;
         
         &.active {
-            background-color: #4f46e5;
-            color: #fff;
-            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
-            border-color: transparent;
-            
-            .year-label, .age-label, .pillar-col, .ten-god-label, .pillar-char {
-                color: #fff;
-                opacity: 1;
-            }
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         
+        .year-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
         .year-label {
             font-size: 10px;
-            font-weight: 900;
-            color: #cbd5e1;
-        }
-        
-        .age-label {
-            font-size: 11px;
             font-weight: bold;
             color: #64748b;
         }
         
+        .age-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        
         .pillar-col {
-            margin: 8px 0;
+            margin: 4px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            line-height: 1;
+            gap: 2px;
             
             .pillar-char {
                 font-size: 16px;
                 font-weight: 900;
+                line-height: 1.2;
             }
         }
         
@@ -731,110 +806,88 @@ const fetchData = async () => {
             font-size: 10px;
             font-weight: bold;
             color: #94a3b8;
+            margin-top: 4px;
         }
     }
 }
 
-.liunian-section {
-    .section-title {
-        font-size: 14px;
-        font-weight: 900;
-        color: #1e293b;
-        margin-bottom: 16px;
-        padding: 0 4px;
-        display: block;
-    }
+.liunian-scroll {
+    white-space: nowrap;
+    margin-bottom: 24px;
     
-    .liunian-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 8px;
-        margin-bottom: 24px;
+    .liunian-list {
+        display: flex;
+        gap: 0;
+        padding-bottom: 8px;
     }
-    
+
     .liunian-item {
-        padding: 8px;
-        border-radius: 12px;
-        border: 1px solid transparent;
-        background-color: #fff;
+        min-width: 48px;
+        padding: 8px 0;
+        margin: 0 4px;
+        border-radius: 8px;
+        border: none;
+        background-color: transparent;
         display: flex;
         flex-direction: column;
         align-items: center;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        box-shadow: none;
         transition: all 0.2s;
         
         &.active {
-            background-color: #eef2ff;
-            border-color: #c7d2fe;
-            
-            .year-num { color: #4338ca; }
-            .pillar-text { color: #4338ca; }
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
         
         .year-num {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 900;
-            opacity: 0.4;
             color: #64748b;
+            margin-bottom: 6px;
         }
         
-        .pillar-text {
-            font-size: 14px;
-            font-weight: 900;
-            color: #475569;
+        .pillar-col {
+            margin: 4px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            
+            .pillar-char {
+                font-size: 16px;
+                font-weight: 900;
+                line-height: 1.2;
+            }
         }
         
         .ten-god-text {
             font-size: 10px;
             font-weight: bold;
-            color: #818cf8;
-            margin-top: 2px;
+            color: #94a3b8;
+            margin-top: 4px;
         }
     }
 }
 
-.liuyue-section {
-    background-color: #fff;
-    border-radius: 24px;
-    padding: 20px;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    border: 1px solid #eef2ff;
-    
-    .liuyue-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 16px;
-        font-size: 14px;
-        font-weight: 900;
-        color: #1e293b;
-        
-        .indicator {
-            width: 4px;
-            height: 12px;
-            background-color: #6366f1;
-            border-radius: 999px;
-        }
-    }
-    
-    .liuyue-grid {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        gap: 8px;
-    }
+.liuyue-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
     
     .liuyue-item {
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 8px 0;
-        background-color: #f8fafc;
+        background-color: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.4);
         border-radius: 8px;
         
         .month-label {
             font-size: 10px;
             font-weight: 900;
-            color: #cbd5e1;
+            color: #64748b;
             margin-bottom: 2px;
         }
         

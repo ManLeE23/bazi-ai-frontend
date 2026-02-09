@@ -154,7 +154,7 @@ const scrollToBottom = () => {
   overflow-y: auto;
   
   /* 自定义滚动条样式 */
-  &::-webkit-scrollbar {
+  /* &::-webkit-scrollbar {
     width: 6px;
   }
   
@@ -169,7 +169,7 @@ const scrollToBottom = () => {
   
   &::-webkit-scrollbar-thumb:hover {
     background: $color-slate-400;
-  }
+  } */
 }
 
 /* 单个步骤项 - 核心布局 */

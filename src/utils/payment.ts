@@ -3,6 +3,9 @@ import { fetchWechatPayment } from '@/api/services';
 interface PaymentParams {
   amount_total: number; // Unit: cents
   description: string;
+  mode?: string;
+  openid?: string;
+  code?: string;
 }
 
 export const handleWechatPayment = async (
@@ -12,15 +15,19 @@ export const handleWechatPayment = async (
     // 1. Call backend API to get payment parameters
     const res: any = await fetchWechatPayment({
       amount_total: params.amount_total,
+      // amount_total: 1, // Commented out debug value
       description: params.description,
       currency: 'CNY',
+      mode: params.mode,
+      openid: params.openid,
+      code: params.code,
     });
 
     if (!res || !res.data) {
       throw new Error('获取支付参数失败');
     }
 
-    const paymentData = res.data;
+    const paymentData = res.data.pay_params || res.data;
 
     // 2. Call uni.requestPayment
     return new Promise((resolve, reject) => {
@@ -29,11 +36,11 @@ export const handleWechatPayment = async (
         // For App payment, orderInfo is required. For MP-WEIXIN, these fields are used.
         // We add orderInfo to satisfy TypeScript, but it might be ignored by MP platform.
         orderInfo: JSON.stringify({
-          appid: paymentData.appId,
+          appid: paymentData.appId || '',
           noncestr: paymentData.nonceStr,
           package: paymentData.package,
-          partnerid: paymentData.partnerId,
-          prepayid: paymentData.prepayId,
+          partnerid: paymentData.partnerId || '',
+          prepayid: paymentData.prepayId || '',
           timestamp: paymentData.timeStamp,
           sign: paymentData.paySign,
         }),

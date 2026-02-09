@@ -1,33 +1,44 @@
 <template>
   <view class="sidebar-container">
-    <!-- Glow Effect -->
-    <view class="glow-effect"></view>
-
-    <!-- Mask for closing menu -->
-    <view class="menu-mask" v-if="activeMenuId" @click="closeMenu"></view>
-
-    <!-- Feature Placeholder -->
-    <view class="feature-placeholder">
-      <view class="placeholder-icon">
-        <u-icon name="grid-fill" size="28" color="#CBD5E1"></u-icon>
+    <!-- Explore Section -->
+    <view class="menu-section">
+      <text class="menu-title">发现</text>
+      
+      <view 
+        class="discovery-item" 
+        :class="{ active: currentRoute === 'chat' }"
+        @click="navigateToChat"
+      >
+        <!-- <view class="icon-box">
+           <u-icon name="chat" size="36" color="#6366f1"></u-icon>
+        </view> -->
+        <text class="item-text" :class="{ 'active-text': currentRoute === 'chat' }">聊天</text>
       </view>
-      <view class="placeholder-content">
-        <text class="placeholder-title">更多功能</text>
-        <text class="placeholder-desc">正在开发中...</text>
+
+      <view 
+        class="discovery-item" 
+        :class="{ active: currentRoute === 'explore' }"
+        @click="navigateToNewWorld"
+      >
+        <!-- <view class="icon-box">
+           <u-icon name="flask" size="36" color="#6366f1"></u-icon>
+        </view> -->
+        <text class="item-text" :class="{ 'active-text': currentRoute === 'explore' }">探索中心</text>
       </view>
     </view>
 
     <!-- Profiles List Section -->
     <view class="recent-section">
       <view class="recent-header">
-        <text class="section-title">档案</text>
+        <text class="section-title">我的档案库</text>
         <view class="add-btn" @click="navigateToAddProfile">
-          <text class="add-text">添加</text>
+          <u-icon name="plus" :size="28" color="#4f46e5" style="font-weight: 700;" />
+          <!-- <text class="add-text">添加</text> -->
         </view>
       </view>
 
       <!-- Profiles List -->
-      <scroll-view scroll-y class="profiles-list" v-if="profiles.length > 0">
+      <scroll-view scroll-y :show-scrollbar="false" class="profiles-list" v-if="profiles.length > 0">
         <view
           v-for="(item, index) in profiles"
           :key="item.id"
@@ -38,7 +49,10 @@
           <view v-if="isActive(item)" class="active-dot"></view>
 
           <view class="profile-info">
-            <text class="profile-name">{{ item.name }}</text>
+            <view class="name-row">
+              <text class="profile-name">{{ item.name }}</text>
+              <view v-if="item.is_self" class="self-tag">我</view>
+            </view>
             <text class="profile-desc">{{ item.gender === 'male' || item.gender === '男' ? '男' : '女' }} · {{ item.birth_date }}</text>
           </view>
           
@@ -46,12 +60,18 @@
             <u-icon name="more-dot-fill" size="16px" color="#94a3b8"></u-icon>
             
             <!-- Dropdown Menu -->
-            <view class="dropdown-menu" v-if="activeMenuId === item.id" @click.stop>
-              <view class="dropdown-item delete" @click.stop="handleDelete(item)">
-                <u-icon name="trash" size="28" color="#f43f5e"></u-icon>
-                <text class="dropdown-text">删除</text>
+            <template v-if="activeMenuId === item.id">
+              <view class="menu-mask-fixed" @click.stop="closeMenu"></view>
+              <view class="dropdown-menu" @click.stop>
+                <view class="dropdown-item" @click.stop="handleToggleSelf(item)">
+                  <text class="dropdown-text">{{ item.is_self ? '解除本人' : '设为本人' }}</text>
+                </view>
+                <view class="dropdown-divider"></view>
+                <view class="dropdown-item delete" @click.stop="handleDelete(item)">
+                  <text class="dropdown-text">删除</text>
+                </view>
               </view>
-            </view>
+            </template>
           </view>
         </view>
       </scroll-view>
@@ -66,6 +86,13 @@
         <button class="add-profile-btn" @click="navigateToAddProfile">立即添加</button>
       </view>
     </view>
+
+    <!-- Trial Card -->
+    <!-- <TrialCard 
+      v-if="systemUser?.trial_end_at"
+      :start-time="systemUser?.trial_start_at"
+      :end-time="systemUser?.trial_end_at"
+    /> -->
 
     <!-- Footer User Info -->
     <view class="sidebar-footer" @click="openUserCenter">
@@ -88,23 +115,37 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { userStore, type UserInfo } from '@/store/user';
-import { fetchProfilesList, fetchDeleteProfile, fetchSystemUserInfo } from '@/api/services';
+import { fetchProfilesList, fetchDeleteProfile, fetchSystemUserInfo, fetchUpdateSelfStatus } from '@/api/services';
+import TrialCard from './TrialCard.vue';
 
 const props = defineProps<{
   currentProfile?: UserInfo | null;
 }>();
 
-const emit = defineEmits(['open-user-center', 'switch-profile']);
+const emit = defineEmits(['open-user-center', 'switch-profile', 'open-fortune']);
 
-const systemUser = computed(() => userStore.systemUser);
-const currentUserId = computed(() => props.currentProfile?.id);
+  const systemUser = computed(() => userStore.systemUser);
+  const currentUserId = computed(() => props.currentProfile?.id);
 
-const profiles = ref<any[]>([]);
-const activeMenuId = ref<string | null>(null);
+  const profiles = ref<any[]>([]);
+  const activeMenuId = ref<string | null>(null);
+  const currentRoute = ref('chat');
 
-const isActive = (item: any) => {
+  const displayProfile = computed(() => {
+    return props.currentProfile || userStore.userInfo || (profiles.value.length > 0 ? profiles.value[0] : null);
+  });
+
+  const openFortune = () => {
+    emit('open-fortune');
+  };
+
+  const isActive = (item: any) => {
   if (!currentUserId.value || !item.id) return false;
   return String(currentUserId.value) === String(item.id);
+};
+
+const isSelfProfile = (item: any) => {
+  return item.is_self;
 };
 
 const loadProfiles = async () => {
@@ -138,7 +179,11 @@ const navigateToAddProfile = () => {
 };
 
 const openUserCenter = () => {
-  emit('open-user-center');
+  uni.showToast({
+    title: '功能正在开发',
+    icon: 'none'
+  });
+  // emit('open-user-center');
 };
 
 const switchProfile = (profile: UserInfo) => {
@@ -162,8 +207,38 @@ const handleMoreClick = (profile: any) => {
   }
 };
 
+const handleToggleSelf = async (profile: any) => {
+  closeMenu();
+  try {
+    uni.showLoading({ title: '处理中' });
+    if (profile.is_self) {
+      await fetchUpdateSelfStatus(profile.id, false);
+      if (userStore.selfProfileId === String(profile.id)) {
+        userStore.setSelfProfileId('');
+      }
+      uni.showToast({ title: '已解除本人身份', icon: 'none' });
+    } else {
+      await fetchUpdateSelfStatus(profile.id, true);
+      userStore.setSelfProfileId(String(profile.id));
+      uni.showToast({ title: '已设置为本人', icon: 'none' });
+    }
+    await loadProfiles(); // Reload to update state
+  } catch (error) {
+    // Error is handled in request interceptor usually, but safe to catch here
+    console.error('Toggle self failed:', error);
+  } finally {
+    uni.hideLoading();
+  }
+};
+
 const handleDelete = (profile: any) => {
   closeMenu();
+  
+  if (profile.is_self) {
+    uni.showToast({ title: '自己的档案不支持删除', icon: 'none' });
+    return;
+  }
+
   uni.showModal({
     title: '确认删除',
     content: `确定要删除 ${profile.name} 的档案吗？此操作不可恢复。`,
@@ -179,18 +254,28 @@ const handleDelete = (profile: any) => {
             profiles.value.splice(index, 1);
           }
           
-          // If deleted current profile, clear store or switch to another
+          uni.hideLoading();
+          uni.showToast({ title: '删除成功', icon: 'none' });
+
+          // If deleted current profile, switch to next or previous
           if (currentUserId.value === profile.id) {
             if (profiles.value.length > 0) {
-              emit('switch-profile', profiles.value[0]);
+              // Try to select the one at the same index (which was the next one)
+              // If index is out of bounds (was the last one), select index - 1
+              const nextIndex = index < profiles.value.length ? index : index - 1;
+              const nextProfile = profiles.value[nextIndex];
+              if (nextProfile) {
+                 emit('switch-profile', nextProfile);
+              }
             } else {
-              // Emit null or empty object to indicate no profile
-               emit('switch-profile', {} as UserInfo);
+              // No profiles left, reload
+              setTimeout(() => {
+                uni.reLaunch({
+                  url: '/pages/home/index'
+                });
+              }, 500);
             }
           }
-          
-          uni.hideLoading();
-          uni.showToast({ title: '删除成功', icon: 'success' });
         } catch (error) {
           uni.hideLoading();
           uni.showToast({ title: '删除失败', icon: 'none' });
@@ -203,76 +288,155 @@ const handleDelete = (profile: any) => {
 onMounted(() => {
   loadProfiles();
   loadSystemUser();
+  
+  const pages = getCurrentPages();
+  const page = pages[pages.length - 1];
+  if (page && page.route) {
+    if (page.route.includes('new-world')) {
+      currentRoute.value = 'explore';
+    } else {
+      currentRoute.value = 'chat';
+    }
+  }
 });
+
+const navigateToNewWorld = () => {
+  uni.showToast({
+    title: '功能正在开发',
+    icon: 'none'
+  });
+};
+
+const navigateToChat = () => {
+  uni.reLaunch({
+    url: '/pages/home/index'
+  });
+};
+
+const navigateToHistory = () => {
+  uni.navigateTo({
+    url: '/pages/chat-history/index'
+  });
+};
 </script>
 
 <style lang="scss" scoped>
-.sidebar-container {
+/* Discovery Section Styles */
+.menu-title {
+  font-size: 24rpx;
+  color: #64748b;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 24rpx;
+  display: block;
+  margin-left: 8rpx;
+}
+
+.discovery-item {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  border-radius: 999px; /* Pill shape */
+  margin-bottom: 16rpx;
+  transition: all 0.2s;
+  
+  &.active {
+    background-color: #f1f5f9; /* Light gray background */
+  }
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+.icon-box {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  
+  &.transparent {
+    background-color: transparent;
+  }
+}
+
+.item-text {
+  font-size: 30rpx;
+  font-weight: 500;
+  
+  &.active-text {
+    color: #6366f1; /* Indigo/Purple */
+    font-weight: 800;
+    font-size: 34rpx;
+  }
+  
+  &.gray-text {
+    color: #94a3b8; /* Slate gray */
+  }
+}
+
+.sidebar-container {
+  width: 100%;
   height: 100%;
   background-color: #fff;
   padding: 40rpx 32rpx;
-  box-sizing: border-box;
-  padding-top: 100rpx; /* Matches sidebar header space */
+  /* Add padding for status bar */
+  padding-top: calc(var(--status-bar-height) + 40rpx);
+  display: flex;
+  flex-direction: column;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* Glow Effect */
-.glow-effect {
-  position: absolute;
-  top: -100rpx;
-  left: -100rpx;
-  width: 500rpx;
-  height: 500rpx;
-  background: radial-gradient(circle, rgba(79, 70, 229, 0.15) 0%, rgba(79, 70, 229, 0) 70%);
-  filter: blur(60px);
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* Feature Placeholder */
-.feature-placeholder {
-  margin-bottom: 40rpx;
-  // background: #F8FAFC;
-  border-radius: 24rpx;
-  height: 200px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  // border: 2rpx dashed #E2E8F0;
-}
-
-.placeholder-icon {
-  width: 80rpx;
-  height: 80rpx;
-  background-color: #F1F5F9;
-  border-radius: 20rpx;
+.name-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-right: 0;
-  margin-bottom: 16rpx;
-}
-
-.placeholder-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.placeholder-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #94A3B8;
+  gap: 6px;
   margin-bottom: 4rpx;
+  
+  .self-tag {
+    font-size: 10px;
+    color: #fff;
+    background: #6366f1;
+    padding: 1px 4px;
+    border-radius: 4px;
+    line-height: 1.2;
+  }
 }
 
-.placeholder-desc {
-  font-size: 24rpx;
-  color: #CBD5E1;
+/* Menu Section */
+.menu-section {
+  margin-bottom: 32rpx;
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.menu-item-simple {
+  padding: 20rpx 0;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.2s;
+  
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+.menu-text {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #334155;
 }
 
 /* Recent Section (Now Profiles) */
@@ -289,25 +453,22 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24rpx;
+  margin-bottom: 12px;
 }
 
 .section-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #334155;
+  font-size: 24rpx;
+  color: #64748b;
+  font-weight: 700;
+  letter-spacing: 2px;
 }
 
 .add-btn {
   display: flex;
   align-items: center;
-  padding: 8rpx 16rpx;
+  padding: 16rpx;
   border-radius: 999px;
-  background-color: #f8fafc;
-  
-  &:active {
-    background-color: #f1f5f9;
-  }
+  background-color: #eef2ff;
 }
 
 .add-text {
@@ -319,6 +480,17 @@ onMounted(() => {
 .profiles-list {
   flex: 1;
   overflow-y: auto;
+  padding-bottom: 12px;
+  
+  /* Hide scrollbar specifically for this container */
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .profile-item {
@@ -355,7 +527,7 @@ onMounted(() => {
   font-size: 30rpx;
   font-weight: 600;
   color: #1e293b;
-  margin-bottom: 4rpx;
+  // margin-bottom: 4rpx;
 }
 
 .profile-desc {
@@ -440,7 +612,7 @@ onMounted(() => {
 }
 
 .empty-desc {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #94a3b8;
   margin-bottom: 32rpx;
 }
@@ -457,6 +629,9 @@ onMounted(() => {
   
   &:active {
     opacity: 0.9;
+  }
+  &::after {
+    border: none !important;
   }
 }
 
@@ -511,7 +686,7 @@ onMounted(() => {
 }
 
 /* Dropdown Menu Styles */
-.menu-mask {
+.menu-mask-fixed {
   position: fixed;
   top: 0;
   left: 0;
@@ -557,6 +732,11 @@ onMounted(() => {
 
 .dropdown-text {
   font-size: 28rpx;
-  margin-left: 12rpx;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #f1f5f9;
+  margin: 4rpx 0;
 }
 </style>

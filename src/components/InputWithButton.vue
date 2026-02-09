@@ -12,7 +12,7 @@
 
       <!-- Input Field -->
       <textarea
-        placeholder="快和 Trenlify 畅所欲言吧～"
+        :placeholder="isAISending ? '正在输出诊断...' : '快和 Trenlify 畅所欲言吧～'"
         class="input-field"
         :value="modelValue"
         @input="onInput"
@@ -21,6 +21,7 @@
         :show-confirm-bar="false"
         :cursor-spacing="20"
         maxlength="1000"
+        :disabled="isAISending"
         placeholder-style="color: #94a3b8; font-size: 14px" 
       ></textarea>
 
@@ -28,21 +29,32 @@
       <view 
         @click="onButtonClick"
         class="icon-btn send-btn"
+        :class="{ 'sending': isAISending }"
       >
-        <image :src="upSvg" style="width: 20px; height: 20px;" />
+        <view class="waveform" v-if="isAISending">
+          <view class="bar bar-1"></view>
+          <view class="bar bar-2"></view>
+          <view class="bar bar-3"></view>
+          <view class="bar bar-4"></view>
+        </view>
+        <image v-else :src="upSvg" style="width: 20px; height: 20px;" />
       </view>
     </view>
+    
+    <text class="risk-warning">内容由 AI 生成</text>
   </view>
 </template>
 
 <script setup lang="ts">
 import baguaSvg from '@/static/icon/bagua.svg?url';
 const upSvg = '/static/icon/up.svg';
+const refreshSvg = '/static/icon/refresh.svg';
 
 interface Props {
   modelValue?: string;
   placeholder?: string;
   showBazi?: boolean;
+  isAISending?: boolean;
 }
 
 interface Emits {
@@ -57,19 +69,22 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   placeholder: '向美灵追问细节...',
   modelValue: '',
-  showBazi: true
+  showBazi: true,
+  isAISending: false
 });
 
 const emit = defineEmits<Emits>();
 
 // 输入处理
 const onInput = (e: any) => {
+  if (props.isAISending) return;
   const value = e.detail.value;
   emit('update:modelValue', value);
 };
 
 // 点击按钮触发
 const onButtonClick = () => {
+  if (props.isAISending) return;
   emit('click');
 };
 
@@ -82,7 +97,7 @@ const onConfirm = (e: any) => {
 
 <style lang="scss" scoped>
 .root {
-  padding: 32rpx 32rpx 80rpx 32rpx;
+  padding: 32rpx 32rpx 68rpx 32rpx;
   position: fixed;
   bottom: 0;
   width: 100%;
@@ -121,7 +136,7 @@ const onConfirm = (e: any) => {
     }
 
     .chip-text {
-        font-size: 26rpx;
+        font-size: 28rpx;
         color: #475569;
         font-weight: 500;
     }
@@ -160,6 +175,36 @@ const onConfirm = (e: any) => {
   &:active {
     transform: scale(0.9);
   }
+
+  &.sending {
+    cursor: not-allowed;
+    background-color: #0f172a; // Keep black
+  }
+}
+
+.waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 20px;
+}
+
+.bar {
+  width: 3px;
+  background-color: white;
+  border-radius: 2px;
+  animation: wave 1s ease-in-out infinite;
+}
+
+.bar-1 { height: 10px; animation-delay: 0.0s; }
+.bar-2 { height: 16px; animation-delay: 0.1s; }
+.bar-3 { height: 12px; animation-delay: 0.2s; }
+.bar-4 { height: 14px; animation-delay: 0.3s; }
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+  50% { transform: scaleY(1); opacity: 1; }
 }
 
 .input-field {
@@ -185,5 +230,14 @@ const onConfirm = (e: any) => {
 .send-icon {
   width: 28rpx;
   height: 28rpx;
+}
+
+.risk-warning {
+  text-align: center;
+  font-size: 20rpx;
+  color: #94a3b8;
+  margin-top: 16rpx;
+  width: 100%;
+  display: block;
 }
 </style>

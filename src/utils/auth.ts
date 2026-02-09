@@ -51,17 +51,13 @@ export const doLogin = () => {
 export const ensureLoggedIn = async () => {
    if (isLoggedIn) return;
    
-   // Check storage first?
-   // User requirement: "Every time entering the app, need to login first"
-   // This implies we should verify login or just trust storage?
-   // Usually we trust storage for openId, but if we need a fresh token, we might need to login.
-   // Given "login后才可以请求" (after login can request), maybe they mean strict session.
-   // But let's check if we have openId.
-   const openId = uni.getStorageSync('openId');
-   if (openId) {
+   const token = uni.getStorageSync('token');
+   if (token) {
        isLoggedIn = true;
        return;
    }
    
-   await doLogin();
+   // Redirect to login page
+   uni.reLaunch({ url: '/pages/login/index' });
+   return Promise.reject('Redirecting to login');
 };

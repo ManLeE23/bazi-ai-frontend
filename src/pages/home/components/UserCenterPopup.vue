@@ -1,132 +1,125 @@
 <template>
-  <u-popup
+  <CommonPopup
     v-model="show"
-    mode="bottom"
-    border-radius="24"
-    :safe-area-inset-bottom="true"
-    :mask-close-able="true"
+    background="#f8fafc"
     @close="handleClose"
   >
-    <view class="popup-container">
-      <!-- Header with Close Button -->
-      <view class="popup-header">
-        <view class="user-info-row">
-          <view class="avatar-wrapper">
-            <text class="avatar-text">{{ userName?.[0] }}</text>
-          </view>
-          <view class="user-details">
-            <text class="user-name">{{ userName }}</text>
-            <view class="user-id-row" @click="copyUserId">
-              <text class="user-id">ID: {{ userId || 'K6XPQ7EV' }}</text>
-              <view class="copy-tag">
-                <u-icon name="file-text" size="20" color="#94a3b8"></u-icon>
-                <text class="copy-text">复制我的ID</text>
-              </view>
-            </view>
-          </view>
+    <template #header-left>
+      <view class="user-info-row">
+        <view class="avatar-wrapper">
+          <text class="avatar-text">{{ userName?.[0] }}</text>
         </view>
-        <view class="btn-circle" @click="closePopup">
-          <text class="icon-close">×</text>
+        <view class="user-details">
+          <text class="user-name">{{ userName }}</text>
+          <!-- <view class="user-id-row" @click="copyUserId">
+            <text class="user-id">ID: {{ userId || 'K6XPQ7EV' }}</text>
+            <view class="copy-tag">
+              <u-icon name="file-text" size="20" color="#94a3b8"></u-icon>
+              <text class="copy-text">复制我的ID</text>
+            </view>
+          </view> -->
         </view>
       </view>
+    </template>
 
-      <scroll-view scroll-y class="popup-content">
-        <!-- VIP Membership Card -->
-        <view class="vip-section" v-if="!isPro">
-          <view class="vip-header">
-            <view class="vip-badge">
-              <text class="vip-badge-text">限时特惠</text>
-            </view>
-          </view>
-          
-          <view class="vip-content">
-            <view class="vip-title-row">
-              <text class="vip-title">人生趋势高级会员</text>
-              <button class="activate-btn" @click="goToUpgrade">激活</button>
-            </view>
-            
-            <text class="vip-subtitle">即刻解锁会员权益</text>
-            
-            <view class="vip-features">
-              <!-- <text class="feature-item">解锁 · Lunee 智能体以及更多超值权益</text> -->
-              <text class="restore-btn">恢复购买</text>
-            </view>
-          </view>
+    <!-- Extra Spacer for tall header -->
+    <!-- <view class="header-extra-spacer"></view> -->
+
+    <!-- VIP Membership Card -->
+    <view class="vip-section" v-if="!isPro">
+      <view class="vip-header">
+        <view class="vip-badge">
+          <text class="vip-badge-text">限时特惠</text>
+        </view>
+      </view>
+      
+      <view class="vip-content">
+        <view class="vip-title-row">
+          <text class="vip-title">人生趋势高级会员</text>
+          <button class="activate-btn" @click="goToUpgrade">激活</button>
         </view>
         
-        <!-- Pro Section (if upgraded) -->
-        <view class="pro-vip-section" v-else>
-          <view class="pro-content">
-            <text class="pro-title">Pro 版订阅中</text>
-            <text class="pro-validity">有效期至 2027.01.19</text>
-          </view>
-        </view>
-
-        <!-- Invitation Section -->
-        <view class="invite-card">
-          <view class="invite-header">
-            <view class="code-row">
-              <text class="invite-code">{{ userId || 'K6XPQ7EV' }}</text>
-              <view class="copy-btn-small" @click="copyUserId">
-                <u-icon name="file-text" size="20" color="#94a3b8"></u-icon>
-                <text class="copy-text-small">复制</text>
-              </view>
-            </view>
-            <button class="fill-code-btn" @click="showInputModal">填写</button>
-          </view>
-          
-          <text class="invite-status">您已邀请 0 个朋友加入人生趋势</text>
-          <text class="invite-desc">当您填写/被填写邀请码时，您将获得AI性能升级。{{ isPro ? '会员用户每次邀请赠送一次深度报告生成。' : '非会员用户每次邀请赠送三次对话额度。' }}参与话题挑战领取的「免费高级会员」适用。</text>
-
-          <view class="stats-row">
-            <view class="stat-item">
-              <text class="stat-limit">封顶 1000%</text>
-              <view class="stat-icon-wrapper">
-                <u-icon name="hourglass" size="40" color="#1e293b"></u-icon>
-              </view>
-              <text class="stat-value">+0%</text>
-              <text class="stat-label">记忆上限</text>
-            </view>
-            
-            <view class="stat-item highlight">
-              <view class="member-tag">会员专属</view>
-              <text class="stat-limit">无限累计</text>
-              <view class="stat-icon-wrapper">
-                <u-icon name="diamond" size="40" color="#1e293b"></u-icon>
-              </view>
-              <text class="stat-value">0</text>
-              <text class="stat-label">赠送算力</text>
-            </view>
-            
-            <view class="stat-item">
-              <text class="stat-limit">封顶 300%</text>
-              <view class="stat-icon-wrapper">
-                <u-icon name="coupon" size="40" color="#1e293b"></u-icon>
-              </view>
-              <text class="stat-value">+0%</text>
-              <text class="stat-label">增强理解</text>
-            </view>
-          </view>
-          
-          <text class="footer-note">注意：数据更新可能有一天的延迟，请耐心等待~</text>
-        </view>
-        
-        <!-- Bottom Space -->
-        <view class="bottom-spacer"></view>
-      </scroll-view>
+        <text class="vip-subtitle">即刻解锁会员权益</text>
+      </view>
     </view>
-  </u-popup>
+    
+    <!-- Pro Section (if upgraded) -->
+    <view class="pro-vip-section" v-else>
+      <view class="pro-content">
+        <text class="pro-title">Pro 版订阅中</text>
+        <text class="pro-validity">有效期至 2027.01.19</text>
+      </view>
+    </view>
+
+    <!-- Invitation Section -->
+    <view class="invite-card">
+      <view class="invite-header">
+        <view class="code-row">
+          <text class="invite-code">{{ inviteCode }}</text>
+          <view class="copy-btn-small" @click="copyUserId">
+            <!-- <u-icon name="file-text" size="20" color="#94a3b8"></u-icon> -->
+            <text class="copy-text-small">复制</text>
+          </view>
+        </view>
+        <button class="fill-code-btn" @click="showInputModal">填写</button>
+      </view>
+      
+      <!-- <text class="invite-status">您已邀请 0 个朋友加入人生趋势</text> -->
+      <text class="invite-desc">当您填写/被填写邀请码时，您将获得AI性能升级。{{ isPro ? '会员用户每次邀请赠送一次深度报告生成。' : '非会员用户每次邀请赠送三次对话额度。' }}参与话题挑战领取的「免费高级会员」适用。</text>
+
+      <view class="stats-row">
+        <!-- <view class="stat-item">
+          <text class="stat-limit">封顶 1000%</text>
+          <view class="stat-icon-wrapper">
+            <u-icon name="hourglass" size="40" color="#1e293b"></u-icon>
+          </view>
+          <text class="stat-value">+0%</text>
+          <text class="stat-label">记忆上限</text>
+        </view> -->
+        
+        <view class="stat-item highlight">
+          <!-- <view class="member-tag">会员专属</view> -->
+          <text class="stat-limit">无限累计</text>
+          <view class="stat-icon-wrapper">
+            <u-icon name="gift-fill" size="40" color="#1e293b"></u-icon>
+          </view>
+          <text class="stat-value">{{ isLoading ? '...' : tokenBalance }}</text>
+          <text class="stat-label">赠送算力</text>
+        </view>
+        
+        <view class="stat-item">
+          <text class="stat-limit">封顶 3 次</text>
+          <view class="stat-icon-wrapper">
+            <u-icon name="coupon" size="40" color="#1e293b"></u-icon>
+          </view>
+          <text class="stat-value">{{ freeDeepSessions }}</text>
+          <text class="stat-label">深度诊断</text>
+        </view>
+      </view>
+      
+      <text class="footer-note">注意：数据更新可能有一天的延迟，请耐心等待~</text>
+    </view>
+    
+    <!-- Bottom Space -->
+    <view class="bottom-spacer"></view>
+  </CommonPopup>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { userStore } from '@/store/user';
+import CommonPopup from '@/components/CommonPopup.vue';
+import { fetchSystemUserInfo, fetchMembershipInfo, fetchApplyInvite } from '@/api/services';
 
 const props = defineProps<{
   modelValue: boolean;
 }>();
 
 const emit = defineEmits(['update:modelValue', 'open-upgrade']);
+
+const tokenBalance = ref(0);
+// const freeDeepSessions = ref(0); // Can access via systemUser
+const isLoading = ref(false);
 
 const show = computed({
   get: () => props.modelValue,
@@ -135,20 +128,52 @@ const show = computed({
 
 const systemUser = computed(() => userStore.systemUser);
 const userId = computed(() => systemUser.value?.id || '67B7DE89');
+const inviteCode = computed(() => (systemUser.value as any)?.invite_code || userId.value); // Fallback to ID if no code
 const isPro = computed(() => !!systemUser.value?.is_vip);
 const userName = computed(() => systemUser.value?.nickname || '用户');
+const freeDeepSessions = computed(() => (systemUser.value as any)?.free_deep_sessions_total || 0);
+
+const loadData = async () => {
+  if (isLoading.value) return;
+  isLoading.value = true;
+  try {
+    const userInfoRes = await fetchSystemUserInfo();
+    if (userInfoRes) {
+       // Update store if needed, or just rely on the response if we were not using store for everything
+       // The fetchSystemUserInfo might not update store automatically unless called via an action that does so.
+       // Looking at doLogin in auth.ts (not visible here), usually it updates store.
+       // Let's manually update store here to be safe and reactive
+       const data = (userInfoRes as any).data || userInfoRes;
+       userStore.setSystemUser({ ...userStore.systemUser, ...data });
+    }
+    
+    const membershipInfo = await fetchMembershipInfo() as any;
+    if (membershipInfo) {
+       const data = membershipInfo.data || membershipInfo;
+       tokenBalance.value = data.token_balance;
+    }
+  } catch (error) {
+    console.error('Failed to load user info', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+watch(show, (newVal) => {
+  if (newVal) {
+    loadData();
+  }
+});
 
 const handleClose = () => {
   show.value = false;
 };
 
-const closePopup = () => {
-  show.value = false;
-};
+// closePopup function removed as it is handled by CommonPopup
 
 const copyUserId = () => {
   uni.setClipboardData({
-    data: userId.value,
+    data: inviteCode.value,
     success: () => {
       uni.showToast({ title: '复制成功', icon: 'none' });
     }
@@ -165,9 +190,20 @@ const showInputModal = () => {
     title: '填写邀请码',
     editable: true,
     placeholderText: '请输入邀请码',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm && res.content) {
-        uni.showToast({ title: '邀请码无效', icon: 'none' });
+        uni.showLoading({ title: '兑换中...' });
+        try {
+          await fetchApplyInvite(res.content);
+          uni.showToast({ title: '兑换成功', icon: 'success' });
+          loadData(); // Refresh data
+        } catch (error: any) {
+          // Error is handled by interceptor usually, but we can log
+          console.error('Invite failed', error);
+          uni.showToast({ title: error.message || '兑换失败', icon: 'none' });
+        } finally {
+          uni.hideLoading();
+        }
       }
     }
   });
@@ -175,28 +211,16 @@ const showInputModal = () => {
 </script>
 
 <style lang="scss" scoped>
-.popup-container {
-  background-color: #f8fafc;
-  border-top-left-radius: 24rpx;
-  border-top-right-radius: 24rpx;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  max-height: 85vh;
-}
+/* Removed popup-container, popup-header, btn-circle styles */
 
-.popup-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 40rpx 32rpx;
-  background-color: #fff;
-}
+/* .header-extra-spacer removed */
 
 .user-info-row {
   display: flex;
   align-items: center;
   gap: 24rpx;
+  /* Add padding top to align with design if needed, but CommonPopup handles top offset */
+  margin-top: 10rpx; 
 }
 
 .avatar-wrapper {
@@ -273,7 +297,7 @@ const showInputModal = () => {
 .popup-content {
   flex: 1;
   overflow-y: auto;
-  padding: 0 32rpx;
+  padding: 32rpx;
   box-sizing: border-box;
 }
 
@@ -336,6 +360,9 @@ const showInputModal = () => {
   border-radius: 36rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
   margin: 0;
+  &::after {
+    border: none !important;
+  }
 }
 
 .vip-title-row {
@@ -410,6 +437,9 @@ const showInputModal = () => {
   line-height: 64rpx;
   border-radius: 999px;
   margin: 0;
+  &::after {
+    border: none !important;
+  }
 }
 
 .invite-status {

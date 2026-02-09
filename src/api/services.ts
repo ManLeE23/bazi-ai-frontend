@@ -1,4 +1,13 @@
-import { httpGet, httpPost } from './request';
+import { httpGet, httpPost, httpPut, httpDelete } from './request';
+
+export interface DailyFortuneResponse {
+  profile_id: number | string;
+  date: string;
+  lunar_date: string;
+  yi: string[];
+  ji: string[];
+  analysis: string;
+}
 
 type Gender = '男' | '女';
 
@@ -10,8 +19,19 @@ type GenReportParams = {
   user_id: string | null;
 };
 
+export const fetchLegalDocs = (name: 'user_agreement' | 'privacy_policy') => {
+  return httpGet({ url: '/api/legal/docs', params: { name }, skipAuth: true });
+};
+
 export const fetchOpenId = (params: { code: string }) => {
   return httpPost({ url: '/api/auth/login', params, skipAuth: true });
+};
+
+export const fetchPhoneLogin = (params: {
+  code: string;
+  login_code?: string;
+}) => {
+  return httpPost({ url: '/api/auth/wx_phone_login', params, skipAuth: true });
 };
 
 export const fetchReportList = () => {
@@ -28,12 +48,29 @@ export const fetchCreateProfile = (params: {
   birth_date: string;
   birth_time: string;
   birth_location: string;
+  mode?: string;
 }) => {
   return httpPost({ url: '/api/profiles/create', params });
 };
 
 export const fetchDeleteProfile = (id: string) => {
-  return httpPost({ url: `/api/profiles/delete/${id}`, params: {} });
+  return httpDelete({ url: `/api/profiles/${id}`, params: {} });
+};
+
+export const fetchUpdateSelfStatus = (id: string, is_self: boolean) => {
+  return httpPut({ url: `/api/profiles/${id}/self`, params: { is_self } });
+};
+
+export const fetchSetSelfProfile = (id: string) => {
+  return fetchUpdateSelfStatus(id, true);
+};
+
+export const fetchUnsetSelfProfile = (id: string) => {
+  return fetchUpdateSelfStatus(id, false);
+};
+
+export const fetchDailyFortune = () => {
+  return httpGet({ url: '/api/profiles/self/daily-fortune', params: {} });
 };
 
 export const fetchGenReport = (params: GenReportParams) => {
@@ -51,6 +88,16 @@ export const fetchProgressfromReportId = (reportId: string) => {
 // 创建新的QA对话session
 export const fetchCreateSession = (params: any) => {
   return httpPost({ url: '/api/chat/create/sessions', params });
+};
+
+export const fetchSuggestedQuestions = (params: {
+  session_id?: string;
+  limit?: number;
+}) => {
+  return httpGet({
+    url: '/api/chat/suggested-questions',
+    params,
+  });
 };
 
 export const fetchChatResponse = (params: {
@@ -101,6 +148,34 @@ export const fetchSystemUserInfo = () => {
   });
 };
 
+export const fetchMembershipInfo = () => {
+  return httpGet({
+    url: '/api/membership/me',
+    params: {},
+  });
+};
+
+export const fetchMembershipPlans = () => {
+  return httpGet({
+    url: '/api/membership/plans',
+    params: {},
+  });
+};
+
+export const fetchTokenHistory = () => {
+  return httpGet({
+    url: '/api/membership/tokens',
+    params: {},
+  });
+};
+
+export const fetchApplyInvite = (code: string) => {
+  return httpPost({
+    url: '/api/invites/apply',
+    params: { invite_code: code },
+  });
+};
+
 export const fetchBaziCalculate = (params: {
   name?: string;
   gender: string;
@@ -118,9 +193,20 @@ export const fetchWechatPayment = (params: {
   amount_total: number;
   description: string;
   currency?: string;
+  mode?: string;
+  openid?: string;
+  code?: string;
 }) => {
   return httpPost({
     url: '/api/payments/wechat/jsapi',
     params,
+  });
+};
+
+export const postAnalyticsEvents = (params: { events: any[] }) => {
+  return httpPost({
+    url: '/api/analytics/events',
+    params,
+    skipAuth: true, // Usually analytics don't strictly require auth or should work without it
   });
 };
