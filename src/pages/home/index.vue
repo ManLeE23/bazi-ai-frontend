@@ -320,11 +320,11 @@ const simulateWelcomeMessages = () => {
         nextTick(() => {
           scrollToBottom(true);
         });
-      }, 600);
+      }, 1000);
       welcomeTimers.value.push(timer3);
-    }, 1000);
+    }, 1200);
     welcomeTimers.value.push(timer2);
-  }, 800);
+  }, 1000);
   welcomeTimers.value.push(timer1);
 };
 
@@ -347,48 +347,51 @@ const initBaziData = (info: any) => {
 };
 
 onLoad(async (options: any) => {
-  try {
-    const profilesRes: any = await fetchProfilesList();
-    if (profilesRes.data && Array.isArray(profilesRes.data.items) && profilesRes.data.items.length === 0) {
-      // No profiles, show guide
-      isProfileListEmpty.value = true;
-      userInfo.value = null;
-    } else {
-      // Has profiles, try to get history for current or first profile
-      const profiles = profilesRes.data?.items || (Array.isArray(profilesRes.data) ? profilesRes.data : []);
-      if (profiles.length > 0) {
-        let targetProfile = profiles[0];
-        
-        try {
-          const lastUser = userStore.userInfo;
-          if (lastUser && lastUser.id) {
-            const foundProfile = profiles.find((p: any) => p.id === lastUser.id);
-            if (foundProfile) {
-              targetProfile = foundProfile;
+  // Only check profiles if no specific info is provided (normal entry)
+  if (!options.userInfo && !options.sessionId) {
+    try {
+      const profilesRes: any = await fetchProfilesList();
+      if (profilesRes.data && Array.isArray(profilesRes.data.items) && profilesRes.data.items.length === 0) {
+        // No profiles, show guide
+        isProfileListEmpty.value = true;
+        userInfo.value = null;
+      } else {
+        // Has profiles, try to get history for current or first profile
+        const profiles = profilesRes.data?.items || (Array.isArray(profilesRes.data) ? profilesRes.data : []);
+        if (profiles.length > 0) {
+          let targetProfile = profiles[0];
+          
+          try {
+            const lastUser = userStore.userInfo;
+            if (lastUser && lastUser.id) {
+              const foundProfile = profiles.find((p: any) => p.id === lastUser.id);
+              if (foundProfile) {
+                targetProfile = foundProfile;
+              }
             }
+          } catch (e) {
+            console.error('Restoring last profile failed:', e);
           }
-        } catch (e) {
-          console.error('Restoring last profile failed:', e);
-        }
 
-       userInfo.value = targetProfile;
+          userInfo.value = targetProfile;
 
-        if (targetProfile.session_id) {
-          sessionId.value = targetProfile.session_id;
-          await getChatHistory();
+          if (targetProfile.session_id) {
+            sessionId.value = targetProfile.session_id;
+            await getChatHistory();
+          } else {
+            // Profile exists but no session, simulate welcome
+            simulateWelcomeMessages();
+          }
         } else {
-          // Profile exists but no session, simulate welcome
+          // Fallback
           simulateWelcomeMessages();
         }
-      } else {
-        // Fallback
-        simulateWelcomeMessages();
       }
+    } catch (e) {
+      console.error('Failed to check profiles:', e);
+      // Fallback to welcome messages on error
+      simulateWelcomeMessages();
     }
-  } catch (e) {
-    console.error('Failed to check profiles:', e);
-    // Fallback to welcome messages on error
-    simulateWelcomeMessages();
   }
   if (options.sessionId) {
     sessionId.value = options.sessionId;
@@ -396,7 +399,9 @@ onLoad(async (options: any) => {
     // 检查是否从首页进入
     isFromIndexPage.value = options.from === 'index' || !options.from;
 
-    getChatHistory();
+    if (options.isNewProfile !== 'true') {
+      getChatHistory();
+    }
   }
 
   if (options.userInfo) {
