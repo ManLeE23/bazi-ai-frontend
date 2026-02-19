@@ -1,5 +1,5 @@
 <template>
-  <view class="bazi-detail-container">
+  <view class="bazi-detail-container" :class="{ 'has-liuyue': !!activeLiuYue }">
     <HeaderBar :showBack="true" :fixed="true" :placeholder="true" backgroundColor="transparent" />
     <scroll-view scroll-y="true" class="main-scroll" :show-scrollbar="false">
     <!-- Header -->
@@ -25,117 +25,101 @@
     <view class="main-content">
       <!-- Bazi Grid -->
       <view class="section-card">
-        <!-- Headers -->
-        <view class="bazi-grid header-row">
-          <text class="grid-cell label">盘式</text>
-          <text class="grid-cell">年柱</text>
-          <text class="grid-cell">月柱</text>
-          <text class="grid-cell">日柱</text>
-          <text class="grid-cell">时柱</text>
-          <text class="grid-cell">大运</text>
-          <text class="grid-cell">流年</text>
-        </view>
-
-        <!-- Main Stars (Ten Gods) -->
-        <view class="bazi-grid row-ten-god">
-          <text class="grid-cell label">主星</text>
-          <text class="grid-cell" :class="getElementClass(baziData.pillars?.year?.ten_god)">{{ baziData.pillars?.year?.ten_god }}</text>
-          <text class="grid-cell" :class="baziData.pillars?.month?.ten_god ? getElementClass(baziData.pillars?.month?.ten_god) : ''">{{ baziData.pillars?.month?.ten_god }}</text>
-          <text class="grid-cell" :class="'highlight'">{{ baziData.pillars?.day?.ten_god }}</text>
-          <text class="grid-cell" :class="getElementClass(baziData.pillars?.hour?.ten_god)">{{ baziData.pillars?.hour?.ten_god }}</text>
-          <!-- Placeholder for Dayun/Liunian current ten god if needed, or static -->
-          <text class="grid-cell" :class="getElementClass(currentDayun?.ten_god)">{{ currentDayun?.ten_god }}</text>
-          <text class="grid-cell" :class="getElementClass(currentLiunian?.ten_god)">{{ currentLiunian?.ten_god }}</text>
-        </view>
-
-        <!-- Stems -->
-        <view class="bazi-grid row-stem">
-          <text class="grid-cell label">天干</text>
-          <text class="grid-cell stem-text" :class="getWuXingClass(baziData.pillars?.year?.gan)">{{ baziData.pillars?.year?.gan }}</text>
-          <text class="grid-cell stem-text" :class="getWuXingClass(baziData.pillars?.month?.gan)">{{ baziData.pillars?.month?.gan }}</text>
-          <text class="grid-cell stem-text" :class="getWuXingClass(baziData.pillars?.day?.gan)">{{ baziData.pillars?.day?.gan }}</text>
-          <text class="grid-cell stem-text" :class="getWuXingClass(baziData.pillars?.hour?.gan)">{{ baziData.pillars?.hour?.gan }}</text>
-          <text class="grid-cell stem-text" :class="getWuXingClass(currentDayun?.pillar?.[0])">{{ currentDayun?.pillar?.[0] || '-' }}</text>
-          <text class="grid-cell stem-text" :class="getWuXingClass(currentLiunianPillar?.[0])">{{ currentLiunianPillar?.[0] || '-' }}</text>
-        </view>
-
-        <!-- Branches -->
-        <view class="bazi-grid row-branch">
-          <text class="grid-cell label">地支</text>
-          <text class="grid-cell branch-text" :class="getWuXingClass(baziData.pillars?.year?.zhi)">{{ baziData.pillars?.year?.zhi }}</text>
-          <text class="grid-cell branch-text" :class="getWuXingClass(baziData.pillars?.month?.zhi)">{{ baziData.pillars?.month?.zhi }}</text>
-          <text class="grid-cell branch-text" :class="getWuXingClass(baziData.pillars?.day?.zhi)">{{ baziData.pillars?.day?.zhi }}</text>
-          <text class="grid-cell branch-text" :class="getWuXingClass(baziData.pillars?.hour?.zhi)">{{ baziData.pillars?.hour?.zhi }}</text>
-          <text class="grid-cell branch-text" :class="getWuXingClass(currentDayun?.pillar?.[1])">{{ currentDayun?.pillar?.[1] || '-' }}</text>
-          <text class="grid-cell branch-text" :class="getWuXingClass(currentLiunianPillar?.[1])">{{ currentLiunianPillar?.[1] || '-' }}</text>
-        </view>
-
-        <!-- Hidden Stems -->
-        <view class="bazi-grid row-hidden">
-          <text class="grid-cell label">藏干</text>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in baziData.pillars?.year?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
-            </view>
+        <!-- Sticky Chart Header Block -->
+        <view class="sticky-chart-header">
+          <!-- Headers -->
+          <view class="bazi-grid header-row">
+            <text class="grid-cell label">盘式</text>
+            <text class="grid-cell">年柱</text>
+            <text class="grid-cell">月柱</text>
+            <text class="grid-cell">日柱</text>
+            <text class="grid-cell">时柱</text>
+            <text class="grid-cell">大运</text>
+            <text class="grid-cell">流年</text>
+            <text class="grid-cell" v-if="activeLiuYue">流月</text>
           </view>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in baziData.pillars?.month?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
-            </view>
+  
+          <!-- Main Stars (Ten Gods) -->
+          <view class="bazi-grid row-ten-god">
+            <text class="grid-cell label">主星</text>
+            <text class="grid-cell" :class="getElementClass(baziData.pillars?.year?.ten_god)">{{ baziData.pillars?.year?.ten_god }}</text>
+            <text class="grid-cell" :class="baziData.pillars?.month?.ten_god ? getElementClass(baziData.pillars?.month?.ten_god) : ''">{{ baziData.pillars?.month?.ten_god }}</text>
+            <text class="grid-cell" :class="'highlight'">{{ baziData.pillars?.day?.ten_god }}</text>
+            <text class="grid-cell" :class="getElementClass(baziData.pillars?.hour?.ten_god)">{{ baziData.pillars?.hour?.ten_god }}</text>
+            <!-- Placeholder for Dayun/Liunian current ten god if needed, or static -->
+            <text class="grid-cell" :class="getElementClass(currentDayun?.ten_god)">{{ currentDayun?.ten_god }}</text>
+            <text class="grid-cell" :class="getElementClass(currentLiunian?.ten_god)">{{ currentLiunian?.ten_god }}</text>
+            <text class="grid-cell" v-if="activeLiuYue" :class="getElementClass(activeLiuYue?.ten_god || activeLiuYue?.stem_ten_god)">{{ activeLiuYue?.ten_god || activeLiuYue?.stem_ten_god }}</text>
           </view>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in baziData.pillars?.day?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
-            </view>
+  
+          <!-- Stems -->
+          <view class="bazi-grid row-stem">
+            <text class="grid-cell label">天干</text>
+            <text class="grid-cell stem-text" :class="getWuXingClass(baziData.pillars?.year?.gan)">{{ baziData.pillars?.year?.gan }}</text>
+            <text class="grid-cell stem-text" :class="getWuXingClass(baziData.pillars?.month?.gan)">{{ baziData.pillars?.month?.gan }}</text>
+            <text class="grid-cell stem-text" :class="getWuXingClass(baziData.pillars?.day?.gan)">{{ baziData.pillars?.day?.gan }}</text>
+            <text class="grid-cell stem-text" :class="getWuXingClass(baziData.pillars?.hour?.gan)">{{ baziData.pillars?.hour?.gan }}</text>
+            <text class="grid-cell stem-text" :class="getWuXingClass(currentDayun?.pillar?.[0])">{{ currentDayun?.pillar?.[0] || '-' }}</text>
+            <text class="grid-cell stem-text" :class="getWuXingClass(currentLiunianPillar?.[0])">{{ currentLiunianPillar?.[0] || '-' }}</text>
+            <text class="grid-cell stem-text" v-if="activeLiuYue" :class="getWuXingClass(activeLiuYue?.pillar?.[0])">{{ activeLiuYue?.pillar?.[0] || '-' }}</text>
           </view>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in baziData.pillars?.hour?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
-            </view>
+  
+          <!-- Branches -->
+          <view class="bazi-grid row-branch">
+            <text class="grid-cell label">地支</text>
+            <text class="grid-cell branch-text" :class="getWuXingClass(baziData.pillars?.year?.zhi)">{{ baziData.pillars?.year?.zhi }}</text>
+            <text class="grid-cell branch-text" :class="getWuXingClass(baziData.pillars?.month?.zhi)">{{ baziData.pillars?.month?.zhi }}</text>
+            <text class="grid-cell branch-text" :class="getWuXingClass(baziData.pillars?.day?.zhi)">{{ baziData.pillars?.day?.zhi }}</text>
+            <text class="grid-cell branch-text" :class="getWuXingClass(baziData.pillars?.hour?.zhi)">{{ baziData.pillars?.hour?.zhi }}</text>
+            <text class="grid-cell branch-text" :class="getWuXingClass(currentDayun?.pillar?.[1])">{{ currentDayun?.pillar?.[1] || '-' }}</text>
+            <text class="grid-cell branch-text" :class="getWuXingClass(currentLiunianPillar?.[1])">{{ currentLiunianPillar?.[1] || '-' }}</text>
+            <text class="grid-cell branch-text" v-if="activeLiuYue" :class="getWuXingClass(activeLiuYue?.pillar?.[1])">{{ activeLiuYue?.pillar?.[1] || '-' }}</text>
           </view>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in currentDayun?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
+  
+          <!-- Hidden Stems & Deputy Stars Merged -->
+          <view class="bazi-grid row-hidden">
+            <text class="grid-cell label">藏干</text>
+            <view class="grid-cell hidden-col">
+              <view v-for="(h, i) in baziData.pillars?.year?.hidden_stems" :key="i" class="hidden-item">
+                <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
+                <text class="hidden-ten-god">{{ h.full_ten_god }}</text>
+              </view>
             </view>
-          </view>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in currentLiunian?.hidden_stems" :key="i" class="hidden-item">
-              <text :class="getWuXingClass(h.gan)">{{ h.full_gan }}</text>
+            <view class="grid-cell hidden-col">
+              <view v-for="(h, i) in baziData.pillars?.month?.hidden_stems" :key="i" class="hidden-item">
+                <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
+                <text class="hidden-ten-god">{{ h.full_ten_god }}</text>
+              </view>
             </view>
-          </view>
-        </view>
-
-        <!-- Deputy Stars (Fuxing) -->
-        <view class="bazi-grid row-fuxing">
-          <text class="grid-cell label">副星</text>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in baziData.pillars?.year?.hidden_stems" :key="i" class="hidden-item">
-              <text>{{ h.full_ten_god }}</text>
+            <view class="grid-cell hidden-col">
+              <view v-for="(h, i) in baziData.pillars?.day?.hidden_stems" :key="i" class="hidden-item">
+                <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
+                <text class="hidden-ten-god">{{ h.full_ten_god }}</text>
+              </view>
             </view>
-          </view>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in baziData.pillars?.month?.hidden_stems" :key="i" class="hidden-item">
-              <text>{{ h.full_ten_god }}</text>
+            <view class="grid-cell hidden-col">
+              <view v-for="(h, i) in baziData.pillars?.hour?.hidden_stems" :key="i" class="hidden-item">
+                <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
+                <text class="hidden-ten-god">{{ h.full_ten_god }}</text>
+              </view>
             </view>
-          </view>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in baziData.pillars?.day?.hidden_stems" :key="i" class="hidden-item">
-              <text>{{ h.full_ten_god }}</text>
+            <view class="grid-cell hidden-col">
+              <view v-for="(h, i) in currentDayun?.hidden_stems" :key="i" class="hidden-item">
+                <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
+                <text class="hidden-ten-god">{{ h.full_ten_god }}</text>
+              </view>
             </view>
-          </view>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in baziData.pillars?.hour?.hidden_stems" :key="i" class="hidden-item">
-              <text>{{ h.full_ten_god }}</text>
+            <view class="grid-cell hidden-col">
+              <view v-for="(h, i) in currentLiunian?.hidden_stems" :key="i" class="hidden-item">
+                <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
+                <text class="hidden-ten-god">{{ h.full_ten_god }}</text>
+              </view>
             </view>
-          </view>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in currentDayun?.hidden_stems" :key="i" class="hidden-item">
-              <text>{{ h.full_ten_god }}</text>
-            </view>
-          </view>
-          <view class="grid-cell hidden-col">
-            <view v-for="(h, i) in currentLiunian?.hidden_stems" :key="i" class="hidden-item">
-              <text>{{ h.full_ten_god }}</text>
+            <view class="grid-cell hidden-col" v-if="activeLiuYue">
+              <view v-for="(h, i) in activeLiuYue?.hidden_stems" :key="i" class="hidden-item">
+                <text :class="getWuXingClass(h.gan)">{{ h.gan }}</text>
+                <text class="hidden-ten-god">{{ h.full_ten_god }}</text>
+              </view>
             </view>
           </view>
         </view>
@@ -149,6 +133,7 @@
           <text class="grid-cell">{{ baziData.pillars?.hour?.nayin }}</text>
           <text class="grid-cell">{{ currentDayun?.nayin }}</text>
           <text class="grid-cell">{{ currentLiunian?.nayin }}</text>
+          <text class="grid-cell" v-if="activeLiuYue">-</text>
         </view>
 
         <!-- Xing Yun -->
@@ -160,6 +145,7 @@
           <text class="grid-cell">{{ baziData.pillars?.hour?.xing_yun }}</text>
           <text class="grid-cell">{{ currentDayun?.xing_yun }}</text>
           <text class="grid-cell">{{ currentLiunian?.xing_yun }}</text>
+          <text class="grid-cell" v-if="activeLiuYue">-</text>
         </view>
 
          <!-- Kong Wang -->
@@ -171,6 +157,7 @@
           <text class="grid-cell empty-death">{{ baziData.pillars?.hour?.kong_wang }}</text>
           <text class="grid-cell empty-death">{{ currentDayun?.kong_wang }}</text>
           <text class="grid-cell empty-death">{{ currentLiunian?.kong_wang }}</text>
+          <text class="grid-cell empty-death" v-if="activeLiuYue">-</text>
         </view>
         
         <!-- Extra Info -->
@@ -180,71 +167,91 @@
             <text class="extra-item">身宫：<text class="value">{{ baziData.extra_info?.shen_gong }}</text></text>
         </view>
 
-        <!-- Da Yun Section -->
-        <view class="yun-merged-section">
-            <view class="section-header">
-                <text class="title">大运</text>
-                <text class="subtitle">{{ baziData.da_yun?.start_age }}起运</text>
-            </view>
-            <scroll-view scroll-x class="dayun-scroll" :show-scrollbar="false" :enable-flex="true">
-                <view class="dayun-list">
-                    <view 
-                        v-for="(yun, index) in baziData.da_yun?.list" 
-                        :key="index"
-                        class="dayun-item"
-                        :class="{ active: activeYunIndex === index }"
-                        @click="handleDayunSelect(index)"
-                    >
-                        <view class="year-info">
-                            <text class="year-label">{{ yun.start_year }}</text>
-                            <text class="age-label">{{ yun.start_age }}岁</text>
-                        </view>
-                        <view class="pillar-col">
-                            <text class="pillar-char" :class="getWuXingClass(yun.pillar?.[0])">{{ yun.pillar?.[0] }}</text>
-                            <text class="pillar-char" :class="getWuXingClass(yun.pillar?.[1])">{{ yun.pillar?.[1] }}</text>
-                        </view>
-                        <text class="ten-god-label">{{ yun.ten_god }}</text>
-                    </view>
+        <!-- Yun Flow Panel -->
+        <view class="yun-flow-panel">
+            <!-- Da Yun Section -->
+            <view class="yun-row">
+                <view class="yun-label">
+                    <text>大</text>
+                    <text>运</text>
                 </view>
-            </scroll-view>
-        </view>
+                <scroll-view scroll-x class="yun-scroll" :show-scrollbar="false" :enable-flex="true">
+                    <view class="dayun-list">
+                        <view 
+                            v-for="(yun, index) in baziData.da_yun?.list" 
+                            :key="index"
+                            class="dayun-item"
+                            :class="{ active: activeYunIndex === index }"
+                            @click="handleDayunSelect(index)"
+                        >
+                            <view class="year-info">
+                                <text class="year-label">{{ yun.start_year }}</text>
+                                <text class="age-label">{{ yun.start_age }}岁</text>
+                            </view>
+                            <view class="pillar-col">
+                                <text class="pillar-char" :class="getWuXingClass(yun.pillar?.[0])">{{ yun.pillar?.[0] }}</text>
+                                <text class="pillar-char" :class="getWuXingClass(yun.pillar?.[1])">{{ yun.pillar?.[1] }}</text>
+                            </view>
+                            <text class="ten-god-label">{{ yun.ten_god }}</text>
+                        </view>
+                    </view>
+                </scroll-view>
+            </view>
 
-        <!-- Liu Nian Section -->
-        <view class="yun-merged-section">
-             <view class="section-header">
-                <text class="title">流年</text>
-            </view>
-            <scroll-view scroll-x class="liunian-scroll" :show-scrollbar="false" :enable-flex="true">
-                <view class="liunian-list">
-                    <view 
-                        v-for="(ln, index) in currentLiuNianList" 
-                        :key="index"
-                        class="liunian-item"
-                        :class="{ active: activeLiunianYear === ln.year }"
-                        @click="handleLiunianSelect(ln)"
-                    >
-                        <text class="year-num">{{ ln.year }}</text>
-                        <view class="pillar-col">
-                            <text class="pillar-char" :class="getWuXingClass(ln.pillar?.[0])">{{ ln.pillar?.[0] }}</text>
-                            <text class="pillar-char" :class="getWuXingClass(ln.pillar?.[1])">{{ ln.pillar?.[1] }}</text>
+            <!-- Liu Nian Section -->
+            <view class="yun-row">
+                <view class="yun-label">
+                    <text>流</text>
+                    <text>年</text>
+                </view>
+                <scroll-view scroll-x class="yun-scroll" :show-scrollbar="false" :enable-flex="true">
+                    <view class="liunian-list">
+                        <view 
+                            v-for="(ln, index) in currentLiuNianList" 
+                            :key="index"
+                            class="liunian-item"
+                            :class="{ active: activeLiunianYear === ln.year }"
+                            @click="handleLiunianSelect(ln)"
+                        >
+                            <text class="year-num">{{ ln.year }}</text>
+                            <view class="pillar-col">
+                                <text class="pillar-char" :class="getWuXingClass(ln.pillar?.[0])">{{ ln.pillar?.[0] }}</text>
+                                <text class="pillar-char" :class="getWuXingClass(ln.pillar?.[1])">{{ ln.pillar?.[1] }}</text>
+                            </view>
+                            <text class="ten-god-text">{{ ln.ten_god }}</text>
                         </view>
-                        <text class="ten-god-text">{{ ln.ten_god }}</text>
+                    </view>
+                </scroll-view>
+            </view>
+
+            <!-- Liu Yue Section -->
+            <view class="yun-row" v-if="activeLiunianYear">
+                <view class="yun-label">
+                    <text>流</text>
+                    <text>月</text>
+                </view>
+                <view class="liuyue-container">
+                    <view class="liuyue-grid">
+                        <view 
+                            v-for="(month, index) in currentLiuYueList" 
+                            :key="index" 
+                            class="liuyue-item"
+                            :class="{ active: activeLiuYue?.month === month.month }"
+                            @click="handleLiuYueSelect(month)"
+                        >
+                            <text class="month-label">{{ month.term_label }}</text>
+                            <view class="pillar-row">
+                                <text class="pillar-char" :class="getWuXingClass(month.pillar?.[0])">{{ month.pillar?.[0] }}</text>
+                                <text class="ten-god">{{ month.stem_ten_god }}</text>
+                            </view>
+                            <view class="pillar-row">
+                                <text class="pillar-char" :class="getWuXingClass(month.pillar?.[1])">{{ month.pillar?.[1] }}</text>
+                                <text class="ten-god">{{ month.branch_ten_god }}</text>
+                            </view>
+                        </view>
                     </view>
                 </view>
-            </scroll-view>
-        </view>
-        
-        <!-- Liu Yue Section -->
-        <view class="yun-merged-section" v-if="activeLiunianYear">
-             <view class="section-header">
-                <text class="title">{{ activeLiunianYear }}年流月</text>
-             </view>
-             <view class="liuyue-grid">
-                <view v-for="(month, index) in currentLiuYueList" :key="index" class="liuyue-item">
-                    <text class="month-label">{{ month.month }}月</text>
-                    <text class="pillar-text">{{ month.pillar }}</text>
-                </view>
-             </view>
+            </view>
         </view>
       </view>
 
@@ -290,6 +297,21 @@ interface DaYunItem {
   hidden_stems: HiddenStem[];
 }
 
+interface LiuYueItem {
+  month: number;
+  month_gan?: string;
+  month_zhi?: string;
+  gan_zhi?: string;
+  start_term?: string;
+  start_date?: string;
+  stem_ten_god?: string;
+  branch_ten_god?: string;
+  ten_god?: string; // Main Star from API
+  hidden_stems?: HiddenStem[]; // Hidden Stems from API
+  pillar?: string; // Add pillar field
+  term_label?: string; // Added by frontend
+}
+
 interface LiuNianItem {
   year: number;
   pillar: string;
@@ -298,6 +320,7 @@ interface LiuNianItem {
   xing_yun: string;
   kong_wang: string;
   hidden_stems: HiddenStem[];
+  liu_yue?: LiuYueItem[];
 }
 
 interface BaziData {
@@ -344,6 +367,7 @@ const baziData = ref<BaziData>({
 
 const activeYunIndex = ref(0);
 const activeLiunianYear = ref<number | null>(null);
+const activeLiuYue = ref<LiuYueItem | null>(null);
 
 // --- Computed ---
 const currentDayun = computed(() => {
@@ -366,10 +390,97 @@ const currentLiunianPillar = computed(() => {
     return currentLiunian.value ? currentLiunian.value.pillar : '';
 });
 
-// Five Tigers Seeking Month Logic (Wu Hu Dun)
+const getTenGod = (dayMaster: string, targetStem: string): string => {
+    const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    const dIdx = stems.indexOf(dayMaster);
+    const tIdx = stems.indexOf(targetStem);
+    if (dIdx === -1 || tIdx === -1) return '';
+    
+    const dElem = Math.floor(dIdx / 2);
+    const tElem = Math.floor(tIdx / 2);
+    const samePol = (dIdx % 2) === (tIdx % 2);
+    
+    // Same Element
+    if (dElem === tElem) return samePol ? '比肩' : '劫财';
+    // DM generates T (Output)
+    if ((dElem + 1) % 5 === tElem) return samePol ? '食神' : '伤官';
+    // T generates DM (Resource)
+    if ((tElem + 1) % 5 === dElem) return samePol ? '偏印' : '正印';
+    // DM controls T (Wealth)
+    if ((dElem + 2) % 5 === tElem) return samePol ? '偏财' : '正财';
+    // T controls DM (Officer/Killing)
+    if ((tElem + 2) % 5 === dElem) return samePol ? '七杀' : '正官';
+    
+    return '';
+};
+
+const getBranchMainQi = (branch: string): string => {
+    const map: Record<string, string> = {
+        '子': '癸', '丑': '己', '寅': '甲', '卯': '乙', '辰': '戊', '巳': '丙',
+        '午': '丁', '未': '己', '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬'
+    };
+    return map[branch] || '';
+};
+
+// Five Tigers Seeking Month Logic (Wu Hu Dun) & Data Mapping
 const currentLiuYueList = computed(() => {
     if (!activeLiunianYear.value) return [];
     
+    const ln = currentLiunian.value;
+    const dayMaster = baziData.value.pillars.day?.gan; // Get Day Master
+    
+    // Priority: Use provided liu_yue data
+    if (ln && ln.liu_yue && ln.liu_yue.length > 0) {
+        return ln.liu_yue.map((m, index) => {
+            // Format date: 2026-02-04 -> 2/4
+            let dateStr = '';
+            if (m.start_date) {
+                const parts = m.start_date.split(' ')[0].split('-');
+                if (parts.length >= 3) {
+                    dateStr = `${parseInt(parts[1])}/${parseInt(parts[2])}`;
+                }
+            }
+            
+            // Ensure pillar exists
+            let pillar = m.gan_zhi || (m.month_gan && m.month_zhi ? m.month_gan + m.month_zhi : '');
+            
+            // If missing stem, calculate it
+            if ((!pillar || pillar.length < 2) && m.month_zhi && ln.pillar) {
+                const yearStem = ln.pillar[0];
+                const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+                const branches = ['寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子', '丑'];
+                const yearStemIdx = stems.indexOf(yearStem);
+                const branchIdx = branches.indexOf(m.month_zhi);
+                
+                if (yearStemIdx > -1 && branchIdx > -1) {
+                    const startStemIdx = ((yearStemIdx % 5) * 2 + 2) % 10;
+                    const stem = stems[(startStemIdx + branchIdx) % 10];
+                    pillar = stem + m.month_zhi;
+                }
+            }
+            
+            // Calculate Ten Gods
+            let stemTenGod = '';
+            let branchTenGod = '';
+            if (dayMaster && pillar && pillar.length >= 2) {
+                stemTenGod = getTenGod(dayMaster, pillar[0]);
+                const branchMainQi = getBranchMainQi(pillar[1]);
+                branchTenGod = getTenGod(dayMaster, branchMainQi);
+            }
+            
+            return {
+                month: m.month || (index + 1),
+                pillar: pillar || m.month_zhi,
+                term_label: `${m.start_term || ''} ${dateStr}`.trim(),
+                stem_ten_god: stemTenGod,
+                branch_ten_god: branchTenGod,
+                ten_god: m.ten_god,
+                hidden_stems: m.hidden_stems
+            };
+        });
+    }
+
+    // Fallback: Calculate purely based on logic
     // Get Year Stem
     const yearPillar = currentLiunianPillar.value;
     if (!yearPillar) return [];
@@ -383,11 +494,6 @@ const currentLiuYueList = computed(() => {
     if (yearStemIdx === -1) return []; // Should not happen
     
     // Calculate first month stem index
-    // 甲(0)己(5) -> 丙(2)
-    // 乙(1)庚(6) -> 戊(4)
-    // 丙(2)辛(7) -> 庚(6)
-    // 丁(3)壬(8) -> 壬(8)
-    // 戊(4)癸(9) -> 甲(0)
     // Formula: (yearStemIdx % 5) * 2 + 2
     let startStemIdx = ((yearStemIdx % 5) * 2 + 2) % 10;
     
@@ -395,11 +501,22 @@ const currentLiuYueList = computed(() => {
     for (let i = 0; i < 12; i++) {
         const stem = stems[(startStemIdx + i) % 10];
         const branch = branches[i];
-        // Month number: Yin month is conventionally 1st month in solar calendar (Lichun) or lunar approx.
-        // Displaying as 1月, 2月... based on order
+        
+        // Calculate Ten Gods for fallback
+        let stemTenGod = '';
+        let branchTenGod = '';
+        if (dayMaster) {
+            stemTenGod = getTenGod(dayMaster, stem);
+            const branchMainQi = getBranchMainQi(branch);
+            branchTenGod = getTenGod(dayMaster, branchMainQi);
+        }
+        
         months.push({
             month: i + 1,
-            pillar: stem + branch
+            pillar: stem + branch,
+            term_label: `${i + 1}月`, // Fallback label
+            stem_ten_god: stemTenGod,
+            branch_ten_god: branchTenGod
         });
     }
     return months;
@@ -419,6 +536,17 @@ const handleDayunSelect = (index: number) => {
 
 const handleLiunianSelect = (item: LiuNianItem) => {
     activeLiunianYear.value = item.year;
+    activeLiuYue.value = null; // Reset flow month when year changes
+};
+
+const handleLiuYueSelect = (month: LiuYueItem) => {
+    console.log('month', month);
+    if (activeLiuYue.value?.month === month.month) {
+        activeLiuYue.value = null; // Toggle off
+    } else {
+        activeLiuYue.value = month;
+    }
+    console.log('activeLiuYue', activeLiuYue.value);
 };
 
 // Styling Helpers
@@ -455,15 +583,14 @@ onLoad((options) => {
 const fetchData = async () => {
     try {
         uni.showLoading({ title: '排盘中...' });
-        const params = {
-            name: queryParams.value.name,
-            gender: queryParams.value.gender,
-            birth_date: queryParams.value.birth_date,
-            birth_time: queryParams.value.birth_time,
-            birth_location: queryParams.value.birth_location
-        };
+        
+        const profileId = queryParams.value.id || queryParams.value.profile_id;
+        
+        if (!profileId) {
+            throw new Error('缺少档案ID');
+        }
 
-        const res: any = await fetchBaziCalculate(params);
+        const res: any = await fetchBaziCalculate(profileId);
         if (res.data) {
             baziData.value = res.data;
             
@@ -522,7 +649,7 @@ const fetchData = async () => {
 .text-purple-600 { color: #9333ea; }
 
 .custom-header {
-  padding: 16px 20px 24px; 
+  padding: 12px 20px;
   background: transparent;
   
   .header-content {
@@ -601,6 +728,10 @@ const fetchData = async () => {
     align-items: center;
     padding: 0 8px;
     margin-bottom: 16px;
+
+    .has-liuyue & {
+        grid-template-columns: 50px repeat(7, 1fr);
+    }
     
     .grid-cell {
         display: flex;
@@ -613,6 +744,23 @@ const fetchData = async () => {
         font-weight: bold;
         color: #64748b;
         min-height: 40rpx;
+    }
+}
+
+.sticky-chart-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: rgba(238, 242, 255, 0.98);
+    backdrop-filter: blur(10px);
+    margin: 0 -8px;
+    padding: 8px 8px 0;
+
+    .bazi-grid {
+        margin-bottom: 12px;
+        &:last-child {
+            margin-bottom: 8px;
+        }
     }
 }
 
@@ -644,21 +792,28 @@ const fetchData = async () => {
 
 .row-hidden {
     align-items: flex-start;
+    padding-top: 4px;
+    padding-bottom: 4px;
     
     .hidden-col {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 2px;
-    }
-    
-    .hidden-item {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 20px;
-        font-size: 13px;
-        font-weight: bold;
+        
+        .hidden-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            font-size: 13px;
+            font-weight: 500;
+            
+            .hidden-ten-god {
+                color: #64748b;
+                font-size: 11px;
+            }
+        }
     }
 }
 
@@ -700,8 +855,7 @@ const fetchData = async () => {
 .extra-info-row {
     display: flex;
     justify-content: space-around;
-    margin-top: 20px;
-    padding: 12px 0;
+    padding: 8px 0;
     // border-top: 1px solid #f8fafc;
     background-color: rgba(248, 250, 252, 0.5);
     
@@ -716,185 +870,214 @@ const fetchData = async () => {
     }
 }
 
-.yun-merged-section {
-    padding: 0 8px;
-    margin-top: 24px;
-    
-    .section-header {
+.yun-flow-panel {
+    // background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    padding: 8px 0;
+    margin-top: 12px;
+    // border: 1px solid rgba(255, 255, 255, 0.3);
+
+    .yun-row {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
-        padding: 0 4px;
-        
-        .title {
-            font-size: 14px;
-            font-weight: 900;
-            color: #1e293b;
+        margin-bottom: 6px;
+        padding-right: 4px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        .yun-label {
+            width: 32px;
+            min-width: 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            
+            text {
+                font-size: 13px;
+                font-weight: 900;
+                color: #64748b;
+                line-height: 1.3;
+                margin: 1px 0;
+            }
+        }
+
+        .yun-scroll {
+            flex: 1;
+            white-space: nowrap;
+            width: 0;
         }
         
-        .subtitle {
-            font-size: 12px;
-            font-weight: bold;
-            color: #94a3b8;
+        .liuyue-container {
+            flex: 1;
+            padding-right: 4px;
         }
     }
 }
 
-.dayun-scroll {
-    white-space: nowrap;
-    margin-bottom: 24px;
+.dayun-list, .liunian-list {
+    display: flex;
+}
+
+.dayun-item {
+    min-width: 48px;
+    padding: 6px 0;
+    border-radius: 8px;
+    background-color: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s;
     
-    .dayun-list {
-        display: flex;
-        gap: 8px;
-        padding-bottom: 8px;
+    &.active {
+        background-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
-    .dayun-item {
-        min-width: 50px;
-        padding: 8px 0;
-        margin: 0 4px;
-        border-radius: 8px;
-        background-color: transparent;
-        border: none;
+    .year-info {
         display: flex;
         flex-direction: column;
         align-items: center;
-        transition: all 0.3s;
-        
-        &.active {
-            background-color: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        
-        .year-info {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-
-        .year-label {
-            font-size: 10px;
-            font-weight: bold;
-            color: #64748b;
-        }
-        
-        .age-label {
-            font-size: 10px;
-            font-weight: bold;
-            color: #94a3b8;
-            margin-top: 2px;
-        }
-        
-        .pillar-col {
-            margin: 4px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            
-            .pillar-char {
-                font-size: 16px;
-                font-weight: 900;
-                line-height: 1.2;
-            }
-        }
-        
-        .ten-god-label {
-            font-size: 10px;
-            font-weight: bold;
-            color: #94a3b8;
-            margin-top: 4px;
-        }
+        margin-bottom: 4px;
     }
-}
 
-.liunian-scroll {
-    white-space: nowrap;
-    margin-bottom: 24px;
+    .year-label {
+        font-size: 10px;
+        font-weight: bold;
+        color: #64748b;
+    }
     
-    .liunian-list {
+    .age-label {
+        font-size: 10px;
+        font-weight: bold;
+        color: #94a3b8;
+        margin-top: 1px;
+    }
+    
+    .pillar-col {
+        margin: 2px 0;
         display: flex;
+        flex-direction: column;
+        align-items: center;
         gap: 0;
-        padding-bottom: 8px;
+        
+        .pillar-char {
+            font-size: 15px;
+            font-weight: 900;
+            line-height: 1.1;
+        }
     }
+    
+    .ten-god-label {
+        font-size: 10px;
+        font-weight: bold;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+}
 
-    .liunian-item {
-        min-width: 48px;
-        padding: 8px 0;
-        margin: 0 4px;
-        border-radius: 8px;
-        border: none;
-        background-color: transparent;
+.liunian-item {
+    min-width: 44px;
+    padding: 6px 0;
+    margin: 0 2px;
+    border-radius: 8px;
+    border: none;
+    background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: none;
+    transition: all 0.2s;
+    
+    &.active {
+        background-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .year-num {
+        font-size: 10px;
+        font-weight: 900;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+    
+    .pillar-col {
+        margin: 2px 0;
         display: flex;
         flex-direction: column;
         align-items: center;
-        box-shadow: none;
-        transition: all 0.2s;
+        gap: 0;
         
-        &.active {
-            background-color: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-        
-        .year-num {
-            font-size: 10px;
+        .pillar-char {
+            font-size: 15px;
             font-weight: 900;
-            color: #64748b;
-            margin-bottom: 6px;
+            line-height: 1.1;
         }
-        
-        .pillar-col {
-            margin: 4px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            
-            .pillar-char {
-                font-size: 16px;
-                font-weight: 900;
-                line-height: 1.2;
-            }
-        }
-        
-        .ten-god-text {
-            font-size: 10px;
-            font-weight: bold;
-            color: #94a3b8;
-            margin-top: 4px;
-        }
+    }
+    
+    .ten-god-text {
+        font-size: 10px;
+        font-weight: bold;
+        color: #94a3b8;
+        margin-top: 2px;
     }
 }
 
 .liuyue-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 4px;
+    margin-bottom: 0;
     
     .liuyue-item {
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 8px 0;
-        background-color: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.4);
+        padding: 6px 0;
+        margin: 0 2px;
+        background-color: transparent;
+        border: none;
         border-radius: 8px;
+        transition: all 0.2s;
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
+        
+        &.active {
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
         
         .month-label {
             font-size: 10px;
             font-weight: 900;
             color: #64748b;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
         
-        .pillar-text {
-            font-size: 12px;
-            font-weight: 900;
-            color: #475569;
+        .pillar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1px;
+            
+            .pillar-char {
+                font-size: 14px;
+                font-weight: 900;
+                line-height: 1.1;
+            }
+            
+            .ten-god {
+                font-size: 10px;
+                color: #94a3b8;
+                font-weight: bold;
+                transform: scale(0.9);
+                width: 24px;
+                text-align: center;
+                white-space: nowrap;
+            }
         }
     }
 }

@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { fetchPhoneLogin, fetchLegalDocs } from '@/api/services';
+import { fetchPhoneLogin, fetchLegalDocs, fetchApplyInvite } from '@/api/services';
 import { userStore } from '@/store/user';
 
 const isLoading = ref(false);
@@ -106,6 +106,18 @@ const handleGetPhoneNumber = async (e: any) => {
         // Save user info if available
         if (data.user) {
            userStore.setSystemUser(data.user);
+        }
+
+        // Apply pending invite code if exists
+        const pendingCode = uni.getStorageSync('pending_invite_code');
+        if (pendingCode) {
+          try {
+            await fetchApplyInvite(pendingCode);
+            uni.removeStorageSync('pending_invite_code');
+          } catch (e) {
+            console.error('Failed to apply invite code after login', e);
+            // Don't block login success if invite fails
+          }
         }
 
         uni.showToast({ title: '登录成功', icon: 'none' });

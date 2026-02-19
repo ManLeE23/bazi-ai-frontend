@@ -54,14 +54,7 @@
 </template>
 
 <script setup lang="ts">
-interface UserInfo {
-  name: string;
-  gender: string;
-  birth_date: string;
-  chinese_birth_date?: string;
-  birth_time: string;
-  birth_location: string;
-}
+import { type UserInfo } from '@/store/user';
 // --- Types ---
 interface HiddenStem {
   gan: string;
@@ -97,9 +90,9 @@ const props = defineProps<{
 }>();
 
 const viewDetail = () => {
-  const { name, birth_date, birth_location, birth_time, gender } = props.userInfo;
+  const { id } = props.userInfo;
   uni.navigateTo({
-      url: `/pages/bazi/detail?name=${name}&gender=${gender}&birth_date=${birth_date}&birth_location=${birth_location}&birth_time=${birth_time}`
+      url: `/pages/bazi/detail?id=${id}`
   });
 };
 

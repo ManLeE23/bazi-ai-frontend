@@ -97,6 +97,12 @@
 			}
 		},
 		{
+			"path": "pages/invite/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/upgrade/index",
 			"style": {
 				"navigationStyle": "custom"

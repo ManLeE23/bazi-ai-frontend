@@ -6,98 +6,94 @@
   >
     <template #header-left>
       <view class="user-info-row">
-        <view class="avatar-wrapper">
-          <text class="avatar-text">{{ userName?.[0] }}</text>
-        </view>
+        <UserAvatar :name="userName || 'U'" :shadow="false" />
         <view class="user-details">
           <text class="user-name">{{ userName }}</text>
-          <!-- <view class="user-id-row" @click="copyUserId">
-            <text class="user-id">ID: {{ userId || 'K6XPQ7EV' }}</text>
-            <view class="copy-tag">
-              <u-icon name="file-text" size="20" color="#94a3b8"></u-icon>
-              <text class="copy-text">复制我的ID</text>
-            </view>
-          </view> -->
+          <view class="user-badge" :class="{ 'is-vip': isPro }">
+            <text class="badge-text">{{ isPro ? '趋势会员' : '普通用户' }}</text>
+          </view>
         </view>
       </view>
     </template>
 
-    <!-- Extra Spacer for tall header -->
-    <!-- <view class="header-extra-spacer"></view> -->
-
     <!-- VIP Membership Card -->
-    <view class="vip-section" v-if="!isPro">
-      <view class="vip-header">
-        <view class="vip-badge">
-          <text class="vip-badge-text">限时特惠</text>
-        </view>
-      </view>
-      
-      <view class="vip-content">
-        <view class="vip-title-row">
-          <text class="vip-title">人生趋势高级会员</text>
-          <button class="activate-btn" @click="goToUpgrade">激活</button>
-        </view>
+    <view class="vip-card-wrapper">
+      <view class="vip-card" :class="{ 'is-active': isPro }">
+        <!-- Decorative background elements could be added here if needed -->
         
-        <text class="vip-subtitle">即刻解锁会员权益</text>
-      </view>
-    </view>
-    
-    <!-- Pro Section (if upgraded) -->
-    <view class="pro-vip-section" v-else>
-      <view class="pro-content">
-        <text class="pro-title">Pro 版订阅中</text>
-        <text class="pro-validity">有效期至 2027.01.19</text>
+        <view class="vip-card-content">
+          <view class="vip-info">
+            <view class="vip-tag">
+              <text class="vip-tag-text">{{ isPro ? '尊享权益' : '限时特惠' }}</text>
+            </view>
+            <text class="vip-card-title">{{ isPro ? '趋势会员生效中' : '人生趋势会员' }}</text>
+            <text class="vip-card-subtitle">{{ isPro && membershipExpiry ? `有效期：${membershipExpiry}` : (isPro ? '' : '即刻解锁会员权益') }}</text>
+          </view>
+          
+          <button class="activate-btn" @click="goToUpgrade" v-if="!isPro">激活</button>
+          <button class="activate-btn" @click="goToUpgrade" v-else>续费</button>
+        </view>
       </view>
     </view>
 
-    <!-- Invitation Section -->
-    <view class="invite-card">
+    <!-- Invite Card -->
+    <view class="invite-card-wrapper">
       <view class="invite-header">
-        <view class="code-row">
-          <text class="invite-code">{{ inviteCode }}</text>
-          <view class="copy-btn-small" @click="copyUserId">
-            <!-- <u-icon name="file-text" size="20" color="#94a3b8"></u-icon> -->
-            <text class="copy-text-small">复制</text>
-          </view>
-        </view>
-        <button class="fill-code-btn" @click="showInputModal">填写</button>
-      </view>
-      
-      <!-- <text class="invite-status">您已邀请 0 个朋友加入人生趋势</text> -->
-      <text class="invite-desc">当您填写/被填写邀请码时，您将获得AI性能升级。{{ isPro ? '会员用户每次邀请赠送一次深度报告生成。' : '非会员用户每次邀请赠送三次对话额度。' }}参与话题挑战领取的「免费高级会员」适用。</text>
-
-      <view class="stats-row">
-        <!-- <view class="stat-item">
-          <text class="stat-limit">封顶 1000%</text>
-          <view class="stat-icon-wrapper">
-            <u-icon name="hourglass" size="40" color="#1e293b"></u-icon>
-          </view>
-          <text class="stat-value">+0%</text>
-          <text class="stat-label">记忆上限</text>
+        <text class="invite-section-title">邀请有礼</text>
+        <!-- <view class="invite-record-btn">
+          <text class="record-text">邀请记录</text>
+          <u-icon name="arrow-right" size="20" color="#6366f1"></u-icon>
         </view> -->
-        
-        <view class="stat-item highlight">
-          <!-- <view class="member-tag">会员专属</view> -->
-          <text class="stat-limit">无限累计</text>
-          <view class="stat-icon-wrapper">
-            <u-icon name="gift-fill" size="40" color="#1e293b"></u-icon>
+      </view>
+
+      <view class="invite-subtitle">
+        <text class="subtitle-text">邀请新用户注册并建立档案，可获得奖励</text>
+      </view>
+
+      <view class="benefits-grid">
+        <view class="benefit-item" v-for="(item, index) in benefitItems" :key="index">
+          <view class="benefit-value-row">
+            <text class="benefit-value">{{ item.value }}</text>
+            <text class="benefit-unit">{{ item.unit }}</text>
           </view>
-          <text class="stat-value">{{ isLoading ? '...' : tokenBalance }}</text>
-          <text class="stat-label">赠送算力</text>
-        </view>
-        
-        <view class="stat-item">
-          <text class="stat-limit">封顶 3 次</text>
-          <view class="stat-icon-wrapper">
-            <u-icon name="coupon" size="40" color="#1e293b"></u-icon>
-          </view>
-          <text class="stat-value">{{ freeDeepSessions }}</text>
-          <text class="stat-label">深度诊断</text>
+          <text class="benefit-desc">{{ item.desc }}</text>
         </view>
       </view>
-      
-      <text class="footer-note">注意：数据更新可能有一天的延迟，请耐心等待~</text>
+
+      <view class="invite-code-box">
+        <view class="code-left">
+          <text class="code-label">我的邀请码</text>
+          <view class="code-value-row">
+            <text class="code-text">{{ inviteCode }}</text>
+            <view class="copy-badge" @click="copyUserId">
+              <text class="copy-text">复制</text>
+            </view>
+          </view>
+        </view>
+        <button class="fill-code-btn" @click="showInputModal">
+          填写邀请码
+        </button>
+      </view>
+
+      <button class="invite-action-btn" open-type="share">
+        立即邀请领奖励
+      </button>
+    </view>
+
+    <!-- Invite Stats -->
+    <view class="invite-stats-cards">
+      <view class="stats-card">
+        <text class="stats-num">{{ systemUser?.invite_count || 0 }}</text>
+        <text class="stats-label">已邀请人数</text>
+      </view>
+      <view class="stats-card">
+        <text class="stats-num">{{ systemUser?.invite_reward_tokens || 0 }}</text>
+        <text class="stats-label">获赠额度(次)</text>
+      </view>
+      <view class="stats-card">
+        <text class="stats-num">{{ systemUser?.invite_reward_days || 0 }}</text>
+        <text class="stats-label">获赠时长(天)</text>
+      </view>
     </view>
     
     <!-- Bottom Space -->
@@ -107,9 +103,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { userStore } from '@/store/user';
+import { userStore, MembershipType } from '@/store/user';
 import CommonPopup from '@/components/CommonPopup.vue';
-import { fetchSystemUserInfo, fetchMembershipInfo, fetchApplyInvite } from '@/api/services';
+import UserAvatar from '@/components/UserAvatar.vue';
+import { fetchSystemUserInfo, fetchApplyInvite } from '@/api/services';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -118,7 +115,6 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'open-upgrade']);
 
 const tokenBalance = ref(0);
-// const freeDeepSessions = ref(0); // Can access via systemUser
 const isLoading = ref(false);
 
 const show = computed({
@@ -128,10 +124,35 @@ const show = computed({
 
 const systemUser = computed(() => userStore.systemUser);
 const userId = computed(() => systemUser.value?.id || '67B7DE89');
-const inviteCode = computed(() => (systemUser.value as any)?.invite_code || userId.value); // Fallback to ID if no code
-const isPro = computed(() => !!systemUser.value?.is_vip);
+const inviteCode = computed(() => systemUser.value?.invite_code || userId.value);
+const isPro = computed(() => systemUser.value?.membership_type === MembershipType.VIP);
 const userName = computed(() => systemUser.value?.nickname || '用户');
-const freeDeepSessions = computed(() => (systemUser.value as any)?.free_deep_sessions_total || 0);
+const membershipExpiry = computed(() => {
+  if (!systemUser.value?.membership_end_at) return '';
+  const formatDate = (val: string | number) => {
+    if (!val) return '';
+    const date = new Date(val);
+    if (isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const end = formatDate(systemUser.value.membership_end_at);
+  if (!end) return '';
+  
+  const start = formatDate(systemUser.value.membership_start_at || '');
+  if (start) {
+    return `${start} 至 ${end}`;
+  }
+  return end;
+});
+
+const benefitItems = [
+  { value: '+5', unit: '次', desc: '普通用户对话额度' },
+  { value: '+3', unit: '天', desc: '趋势会员效期顺延' }
+];
 
 const loadData = async () => {
   if (isLoading.value) return;
@@ -139,17 +160,8 @@ const loadData = async () => {
   try {
     const userInfoRes = await fetchSystemUserInfo();
     if (userInfoRes) {
-       // Update store if needed, or just rely on the response if we were not using store for everything
-       // The fetchSystemUserInfo might not update store automatically unless called via an action that does so.
-       // Looking at doLogin in auth.ts (not visible here), usually it updates store.
-       // Let's manually update store here to be safe and reactive
        const data = (userInfoRes as any).data || userInfoRes;
        userStore.setSystemUser({ ...userStore.systemUser, ...data });
-    }
-    
-    const membershipInfo = await fetchMembershipInfo() as any;
-    if (membershipInfo) {
-       const data = membershipInfo.data || membershipInfo;
        tokenBalance.value = data.token_balance;
     }
   } catch (error) {
@@ -168,8 +180,6 @@ watch(show, (newVal) => {
 const handleClose = () => {
   show.value = false;
 };
-
-// closePopup function removed as it is handled by CommonPopup
 
 const copyUserId = () => {
   uni.setClipboardData({
@@ -192,13 +202,14 @@ const showInputModal = () => {
     placeholderText: '请输入邀请码',
     success: async (res) => {
       if (res.confirm && res.content) {
+        if (!res.content.trim()) return;
+        
         uni.showLoading({ title: '兑换中...' });
         try {
           await fetchApplyInvite(res.content);
           uni.showToast({ title: '兑换成功', icon: 'success' });
-          loadData(); // Refresh data
+          loadData();
         } catch (error: any) {
-          // Error is handled by interceptor usually, but we can log
           console.error('Invite failed', error);
           uni.showToast({ title: error.message || '兑换失败', icon: 'none' });
         } finally {
@@ -211,324 +222,346 @@ const showInputModal = () => {
 </script>
 
 <style lang="scss" scoped>
-/* Removed popup-container, popup-header, btn-circle styles */
-
-/* .header-extra-spacer removed */
-
+/* Header Styles */
 .user-info-row {
   display: flex;
   align-items: center;
   gap: 24rpx;
-  /* Add padding top to align with design if needed, but CommonPopup handles top offset */
-  margin-top: 10rpx; 
-}
-
-.avatar-wrapper {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 50%;
-  background-color: #e0e7ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  .avatar-text {
-    font-size: 40rpx;
-    font-weight: 600;
-    color: #4f46e5;
-  }
 }
 
 .user-details {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 4rpx;
 }
 
 .user-name {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #1e293b;
+  font-size: 36rpx;
+  font-weight: 900;
+  color: #1e293b; /* slate-800 */
 }
 
-.user-id-row {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.user-id {
-  font-size: 24rpx;
-  color: #64748b;
-}
-
-.copy-tag {
-  display: flex;
-  align-items: center;
-  gap: 4rpx;
-  background-color: #f1f5f9;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  
-  .copy-text {
-    font-size: 20rpx;
-    color: #64748b;
-  }
-}
-
-/* Close Button Style from step/index */
-.btn-circle {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 9999px;
-  background-color: rgba(255, 255, 255, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #94a3b8;
-}
-
-.icon-close {
-  font-size: 56rpx;
-  margin-top: -4rpx;
-  font-weight: 300;
-}
-
-.popup-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 32rpx;
-  box-sizing: border-box;
-}
-
-/* VIP Section */
-.vip-section {
-  background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
-  border-radius: 32rpx;
-  padding: 32rpx;
-  margin-bottom: 32rpx;
-}
-
-.vip-header {
-  margin-bottom: 24rpx;
-}
-
-.vip-badge {
+.user-badge {
   display: inline-flex;
-  padding: 6rpx 16rpx;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  align-self: flex-start;
+  padding: 4rpx 12rpx;
+  background-color: #eef2ff; /* indigo-50 */
   border-radius: 12rpx;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 4rpx 12rpx rgba(255, 255, 255, 0.3);
-}
-
-.vip-badge-text {
-  font-size: 22rpx;
-  color: #6366f1;
-  font-weight: 600;
-}
-
-/* VIP Features */
-.vip-features {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 24rpx;
-}
-
-.feature-item {
-  font-size: 22rpx;
-  color: #64748b;
-}
-
-.restore-btn {
-  font-size: 22rpx;
-  color: #6366f1;
-  font-weight: 500;
-}
-
-.activate-btn {
-  background: #ffffff;
-  color: #0f172a;
-  font-size: 28rpx;
-  font-weight: 600;
-  padding: 0 48rpx;
-  height: 72rpx;
-  line-height: 72rpx;
-  border-radius: 36rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-  margin: 0;
-  &::after {
-    border: none !important;
+  
+  .badge-text {
+    font-size: 22rpx; /* text-[10px] */
+    font-weight: 900;
+    color: #818cf8; /* indigo-400 */
+    text-transform: uppercase;
+    letter-spacing: 2rpx;
+  }
+  
+  &.is-vip {
+    background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+    .badge-text {
+      color: #ffffff;
+    }
   }
 }
 
-.vip-title-row {
+/* VIP Card */
+.vip-card-wrapper {
+  margin-bottom: 48rpx;
+}
+
+.vip-card {
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+  border-radius: 64rpx; /* rounded-[32px] */
+  padding: 48rpx; /* p-6 */
+  box-shadow: 0 20rpx 50rpx -10rpx rgba(99, 102, 241, 0.3); /* shadow-lg shadow-indigo-100 */
+  position: relative;
+  overflow: hidden;
+  
+  &.is-active {
+     /* Different style for active VIP if needed, currently same gradient */
+  }
+}
+
+.vip-card-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8rpx;
+  position: relative;
+  z-index: 10;
 }
 
-.vip-title {
-  font-size: 40rpx;
-  font-weight: 800;
-  color: #1e1b4b;
+.vip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.vip-tag {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 4rpx 12rpx;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 12rpx;
+  margin-bottom: 8rpx;
+  
+  .vip-tag-text {
+    font-size: 22rpx; /* text-[10px] */
+    font-weight: 900;
+    color: #ffffff;
+    text-transform: uppercase;
+    font-style: italic;
+  }
+}
+
+.vip-card-title {
+  font-size: 40rpx; /* text-xl */
+  font-weight: 900;
+  color: #ffffff;
+  margin-top: 4rpx;
   line-height: 1.2;
 }
 
-.vip-subtitle {
-  font-size: 26rpx;
-  color: #475569;
-  display: block;
-  margin-bottom: 32rpx;
+.vip-card-subtitle {
+  font-size: 24rpx; /* text-[11px] */
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 4rpx;
+}
+
+.activate-btn {
+  background-color: #ffffff;
+  color: #4f46e5; /* indigo-600 */
+  font-size: 26rpx; /* text-xs */
+  font-weight: 900;
+  padding: 16rpx 40rpx; /* px-5 py-2 */
+  border-radius: 32rpx; /* rounded-2xl */
+  box-shadow: 0 20rpx 25rpx -5rpx rgba(0, 0, 0, 0.1); /* shadow-xl */
+  margin: 0;
+  line-height: 1.5;
+  
+  &::after {
+    border: none;
+  }
 }
 
 /* Invite Card */
-.invite-card {
-  background-color: #fff;
-  border-radius: 32rpx;
-  padding: 32rpx;
-  margin-bottom: 40rpx;
+.invite-card-wrapper {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F4F7FF 100%);
+  border-radius: 64rpx; /* rounded-[32px] */
+  padding: 40rpx; /* p-5 */
+  border: 1px solid #eef2ff; /* border-indigo-50 */
+  margin-bottom: 48rpx;
 }
 
 .invite-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24rpx;
-}
-
-.code-row {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.invite-code {
-  font-size: 40rpx;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.copy-btn-small {
-  display: flex;
-  align-items: center;
-  gap: 4rpx;
-  background-color: #f1f5f9;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  
-  .copy-text-small {
-    font-size: 20rpx;
-    color: #64748b;
-  }
-}
-
-.fill-code-btn {
-  background-color: #f1f5f9;
-  color: #1e293b;
-  font-size: 28rpx;
-  font-weight: 600;
-  padding: 0 32rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  border-radius: 999px;
-  margin: 0;
-  &::after {
-    border: none !important;
-  }
-}
-
-.invite-status {
-  font-size: 28rpx;
-  color: #334155;
-  display: block;
-  margin-bottom: 16rpx;
-}
-
-.invite-desc {
-  font-size: 22rpx;
-  color: #94a3b8;
-  line-height: 1.5;
-  display: block;
   margin-bottom: 32rpx;
 }
 
-.stats-row {
-  display: flex;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
+.invite-section-title {
+  font-size: 26rpx; /* text-xs */
+  font-weight: 900;
+  color: #94a3b8; /* slate-400 */
+  text-transform: uppercase;
+  letter-spacing: 4rpx;
 }
 
-.stat-item {
-  flex: 1;
-  background-color: #f8fafc;
-  border-radius: 24rpx;
-  padding: 24rpx 16rpx;
+.invite-record-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  position: relative;
+  gap: 4rpx;
   
-  &.highlight {
-    background-color: #fff;
-    border: 1px solid #f1f5f9;
-    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+  .record-text {
+    font-size: 24rpx; /* text-[11px] */
+    font-weight: 700;
+    color: #6366f1; /* indigo-500 */
   }
 }
 
-.member-tag {
-  position: absolute;
-  top: -12rpx;
-  background-color: #1e293b;
-  color: #fff;
-  font-size: 18rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 999px;
+.benefits-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
 }
 
-.stat-limit {
-  font-size: 20rpx;
-  color: #94a3b8;
-  margin-bottom: 16rpx;
+.benefit-item {
+  background-color: #ffffff;
+  border-radius: 32rpx; /* rounded-2xl */
+  padding: 32rpx; /* p-4 */
+  border: 1px solid #f1f5f9; /* border-slate-100 */
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
 }
 
-.stat-icon-wrapper {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background-color: #fff;
+.benefit-value-row {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-}
-
-.highlight .stat-icon-wrapper {
-  background-color: #f1f5f9;
-}
-
-.stat-value {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #1e293b;
+  align-items: baseline;
   margin-bottom: 4rpx;
 }
 
-.stat-label {
-  font-size: 20rpx;
-  color: #64748b;
+.benefit-value {
+  font-size: 52rpx; /* text-xl */
+  font-weight: 900;
+  color: #4f46e5; /* indigo-600 */
 }
 
-.footer-note {
-  font-size: 20rpx;
-  color: #94a3b8;
-  text-align: center;
+.benefit-unit {
+  font-size: 24rpx; /* text-[11px] */
+  font-weight: 700;
+  color: #4f46e5;
+  margin-left: 4rpx;
+}
+
+.benefit-desc {
+  font-size: 22rpx; /* text-[10px] */
+  font-weight: 700;
+  color: #94a3b8; /* slate-400 */
+  line-height: 1.2;
   display: block;
+}
+
+.invite-subtitle {
+  margin-bottom: 24rpx;
+  padding: 0 8rpx;
+}
+
+.subtitle-text {
+  font-size: 24rpx; /* text-[11px] */
+  font-weight: 700;
+  color: #6366f1; /* indigo-400 */
+}
+
+.invite-code-box {
+  background-color: #ffffff;
+  border-radius: 32rpx; /* rounded-2xl */
+  padding: 32rpx; /* p-4 */
+  border: 1px solid rgba(224, 231, 255, 0.3); /* border-indigo-100/30 */
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+
+.code-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.code-label {
+  font-size: 24rpx; /* text-[9px] */
+  font-weight: 900;
+  color: #94a3b8; /* slate-400 */
+  text-transform: uppercase;
+  margin-bottom: 4rpx;
+  letter-spacing: 1px;
+}
+
+.code-value-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.code-text {
+  font-size: 44rpx; /* text-[21px] */
+  font-weight: 900;
+  color: #1e293b; /* slate-800 */
+  letter-spacing: -2rpx;
+}
+
+.copy-badge {
+  padding: 4rpx 16rpx;
+  background-color: #eef2ff; /* indigo-50 */
+  border-radius: 8rpx;
+  
+  &:active {
+    background-color: #e0e7ff;
+  }
+}
+
+.copy-text {
+  font-size: 20rpx; /* text-[9px] */
+  font-weight: 900;
+  color: #6366f1; /* indigo-500 */
+}
+
+.fill-code-btn {
+  background-color: #0f172a; /* slate-900 */
+  color: #ffffff;
+  font-size: 26rpx; /* text-xs */
+  font-weight: 900;
+  padding: 20rpx 40rpx; /* px-5 py-2.5 */
+  border-radius: 24rpx; /* rounded-xl */
+  box-shadow: 0 10rpx 15rpx -3rpx rgba(0, 0, 0, 0.1); /* shadow-lg */
+  margin: 0;
+  line-height: 1.5;
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  &::after {
+    border: none;
+  }
+}
+
+.invite-action-btn {
+  width: 100%;
+  background-color: #6366f1; /* indigo-500 */
+  color: #ffffff;
+  font-size: 28rpx; /* text-[13px] */
+  font-weight: 900;
+  padding: 32rpx 0; /* py-4 */
+  border-radius: 32rpx; /* rounded-2xl */
+  box-shadow: 0 20rpx 25rpx -5rpx rgba(224, 231, 255, 1); /* shadow-xl shadow-indigo-100 */
+  margin: 0;
+  line-height: 1.5;
+  
+  &:active {
+    transform: scale(0.98);
+  }
+  
+  &::after {
+    border: none;
+  }
+}
+
+/* Invite Stats Cards */
+.invite-stats-cards {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  margin-top: 32rpx;
+}
+
+.stats-card {
+  flex: 1;
+  background-color: #ffffff;
+  border: 1px solid #f1f5f9; /* slate-100 */
+  border-radius: 32rpx;
+  padding: 32rpx 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  // box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+}
+
+.stats-num {
+  font-size: 40rpx;
+  font-weight: 900;
+  color: #1e293b; /* slate-800 */
+  margin-bottom: 8rpx;
+  line-height: 1.2;
+}
+
+.stats-label {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #94a3b8; /* slate-400 */
 }
 
 .bottom-spacer {

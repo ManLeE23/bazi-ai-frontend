@@ -51,16 +51,30 @@ onMounted(async () => {
     
     // Navigate after animation completes
     setTimeout(() => {
-      uni.reLaunch({
-        url: '/pages/home/index'
-      });
+      const token = uni.getStorageSync('token');
+      if (token) {
+        uni.reLaunch({
+          url: '/pages/home/index'
+        });
+      } else {
+        uni.reLaunch({
+          url: '/pages/login/index'
+        });
+      }
     }, 1000); // 1s matches the CSS transition duration
   } catch (error) {
     console.error('Startup error:', error);
     // Ensure we navigate even if something unexpected happens
-    uni.reLaunch({
-      url: '/pages/home/index'
-    });
+    const token = uni.getStorageSync('token');
+    if (token) {
+      uni.reLaunch({
+        url: '/pages/home/index'
+      });
+    } else {
+      uni.reLaunch({
+        url: '/pages/login/index'
+      });
+    }
   }
 });
 </script>

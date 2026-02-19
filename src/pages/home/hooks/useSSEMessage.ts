@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { userStore } from '@/store/user';
 
 interface MessageData {
   session_id: string;
@@ -43,6 +44,22 @@ function decodeUTF8(arrayBuffer: ArrayBuffer): string {
   return str;
 }
 
+export enum SSEErrorCode {
+  UNAUTHORIZED = 10001,
+  ROLE_INVALID = 10002,
+  NO_PERMISSION = 10003,
+  NO_QUOTA = 10004,
+  STREAM_ERROR = 10005,
+}
+
+const SSE_ERROR_MESSAGES: Record<number, string> = {
+  [SSEErrorCode.UNAUTHORIZED]: '登录已过期，请重新登录',
+  [SSEErrorCode.ROLE_INVALID]: '系统错误：角色无效',
+  [SSEErrorCode.NO_PERMISSION]: '会话不存在或无权限',
+  [SSEErrorCode.NO_QUOTA]: '对话额度不足',
+  [SSEErrorCode.STREAM_ERROR]: '系统繁忙，请稍后再试',
+};
+
 export default function useSSEMessage(params: SSEParams) {
   const isLoading = ref<boolean>(false);
   const error = ref<string | null>(null);
@@ -66,6 +83,54 @@ export default function useSSEMessage(params: SSEParams) {
     if (!chunkStr || chunkStr.trim() === '') {
       console.warn('接收到空的数据字符串');
       return;
+    }
+
+    // Try to parse as JSON error (non-SSE response)
+    try {
+      const trimmed = chunkStr.trim();
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        const json = JSON.parse(trimmed);
+
+        // Handle new error structure
+        // type: "error", code: 10004, message: "no_quota"
+        if (json.type === 'error' && json.code) {
+          console.warn('SSE Error received:', json);
+          if (json.code === SSEErrorCode.NO_QUOTA) {
+            error.value = 'no_quota';
+            // Update store with latest quota info from error response
+            if (json.data && userStore.systemUser) {
+              userStore.setSystemUser({
+                ...userStore.systemUser,
+                ...json.data,
+              });
+            }
+          } else {
+            const friendlyMsg =
+              SSE_ERROR_MESSAGES[json.code] ||
+              json.message ||
+              `Error ${json.code}`;
+            error.value = friendlyMsg;
+          }
+          stopSSE();
+          return;
+        }
+
+        if (json.reason === 'no_quota' || json.error === 'no_quota') {
+          console.warn('Quota exceeded error received');
+          error.value = 'no_quota';
+          stopSSE();
+          return;
+        }
+        // General error handling
+        if (json.code && json.code !== 0 && json.code !== 200) {
+          console.warn('API error received:', json);
+          error.value = json.message || 'Unknown error';
+          stopSSE();
+          return;
+        }
+      }
+    } catch (e) {
+      // Not a valid JSON, continue with SSE parsing
     }
 
     buffer += chunkStr;
@@ -100,6 +165,24 @@ export default function useSSEMessage(params: SSEParams) {
           errorCount = 0; // 重置错误计数
 
           const type = (data as any).type;
+
+          if (type === 'error') {
+            const code = (data as any).code;
+            console.warn('SSE Error Event received:', data);
+
+            if (code === SSEErrorCode.NO_QUOTA) {
+              error.value = 'no_quota';
+            } else {
+              const friendlyMsg =
+                SSE_ERROR_MESSAGES[code] ||
+                (data as any).message ||
+                `Error ${code}`;
+              error.value = friendlyMsg;
+            }
+            stopSSE();
+            return;
+          }
+
           if (type === 'stream_update') {
             const chunkContent =
               (data as any).content ??

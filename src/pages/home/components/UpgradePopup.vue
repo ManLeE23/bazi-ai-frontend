@@ -6,10 +6,12 @@
   >
     <!-- Avatar & Title -->
     <view class="header-section">
-      <view class="avatar-ring">
-        <text class="avatar-text">{{ userInfo?.nickname?.[0] || 'Q' }}</text>
-      </view>
-      <text class="main-title">人生趋势高级会员</text>
+      <UserAvatar 
+        :name="userInfo?.nickname || 'Q'" 
+        size="large"
+        style="margin-bottom: 32rpx;" 
+      />
+      <text class="main-title">人生趋势会员</text>
       <text class="sub-title">订阅后解锁全部功能，随时取消</text>
     </view>
 
@@ -35,7 +37,7 @@
           <text class="plan-price">¥{{ (plan.price_cents / 100).toFixed(2) }}</text>
           
           <view class="plan-desc-wrapper">
-             <text class="plan-desc">{{ plan.membership_mode === 'vip_yearly' ? '每年自动续订' : '每月自动续订' }}</text>
+             <text class="plan-desc">{{ plan.membership_mode === MembershipMode.VIP_YEARLY ? '每年自动续订' : '每月自动续订' }}</text>
           </view>
         </view>
       </view>
@@ -79,9 +81,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import CommonPopup from '@/components/CommonPopup.vue';
-import { userStore } from '@/store/user';
+import UserAvatar from '@/components/UserAvatar.vue';
+import { userStore, MembershipMode } from '@/store/user';
 import { handleWechatPayment } from '@/utils/payment';
-import { fetchSystemUserInfo, fetchMembershipPlans } from '@/api/services';
+import { fetchSystemUserInfo, fetchMembershipPlans, fetchWechatOrderQuery } from '@/api/services';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -99,7 +102,7 @@ const userInfo = computed(() => userStore.userInfo);
 interface MembershipPlan {
   id: string;
   name: string;
-  membership_mode: string;
+  membership_mode: MembershipMode;
   duration_days: number;
   price_cents: number;
   currency: string;
@@ -120,7 +123,7 @@ const loadPlans = async () => {
     if (res && res.data && res.data.plans) {
       plans.value = res.data.plans;
       // Default select yearly plan if exists, otherwise first plan
-      const yearly = plans.value.find(p => p.id === 'vip_yearly');
+      const yearly = plans.value.find(p => p.membership_mode === MembershipMode.VIP_YEARLY);
       selectedPlanId.value = yearly ? yearly.id : (plans.value[0]?.id || '');
     }
   } catch (error) {
@@ -166,7 +169,8 @@ const handleSubscribe = async () => {
   if (!selectedPlan.value) return;
   
   const plan = selectedPlan.value;
-  const amount = plan.price_cents;
+  // const amount = plan.price_cents;
+  const amount = 1; // Testing: Hardcoded to 1 cent
   const description = `${plan.name}订阅`;
 
   if (isSubscribing.value) return;
@@ -187,12 +191,22 @@ const handleSubscribe = async () => {
       throw new Error('获取登录凭证失败');
     }
 
-    await handleWechatPayment({
+    const outTradeNo = await handleWechatPayment({
       amount_total: amount,
       description: description,
       mode: plan.membership_mode,
       code: loginRes.code
     });
+
+    console.log('outTradeNo', outTradeNo);
+
+    if (outTradeNo) {
+      try {
+        await fetchWechatOrderQuery(outTradeNo);
+      } catch (e) {
+        console.error('Order query failed:', e);
+      }
+    }
     
     // Refresh user info to update VIP status
     try {
@@ -250,26 +264,6 @@ $white: #ffffff;
   margin-bottom: 40rpx;
 }
 
-.avatar-ring {
-  width: 112rpx; /* w-14 = 3.5rem = 56px = 112rpx */
-  height: 112rpx;
-  border-radius: 50%;
-  background-color: $indigo-50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 32rpx;
-  /* ring-8 ring-indigo-50/50 */
-  box-shadow: 0 0 0 16rpx rgba(238, 242, 255, 0.5);
-  
-  .avatar-text {
-    font-size: 48rpx; /* text-2xl */
-    font-weight: 900; /* font-black */
-    font-style: italic;
-    color: $indigo-500;
-  }
-}
-
 .main-title {
   font-size: 48rpx; /* text-2xl */
   font-weight: 900; /* font-black */
@@ -280,8 +274,8 @@ $white: #ffffff;
 
 .sub-title {
   font-size: 26rpx; /* text-[13px] approx */
-  font-weight: 500;
   color: $slate-400;
+  letter-spacing: 1px;
 }
 
 /* Pricing Cards */
@@ -503,6 +497,7 @@ $white: #ffffff;
   
   &[disabled] {
     opacity: 0.8;
+    color: #ffffff !important;
     /* Maintain gradient background for loading state */
     /* background: $slate-300; */
     box-shadow: 0 10rpx 20rpx -5rpx rgba(99, 102, 241, 0.4);
@@ -516,11 +511,12 @@ $white: #ffffff;
 }
 
 .footer-tip {
-  font-size: 20rpx; /* text-[9px] */
+  font-size: 22rpx; /* text-[9px] */
   font-weight: 500;
   color: $slate-500; /* Darkened from slate-300 for better readability */
   display: block;
   margin-bottom: 16rpx;
+  letter-spacing: 1px;
 }
 
 .links-row {

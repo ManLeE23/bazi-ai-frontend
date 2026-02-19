@@ -12,17 +12,38 @@ export interface UserInfo {
   [key: string]: any;
 }
 
+export enum MembershipType {
+  FREE = 0,
+  VIP = 1,
+}
+
+export enum MembershipMode {
+  FREE = 0,
+  VIP_MONTHLY = 1,
+  VIP_YEARLY = 2,
+}
+
 export interface SystemUser {
   id?: string;
   openid?: string;
   nickname: string;
   avatar?: string | null;
   question_count?: number;
-  is_vip?: boolean;
+  membership_type?: MembershipType; // 0: Free, 1: VIP
+  membership_mode?: MembershipMode; // 0: Free, 1: Monthly, 2: Yearly
+  invite_code?: string;
+  token_balance?: number;
   trial_start_at?: string;
   trial_end_at?: string;
+  membership_start_at?: string;
+  membership_end_at?: string;
   created_at?: string;
   updated_at?: string;
+  free_quota_total?: number;
+  free_quota_used?: number;
+  invite_count?: number;
+  invite_reward_tokens?: number;
+  invite_reward_days?: number;
 }
 
 const SYSTEM_USER_KEY = 'system_user_info';

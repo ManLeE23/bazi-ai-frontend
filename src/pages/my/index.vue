@@ -126,7 +126,8 @@
 import Tabbar from '@/components/Tabbar.vue';
 import { ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
-import { fetchSystemUserInfo, fetchMembershipInfo, fetchApplyInvite } from '@/api/services';
+import { fetchSystemUserInfo, fetchApplyInvite } from '@/api/services';
+import { MembershipType, userStore } from '@/store/user';
 
 const currentPage = ref('my');
 const isPro = ref(false);
@@ -138,26 +139,22 @@ const inputInviteCode = ref('');
 const loadData = async () => {
   try {
     const userInfo = await fetchSystemUserInfo() as any;
-    if (userInfo && userInfo.data) {
-       // Assuming the interceptor returns the raw response or the data object.
-       // If interceptor works as expected, it returns 'data'.
-       // But wait, the interceptor code says:
-       // if (code === 200) return Promise.resolve(data);
-       // So it returns the full data object which contains 'data' property?
-       // Usually API returns { code: 200, data: { ... }, msg: "..." }
-       // So userInfo will be { code: 200, data: { ... }, msg: ... }
-       // So I should access userInfo.data.invite_code ?
-       
-       // Let's assume the standard format.
+    if (userInfo) {
        const data = userInfo.data || userInfo;
        inviteCode.value = data.invite_code;
        freeDeepSessions.value = data.free_deep_sessions_total;
-    }
-    
-    const membershipInfo = await fetchMembershipInfo() as any;
-    if (membershipInfo) {
-       const data = membershipInfo.data || membershipInfo;
+       isPro.value = data.membership_type === MembershipType.VIP;
        tokenBalance.value = data.token_balance;
+       
+       // Update store
+       if (userStore.systemUser) {
+         userStore.setSystemUser({
+           ...userStore.systemUser,
+           ...data
+         });
+       } else {
+         userStore.setSystemUser(data);
+       }
     }
   } catch (error) {
     console.error('Failed to load user info', error);

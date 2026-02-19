@@ -93,8 +93,9 @@ export const fetchCreateSession = (params: any) => {
 export const fetchSuggestedQuestions = (params: {
   session_id?: string;
   limit?: number;
+  prev_questions: string[];
 }) => {
-  return httpGet({
+  return httpPost({
     url: '/api/chat/suggested-questions',
     params,
   });
@@ -148,13 +149,6 @@ export const fetchSystemUserInfo = () => {
   });
 };
 
-export const fetchMembershipInfo = () => {
-  return httpGet({
-    url: '/api/membership/me',
-    params: {},
-  });
-};
-
 export const fetchMembershipPlans = () => {
   return httpGet({
     url: '/api/membership/plans',
@@ -176,16 +170,10 @@ export const fetchApplyInvite = (code: string) => {
   });
 };
 
-export const fetchBaziCalculate = (params: {
-  name?: string;
-  gender: string;
-  birth_date: string;
-  birth_time: string;
-  birth_location?: string;
-}) => {
-  return httpPost({
-    url: '/api/bazi/calculate',
-    params,
+export const fetchBaziCalculate = (profile_id: string) => {
+  return httpGet({
+    url: `/api/bazi/calculate/profile/${profile_id}`,
+    params: {},
   });
 };
 
@@ -193,13 +181,20 @@ export const fetchWechatPayment = (params: {
   amount_total: number;
   description: string;
   currency?: string;
-  mode?: string;
+  mode?: number;
   openid?: string;
   code?: string;
 }) => {
   return httpPost({
     url: '/api/payments/wechat/jsapi',
     params,
+  });
+};
+
+export const fetchWechatOrderQuery = (out_trade_no: string) => {
+  return httpGet({
+    url: `/api/payments/wechat/order/${out_trade_no}`,
+    params: { refresh: true },
   });
 };
 

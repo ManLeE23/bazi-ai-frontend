@@ -7,12 +7,22 @@
     <!-- Custom Header -->
     <HeaderBar :fixed="true" :show-back="false">
       <template #left>
-        <button @click="showSidebar = true" class="sidebar-toggle-btn">
-          <view class="hamburger-icon">
-            <view class="bar long"></view>
-            <view class="bar short"></view>
-          </view>
-        </button>
+        <view class="header-left-group">
+          <button @click="showSidebar = true" class="sidebar-toggle-btn">
+            <view class="hamburger-icon">
+              <view class="bar long"></view>
+              <view class="bar short"></view>
+            </view>
+          </button>
+          
+          <button 
+            v-if="hasProfile"
+            @click="handleShowBazi" 
+            class="bazi-toggle-btn"
+          >
+            <image :src="baguaSvg" class="bazi-icon" mode="aspectFit" />
+          </button>
+        </view>
       </template>
     </HeaderBar>
     
@@ -140,9 +150,9 @@
               class="quick-card"
               @click="sendQuickQuestion(q)"
             >
-              <view class="question-badge">
+              <!-- <view class="question-badge">
                 <text class="badge-text">Q{{ index + 1 }}</text>
-              </view>
+              </view> -->
               <text class="question-text">{{ q }}</text>
             </button>
           </view>
@@ -163,31 +173,39 @@
     <!-- Input Area -->
     <InputWithButton 
       :model-value="inputText" 
-      :show-bazi="hasProfile" 
+      :show-bazi="false"
       :is-a-i-sending="isGenerating"
       @update:model-value="onInputUpdate" 
       @click="sendQuestion"
       @show-bazi="handleShowBazi" 
-    />
+    >
+      <template #top>
+        <view v-if="isQuotaExhausted" class="quota-banner-inline">
+          <text class="quota-text">免费额度已用完，升级会员或邀请好友获取更多</text>
+          <view class="quota-btn" @click="handleOpenUserCenter">去获取</view>
+        </view>
+      </template>
+    </InputWithButton>
   </view>
 </template>
 
 <script setup lang="ts">
-import { onLoad, onPageScroll } from '@dcloudio/uni-app';
+import { onLoad, onPageScroll, onShareAppMessage } from '@dcloudio/uni-app';
 import { ref, onMounted, nextTick, computed, watch } from 'vue';
-import { userStore, type UserInfo } from '@/store/user';
+import { userStore, type UserInfo, type SystemUser, MembershipType } from '@/store/user';
 import HeaderBar from '@/components/HeaderBar.vue';
 import ProfileGuideCard from './components/ProfileGuideCard.vue';
 import SidebarMenu from './components/SidebarMenu.vue';
 import UserCenterPopup from './components/UserCenterPopup.vue';
 import UpgradePopup from './components/UpgradePopup.vue';
 import useSSEMessage from './hooks/useSSEMessage'; // 导入新的hook
-import { fetchChatHistory, fetchBaziCalculate, fetchSessionUserInfo, fetchProfilesList, fetchCreateSession, fetchSuggestedQuestions } from '@/api/services';
+import { fetchChatHistory, fetchBaziCalculate, fetchSessionUserInfo, fetchProfilesList, fetchCreateSession, fetchSuggestedQuestions, fetchSystemUserInfo, fetchApplyInvite } from '@/api/services';
 import InputWithButton from '@/components/InputWithButton.vue';
 import LoadingIndicator from '@/components/LoadingIndicator.vue';
 import MarkDown from '../components/MarkDown/index.vue';
 import BaziCard from './components/BaziCard.vue';
 import downSvg from '@/static/icon/down.svg?url';
+import baguaSvg from '@/static/icon/bagua.svg?url';
 import { doLogin } from '@/utils/auth';
 
 const isUserAtBottom = ref(true); // Track if user is at bottom
@@ -199,7 +217,32 @@ onMounted(() => {
     uni.reLaunch({
       url: '/pages/login/index'
     });
+  } else {
+    // Check for pending invite code
+    const pendingCode = uni.getStorageSync('pending_invite_code');
+    if (pendingCode) {
+      fetchApplyInvite(pendingCode).then(() => {
+        uni.showToast({ title: '邀请奖励已到账', icon: 'none' });
+        uni.removeStorageSync('pending_invite_code');
+        // Refresh user info
+        fetchSystemUserInfo().then(res => {
+          if(res.data) userStore.setSystemUser(res.data as SystemUser);
+        });
+      }).catch(err => {
+        console.error('Apply invite failed:', err);
+        uni.removeStorageSync('pending_invite_code');
+      });
+    }
   }
+});
+
+onShareAppMessage(() => {
+  const inviteCode = userStore.systemUser?.invite_code || userStore.systemUser?.id || '';
+  return {
+    title: '人生趋势：看清趋势，走对下一步',
+    path: `/pages/home/index?inviteCode=${inviteCode}`,
+    imageUrl: '/static/share.jpg'
+  };
 });
 
 const isSwitchingProfile = ref(false);
@@ -240,6 +283,17 @@ const userInfo = computed({
   }
 });
 
+const isQuotaExhausted = computed(() => {
+  const user = userStore.systemUser;
+  // Check membership_type (1=VIP)
+  if (!user || user.membership_type === MembershipType.VIP) return false;
+  // Default to 5 if undefined, or handle based on API contract. 
+  // If backend sends these fields, they should be numbers.
+  const total = user.free_quota_total ?? 5; 
+  const used = user.free_quota_used ?? 0;
+  return used >= total;
+});
+
 const isLoadingUserInfo = ref(true);
 const baziFetchPromise = ref<Promise<any> | null>(null);
 
@@ -248,11 +302,16 @@ const quickQuestions = ref<string[]>([]);
 const isLoadingQuickQuestions = ref(false);
 
 const loadQuickQuestions = async () => {
+  if (isQuotaExhausted.value) {
+    isLoadingQuickQuestions.value = false;
+    return;
+  }
   isLoadingQuickQuestions.value = true;
   try {
     const res: any = await fetchSuggestedQuestions({
       session_id: sessionId.value || undefined,
-      limit: 3
+      limit: 3,
+      prev_questions: quickQuestions.value
     });
     if (res && res.data && Array.isArray(res.data.questions)) {
       quickQuestions.value = res.data.questions;
@@ -290,7 +349,7 @@ const simulateWelcomeMessages = () => {
   // Message 1
   chatMessages.value.push({
     role: 'assistant',
-    content: `Hi，${name}`,
+    content: `Hi，${name}，很高兴认识你`,
     timestamp: new Date(),
     id: `welcome-1-${Date.now()}`
   });
@@ -315,11 +374,18 @@ const simulateWelcomeMessages = () => {
       });
       scrollToBottom(true);
       
-      const timer3 = setTimeout(() => {
-        showQuickQuestions.value = true;
-        nextTick(() => {
-          scrollToBottom(true);
-        });
+      const timer3 = setTimeout(async () => {
+        // Automatically show BaziCard if user info exists
+        if (userInfo.value && userInfo.value.id) {
+           await execShowBaziCard(true);
+        }
+
+        if (!isQuotaExhausted.value) {
+          showQuickQuestions.value = true;
+          nextTick(() => {
+            scrollToBottom(false);
+          });
+        }
       }, 1000);
       welcomeTimers.value.push(timer3);
     }, 1200);
@@ -338,7 +404,11 @@ const showProfileGuide = computed(() => {
 });
 
 const initBaziData = (info: any) => {
-  baziFetchPromise.value = fetchBaziCalculate(info)
+  if (!info || !info.id) {
+    console.error('Bazi pre-fetch failed: Missing profile ID');
+    return;
+  }
+  baziFetchPromise.value = fetchBaziCalculate(info.id)
     .then(res => ({ success: true, res }))
     .catch(error => {
       console.error('Bazi pre-fetch failed:', error);
@@ -347,6 +417,10 @@ const initBaziData = (info: any) => {
 };
 
 onLoad(async (options: any) => {
+  if (options.inviteCode) {
+    uni.setStorageSync('pending_invite_code', options.inviteCode);
+  }
+
   // Only check profiles if no specific info is provided (normal entry)
   if (!options.userInfo && !options.sessionId) {
     try {
@@ -374,6 +448,9 @@ onLoad(async (options: any) => {
           }
 
           userInfo.value = targetProfile;
+          
+          // Pre-fetch Bazi data
+          initBaziData(targetProfile);
 
           if (targetProfile.session_id) {
             sessionId.value = targetProfile.session_id;
@@ -403,6 +480,11 @@ onLoad(async (options: any) => {
       getChatHistory();
     }
   }
+
+  // Fetch latest system user info (quota)
+  fetchSystemUserInfo().then(res => {
+      if (res.data) userStore.setSystemUser(res.data as SystemUser);
+  }).catch(console.error);
 
   if (options.userInfo) {
     try {
@@ -453,6 +535,23 @@ const checkIfAtBottom = () => {
   });
 };
 
+const checkScrollPosition = () => {
+  const query = uni.createSelectorQuery();
+  query.selectViewport().scrollOffset((res) => {
+    if (!res || Array.isArray(res)) return;
+    const scrollTop = res.scrollTop || 0;
+    const windowHeight = uni.getSystemInfoSync().windowHeight;
+    
+    // 获取页面总高度
+    uni.createSelectorQuery().select('.root').boundingClientRect((rect) => {
+      if (!rect || Array.isArray(rect)) return;
+      const scrollHeight = rect.height || 0;
+      // 阈值设为 windowHeight - 130，与 onPageScroll 保持一致
+      isUserAtBottom.value = (scrollTop + windowHeight) >= (scrollHeight - 130);
+    }).exec();
+  }).exec();
+};
+
 const scrollToBottom = (force = false, delay = 150) => {
   // If sidebar is open, do not auto-scroll as it may block UI interactions
   if (showSidebar.value) return;
@@ -494,6 +593,85 @@ watch(headerHeight, () => {
     scrollToBottom(true);
   }
 });
+
+const execShowBaziCard = async (isAuto = false) => {
+  if (showProfileGuide.value) {
+    if (!isAuto) {
+      uni.showToast({
+        title: '请先录入档案',
+        icon: 'none'
+      });
+    }
+    return;
+  }
+
+  // Simulate user asking "看生辰" only if not auto
+  if (!isAuto) {
+    // 新增：交互时立即隐藏快捷提问并清除可能存在的欢迎语定时器
+    showQuickQuestions.value = false;
+    clearWelcomeTimers();
+
+    chatMessages.value.push({
+      role: 'user',
+      content: '看生辰',
+      timestamp: new Date(),
+      id: `user_${Date.now()}`,
+      type: 'text'
+    });
+    scrollToBottom(true);
+  }
+  
+  isTyping.value = true;
+  isGenerating.value = true;
+  
+  try {
+    let result;
+    
+    // Use pre-fetched promise if available
+    if (baziFetchPromise.value) {
+      result = await baziFetchPromise.value;
+    } else {
+      try {
+        if (!userInfo.value || !userInfo.value.id) {
+           throw new Error('User info or ID not ready');
+        }
+        const res = await fetchBaziCalculate(userInfo.value.id);
+        result = { success: true, res };
+      } catch (error) {
+        result = { success: false, error };
+      }
+    }
+
+    if (result.success && result.res && result.res.data) {
+       chatMessages.value.push({
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        id: `ai_${Date.now()}`,
+        type: 'bazi',
+        baziData: result.res.data
+      });
+      scrollToBottom(true);
+    } else {
+       throw result.error || new Error('Unknown error');
+    }
+  } catch (error) {
+    console.error('获取八字数据失败:', error);
+    if (!isAuto) {
+      chatMessages.value.push({
+          role: 'assistant',
+          content: '获取八字数据失败，请稍后再试。',
+          timestamp: new Date(),
+          id: `ai_${Date.now()}`,
+          type: 'text'
+      });
+    }
+  } finally {
+    isTyping.value = false;
+    isGenerating.value = false;
+    scrollToBottom(true);
+  }
+};
 
 onMounted(() => {
   // Calculate header height for padding
@@ -579,8 +757,10 @@ const getChatHistory = async () => {
       if (res.data.length > 0) {
         showQuickQuestions.value = false;
         // 加载输入框上方的推荐问题
-        loadQuickQuestions();
-        showQuickQuestions.value = true;
+        if (!isQuotaExhausted.value) {
+           loadQuickQuestions();
+           showQuickQuestions.value = true;
+        }
       }
 
       // 清空现有消息
@@ -628,6 +808,12 @@ const getChatHistory = async () => {
         //   id: `welcome-back-${Date.now()}`
         // });
         // scrollToBottom(true);
+      } else {
+        // 如果有历史记录且不发欢迎语，不要强制滚动到底部
+        // scrollToBottom(false) 会检查 isUserAtBottom 状态
+        nextTick(() => {
+          checkScrollPosition();
+        });
       }
     }
   } catch (error) {
@@ -641,82 +827,25 @@ const toggleReasoning = (message: any) => {
 };
 
 const handleShowBazi = async () => {
-  // 新增：交互时立即隐藏快捷提问并清除可能存在的欢迎语定时器
-  showQuickQuestions.value = false;
-  clearWelcomeTimers();
-
-  // Check if profile exists
-  if (showProfileGuide.value) {
-    uni.showToast({
-      title: '请先录入档案',
-      icon: 'none'
-    });
-    return;
-  }
-
-  // Simulate user asking "看生辰"
-  chatMessages.value.push({
-    role: 'user',
-    content: '看生辰',
-    timestamp: new Date(),
-    id: `user_${Date.now()}`,
-    type: 'text'
-  });
-  
-  scrollToBottom(true);
-  isTyping.value = true;
-  isGenerating.value = true;
-  
-  try {
-    let result;
-    
-    // Use pre-fetched promise if available
-    if (baziFetchPromise.value) {
-      result = await baziFetchPromise.value;
-    } else {
-      // Fallback if promise is missing (e.g. component reloaded but onLoad didn't fire appropriately?)
-      // or just direct call if logic changes.
-      try {
-        if (!userInfo.value) {
-           throw new Error('User info not ready');
-        }
-        const res = await fetchBaziCalculate(userInfo.value);
-        result = { success: true, res };
-      } catch (error) {
-        result = { success: false, error };
-      }
-    }
-
-    if (result.success && result.res && result.res.data) {
-       chatMessages.value.push({
-        role: 'assistant',
-        content: '',
-        timestamp: new Date(),
-        id: `ai_${Date.now()}`,
-        type: 'bazi',
-        baziData: result.res.data
-      });
-      scrollToBottom(true);
-    } else {
-       throw result.error || new Error('Unknown error');
-    }
-  } catch (error) {
-    console.error('获取八字数据失败:', error);
-    chatMessages.value.push({
-        role: 'assistant',
-        content: '获取八字数据失败，请稍后再试。',
-        timestamp: new Date(),
-        id: `ai_${Date.now()}`,
-        type: 'text'
-    });
-  } finally {
-    isTyping.value = false;
-    isGenerating.value = false;
-    scrollToBottom(true);
-  }
+  await execShowBaziCard(false);
 };
 
 const sendQuestion = async () => {
+  // Check quota
+  if (isQuotaExhausted.value) {
+     uni.showModal({
+        title: '额度不足',
+        content: '您的免费对话额度已用完，升级会员解锁无限对话，或邀请好友获取更多额度。',
+        confirmText: '去获取',
+        success: (res) => {
+          if (res.confirm) {
+            handleOpenUserCenter();
+          }
+        }
+     });
+     return;
+  }
+
   // Check if profile exists
   if (showProfileGuide.value) {
     uni.showToast({
@@ -784,13 +913,25 @@ const sendQuestion = async () => {
       }
 
       // 使用SSE获取流式响应
-      const { messageList, isLoading, startSSE } = useSSEMessage({
+      const { messageList, isLoading, startSSE, error } = useSSEMessage({
         session_id: sessionId.value,
         user_input: question
       });
 
       // 开始SSE连接
       startSSE();
+
+      // 监听错误
+      const unwatchError = watch(error, (newVal) => {
+        if (newVal) {
+           if (newVal === 'no_quota' || newVal.includes('no_quota')) {
+              // no-op: banner will show based on updated store state from SSE response
+              // uni.showModal({ ... }) removed
+           } else {
+              uni.showToast({ title: newVal, icon: 'none' });
+           }
+        }
+      });
 
       // 监听SSE消息更新
       const unwatch = watch(messageList, (newMessages) => {
@@ -836,6 +977,7 @@ const sendQuestion = async () => {
           // 加载完成，停止监听
           unwatch();
           unwatchLoading();
+          unwatchError();
           
           isTyping.value = false;
           isThinking.value = false;
@@ -852,14 +994,56 @@ const sendQuestion = async () => {
           
           scrollToBottom();
 
-          // 获取推荐问题
-          nextTick(() => {
-            loadQuickQuestions();
-            showQuickQuestions.value = true;
-            nextTick(() => {
-              scrollToBottom(true);
-            });
-          });
+          // 获取推荐问题 (仅当没有错误时)
+          if (!error.value) {
+            // 如果是普通用户，对话结束后刷新额度信息
+            if (userStore.systemUser && userStore.systemUser.membership_type !== MembershipType.VIP) {
+               // Use fetchSystemUserInfo to get the latest quota status (api/auth/me now contains quota)
+               fetchSystemUserInfo().then(res => {
+                  const data = (res as any).data || res;
+                  if (data) {
+                    userStore.setSystemUser({
+                      ...userStore.systemUser,
+                      ...data
+                    });
+                    
+                    const total = data.free_quota_total ?? 5;
+                    const used = data.free_quota_used ?? 0;
+                    const remaining = Math.max(0, total - used);
+                    uni.showToast({
+                      title: `免费额度剩余 ${remaining} 次`,
+                      icon: 'none',
+                      position: 'top',
+                      duration: 2000
+                    });
+                  }
+               }).finally(() => {
+                  nextTick(() => {
+                    if (!isQuotaExhausted.value) {
+                      loadQuickQuestions();
+                      showQuickQuestions.value = true;
+                    } else {
+                      showQuickQuestions.value = false;
+                    }
+                    nextTick(() => {
+                      scrollToBottom(false);
+                    });
+                  });
+               });
+            } else {
+               nextTick(() => {
+                 if (!isQuotaExhausted.value) {
+                   loadQuickQuestions();
+                   showQuickQuestions.value = true;
+                 } else {
+                   showQuickQuestions.value = false;
+                 }
+                 nextTick(() => {
+                   scrollToBottom(false);
+                 });
+               });
+            }
+          }
         }
       });
 
@@ -1069,6 +1253,33 @@ const onInputUpdate = (value: string) => {
   &:active {
     transform: translateX(-50%) scale(0.95);
     background: rgba(255, 255, 255, 1);
+  }
+}
+
+.quota-banner-inline {
+  margin: 0 -32rpx 0 -32rpx;
+  background: #eef2ff;
+  padding: 20rpx 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  // border-top: 1px solid rgba(99, 102, 241, 0.2);
+  // border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+  
+  .quota-text {
+    font-size: 26rpx;
+    color: #6366f1;
+    font-weight: 500;
+  }
+  
+  .quota-btn {
+    background: #6366f1;
+    color: #ffffff;
+    font-size: 24rpx;
+    padding: 8rpx 24rpx;
+    border-radius: 24rpx;
+    flex-shrink: 0;
   }
 }
 
@@ -1752,7 +1963,13 @@ const onInputUpdate = (value: string) => {
   }
 }
 
-.sidebar-toggle-btn {
+.header-left-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-toggle-btn, .bazi-toggle-btn {
   width: 40px;
   height: 40px;
   display: flex;
@@ -1772,7 +1989,9 @@ const onInputUpdate = (value: string) => {
     transform: scale(0.9);
     background-color: rgba(255, 255, 255, 0.5);
   }
+}
 
+.sidebar-toggle-btn {
   .hamburger-icon {
     display: flex;
     flex-direction: column;
@@ -1792,6 +2011,13 @@ const onInputUpdate = (value: string) => {
         width: 10px;
       }
     }
+  }
+}
+
+.bazi-toggle-btn {
+  .bazi-icon {
+    width: 24px;
+    height: 24px;
   }
 }
 

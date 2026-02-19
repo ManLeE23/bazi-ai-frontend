@@ -1,5 +1,6 @@
 <template>
   <view class="root">
+    <slot name="top"></slot>
     <!-- Quick Actions -->
     <view class="quick-actions" v-if="showBazi">
       <view class="action-chip" @click="emit('showBazi')">

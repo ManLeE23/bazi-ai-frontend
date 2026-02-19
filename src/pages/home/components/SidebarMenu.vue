@@ -25,6 +25,14 @@
         </view> -->
         <text class="item-text" :class="{ 'active-text': currentRoute === 'explore' }">探索中心</text>
       </view>
+
+      <!-- <view 
+        class="discovery-item" 
+        :class="{ active: currentRoute === 'invite' }"
+        @click="navigateToInvite"
+      >
+        <text class="item-text" :class="{ 'active-text': currentRoute === 'invite' }">邀请好礼</text>
+      </view> -->
     </view>
 
     <!-- Profiles List Section -->
@@ -62,7 +70,11 @@
             <!-- Dropdown Menu -->
             <template v-if="activeMenuId === item.id">
               <view class="menu-mask-fixed" @click.stop="closeMenu"></view>
-              <view class="dropdown-menu" @click.stop>
+              <view 
+                class="dropdown-menu" 
+                :class="{ 'dropdown-up': index >= profiles.length - 2 && profiles.length > 4 }"
+                @click.stop
+              >
                 <view class="dropdown-item" @click.stop="handleToggleSelf(item)">
                   <text class="dropdown-text">{{ item.is_self ? '解除本人' : '设为本人' }}</text>
                 </view>
@@ -95,17 +107,23 @@
     /> -->
 
     <!-- Footer User Info -->
+    <!-- <view class="quota-container" v-if="systemUser && !systemUser.is_vip">
+      <view class="quota-header">
+        <text class="quota-label">免费额度</text>
+        <text class="quota-value" :class="{ 'text-warning': isQuotaExhausted }">{{ remainingQuota }}/{{ totalQuota }}</text>
+      </view>
+      <view class="progress-bar">
+        <view class="progress-inner" :style="{ width: quotaPercent + '%' }"></view>
+      </view>
+      <text v-if="isQuotaExhausted" class="quota-tip">额度已用完，升级会员或邀请好友获取更多</text>
+    </view> -->
+
     <view class="sidebar-footer" @click="openUserCenter">
       <view class="user-row">
-        <view class="avatar">
-          <text class="avatar-text">{{ systemUser?.nickname?.[0] || 'User' }}</text>
-        </view>
+        <UserAvatar :name="systemUser?.nickname || 'User'" size="small" :shadow="false" />
         <view class="user-details">
           <text class="user-name">{{ systemUser?.nickname || '未登录' }}</text>
-          <text class="user-status">{{ systemUser?.is_vip ? 'VIP用户' : '' }}</text>
-        </view>
-        <view class="settings-icon">
-          <u-icon name="setting-fill" color="#cbd5e1" size="40"></u-icon>
+          <text class="user-status">{{ systemUser?.membership_type === MembershipType.VIP ? '趋势会员' : '普通用户' }}</text>
         </view>
       </view>
     </view>
@@ -114,7 +132,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { userStore, type UserInfo } from '@/store/user';
+import { userStore, type UserInfo, MembershipType } from '@/store/user';
+import UserAvatar from '@/components/UserAvatar.vue';
 import { fetchProfilesList, fetchDeleteProfile, fetchSystemUserInfo, fetchUpdateSelfStatus } from '@/api/services';
 import TrialCard from './TrialCard.vue';
 
@@ -126,6 +145,16 @@ const emit = defineEmits(['open-user-center', 'switch-profile', 'open-fortune'])
 
   const systemUser = computed(() => userStore.systemUser);
   const currentUserId = computed(() => props.currentProfile?.id);
+
+  // Quota Computed Properties
+  const totalQuota = computed(() => systemUser.value?.free_quota_total ?? 5);
+  const usedQuota = computed(() => systemUser.value?.free_quota_used ?? 0);
+  const remainingQuota = computed(() => Math.max(0, totalQuota.value - usedQuota.value));
+  const isQuotaExhausted = computed(() => systemUser.value?.membership_type !== MembershipType.VIP && remainingQuota.value <= 0);
+  const quotaPercent = computed(() => {
+    if (totalQuota.value === 0) return 100;
+    return Math.min(100, (usedQuota.value / totalQuota.value) * 100);
+  });
 
   const profiles = ref<any[]>([]);
   const activeMenuId = ref<string | null>(null);
@@ -179,11 +208,7 @@ const navigateToAddProfile = () => {
 };
 
 const openUserCenter = () => {
-  uni.showToast({
-    title: '功能正在开发',
-    icon: 'none'
-  });
-  // emit('open-user-center');
+  emit('open-user-center');
 };
 
 const switchProfile = (profile: UserInfo) => {
@@ -307,6 +332,12 @@ const navigateToNewWorld = () => {
   });
 };
 
+const navigateToInvite = () => {
+  uni.navigateTo({
+    url: '/pages/invite/index'
+  });
+};
+
 const navigateToChat = () => {
   uni.reLaunch({
     url: '/pages/home/index'
@@ -378,6 +409,55 @@ const navigateToHistory = () => {
   
   &.gray-text {
     color: #94a3b8; /* Slate gray */
+  }
+}
+
+.quota-container {
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #e2e8f0;
+  
+  .quota-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12rpx;
+    
+    .quota-label {
+      font-size: 26rpx;
+      color: #64748b;
+    }
+    
+    .quota-value {
+      font-size: 26rpx;
+      font-weight: 600;
+      color: #334155;
+      
+      &.text-warning {
+        color: #ef4444;
+      }
+    }
+  }
+  
+  .progress-bar {
+    height: 8rpx;
+    background-color: #f1f5f9;
+    border-radius: 4rpx;
+    overflow: hidden;
+    margin-bottom: 8rpx;
+    
+    .progress-inner {
+      height: 100%;
+      background-color: #6366f1;
+      border-radius: 4rpx;
+      transition: width 0.3s ease;
+    }
+  }
+  
+  .quota-tip {
+    font-size: 22rpx;
+    color: #ef4444;
+    display: block;
+    margin-top: 8rpx;
   }
 }
 
@@ -648,22 +728,6 @@ const navigateToHistory = () => {
   gap: 20rpx;
 }
 
-.avatar {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background-color: #e0e7ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  .avatar-text {
-    font-size: 32rpx;
-    color: #4f46e5;
-    font-weight: 600;
-  }
-}
-
 .user-details {
   flex: 1;
   display: flex;
@@ -713,6 +777,13 @@ const navigateToHistory = () => {
   z-index: 101;
   margin-top: 8rpx;
   border: 1px solid #f1f5f9;
+}
+
+.dropdown-menu.dropdown-up {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 8rpx;
 }
 
 .dropdown-item {

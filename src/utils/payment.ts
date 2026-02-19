@@ -3,14 +3,14 @@ import { fetchWechatPayment } from '@/api/services';
 interface PaymentParams {
   amount_total: number; // Unit: cents
   description: string;
-  mode?: string;
+  mode?: number;
   openid?: string;
   code?: string;
 }
 
 export const handleWechatPayment = async (
   params: PaymentParams,
-): Promise<void> => {
+): Promise<string | undefined> => {
   try {
     // 1. Call backend API to get payment parameters
     const res: any = await fetchWechatPayment({
@@ -27,10 +27,22 @@ export const handleWechatPayment = async (
       throw new Error('获取支付参数失败');
     }
 
+    console.log('res', res);
+
     const paymentData = res.data.pay_params || res.data;
+    const outTradeNo = res.data.out_trade_no;
 
     // 2. Call uni.requestPayment
+    // Ensure timeStamp is string (critical for iOS/some platforms)
+    const timeStampStr = String(paymentData.timeStamp);
+
+    console.log('Requesting payment with:', {
+      ...paymentData,
+      timeStamp: timeStampStr,
+    });
+
     return new Promise((resolve, reject) => {
+      let settled = false;
       uni.requestPayment({
         provider: 'wxpay',
         // For App payment, orderInfo is required. For MP-WEIXIN, these fields are used.
@@ -41,25 +53,35 @@ export const handleWechatPayment = async (
           package: paymentData.package,
           partnerid: paymentData.partnerId || '',
           prepayid: paymentData.prepayId || '',
-          timestamp: paymentData.timeStamp,
+          timestamp: timeStampStr,
           sign: paymentData.paySign,
         }),
-        timeStamp: paymentData.timeStamp,
+        timeStamp: timeStampStr,
         nonceStr: paymentData.nonceStr,
         package: paymentData.package,
         signType: paymentData.signType || 'MD5',
         paySign: paymentData.paySign,
-        success: function (res: any) {
-          console.log('success:' + JSON.stringify(res));
-          resolve();
+        success: (res: any) => {
+          console.log('Payment success callback:', res);
+          settled = true;
+          resolve(outTradeNo);
         },
-        fail: function (err: any) {
-          console.log('fail:' + JSON.stringify(err));
+        fail: (err: any) => {
+          console.error('Payment fail callback:', err);
+          settled = true;
           // User cancelled or error
-          if (err.errMsg.indexOf('cancel') !== -1) {
+          if (err.errMsg && err.errMsg.indexOf('cancel') !== -1) {
             reject(new Error('支付已取消'));
           } else {
             reject(new Error('支付失败: ' + (err.errMsg || '未知错误')));
+          }
+        },
+        complete: (res: any) => {
+          console.log('Payment complete callback:', res);
+          uni.hideLoading();
+          if (!settled) {
+            // If neither success nor fail was called (should be rare), reject to release UI
+            reject(new Error('支付流程结束，但未收到结果'));
           }
         },
       } as any);

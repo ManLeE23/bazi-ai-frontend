@@ -17,9 +17,13 @@
           </slot>
         </view>
         
-        <!-- Close Button (Right) -->
-        <view class="close-btn-circle" @click="closePopup">
-          <u-icon name="close" color="#ffffff" size="24" style="font-weight: 700;"></u-icon>
+        <!-- Close Button (Right) or Custom Slot -->
+        <view class="header-right">
+          <slot name="header-right">
+            <view class="close-btn-circle" @click="closePopup">
+              <u-icon name="close" color="#ffffff" size="24" style="font-weight: 700;"></u-icon>
+            </view>
+          </slot>
         </view>
       </view>
 
