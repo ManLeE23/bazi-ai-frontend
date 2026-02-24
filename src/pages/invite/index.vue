@@ -159,7 +159,7 @@ const showInputModal = () => {
           loadData(); // Refresh data
         } catch (error: any) {
           console.error('Invite failed', error);
-          uni.showToast({ title: error.message || '兑换失败', icon: 'none' });
+          uni.showToast({ title: error.msg || '兑换失败', icon: 'none' });
         } finally {
           uni.hideLoading();
         }

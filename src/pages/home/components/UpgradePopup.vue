@@ -12,7 +12,7 @@
         style="margin-bottom: 32rpx;" 
       />
       <text class="main-title">人生趋势会员</text>
-      <text class="sub-title">订阅后解锁全部功能，随时取消</text>
+      <text class="sub-title">升级后解锁全部功能，随时取消</text>
     </view>
 
     <!-- Pricing Cards -->
@@ -25,7 +25,7 @@
         @click="selectPlan(plan.id)"
       >
         <view class="tag-badge" :class="{ 'premium-tag': plan.id === 'vip_yearly' }">
-          <text class="tag-text">{{ plan.id === 'vip_yearly' ? '省 25% 再送 20%' : '普通' }}</text>
+          <text class="tag-text">{{ plan.id === 'vip_yearly' ? '省 30%' : '热门' }}</text>
         </view>
         
         <view class="plan-content">
@@ -37,7 +37,7 @@
           <text class="plan-price">¥{{ (plan.price_cents / 100).toFixed(2) }}</text>
           
           <view class="plan-desc-wrapper">
-             <text class="plan-desc">{{ plan.membership_mode === MembershipMode.VIP_YEARLY ? '每年自动续订' : '每月自动续订' }}</text>
+             <text class="plan-desc">{{ plan.membership_mode === MembershipMode.VIP_YEARLY ? '年付' : '月付' }}</text>
           </view>
         </view>
       </view>
@@ -63,12 +63,12 @@
       :disabled="isSubscribing"
       @click="handleSubscribe"
     >
-      订阅{{ selectedPlan ? selectedPlan.name : '' }}
+      开通{{ selectedPlan ? selectedPlan.name : '' }}
     </button>
 
     <!-- Footer Links -->
     <view class="footer-links">
-      <text class="footer-tip">订阅即代表您已阅读并同意以下协议与政策</text>
+      <text class="footer-tip">开通即代表您已阅读并同意以下协议与政策</text>
       <view class="links-row">
         <text class="link-item">用户协议</text>
         <text class="link-item">会员协议</text>
@@ -169,9 +169,8 @@ const handleSubscribe = async () => {
   if (!selectedPlan.value) return;
   
   const plan = selectedPlan.value;
-  // const amount = plan.price_cents;
-  const amount = 1; // Testing: Hardcoded to 1 cent
-  const description = `${plan.name}订阅`;
+  const amount = plan.price_cents;
+  const description = `${plan.name}开通`;
 
   if (isSubscribing.value) return;
   isSubscribing.value = true;
@@ -228,7 +227,7 @@ const handleSubscribe = async () => {
     
   } catch (error: any) {
     uni.showToast({
-      title: error.message || '支付失败',
+      title: error.msg || '支付失败',
       icon: 'none'
     });
   } finally {

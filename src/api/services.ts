@@ -30,6 +30,7 @@ export const fetchOpenId = (params: { code: string }) => {
 export const fetchPhoneLogin = (params: {
   code: string;
   login_code?: string;
+  invite_code?: string;
 }) => {
   return httpPost({ url: '/api/auth/wx_phone_login', params, skipAuth: true });
 };
@@ -163,10 +164,21 @@ export const fetchTokenHistory = () => {
   });
 };
 
-export const fetchApplyInvite = (code: string) => {
+export const fetchApplyInvite = (
+  code: string,
+  config: { hideErrorToast?: boolean } = {},
+) => {
   return httpPost({
     url: '/api/invites/apply',
     params: { invite_code: code },
+    ...config,
+  });
+};
+
+export const fetchInviteStats = () => {
+  return httpGet({
+    url: '/api/invites/stats',
+    params: {},
   });
 };
 

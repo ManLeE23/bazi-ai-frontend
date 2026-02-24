@@ -13,7 +13,7 @@
 
       <!-- Input Field -->
       <textarea
-        :placeholder="isAISending ? '正在输出诊断...' : '快和 Trenlify 畅所欲言吧～'"
+      :placeholder="isAISending ? '正在输出诊断...' : '快和知势畅所欲言吧～'"
         class="input-field"
         :value="modelValue"
         @input="onInput"
@@ -47,6 +47,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue';
 import baguaSvg from '@/static/icon/bagua.svg?url';
 const upSvg = '/static/icon/up.svg';
 const refreshSvg = '/static/icon/refresh.svg';
@@ -68,7 +69,7 @@ interface Emits {
 
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: '向美灵追问细节...',
+  placeholder: '',
   modelValue: '',
   showBazi: true,
   isAISending: false
@@ -79,8 +80,9 @@ const emit = defineEmits<Emits>();
 // 输入处理
 const onInput = (e: any) => {
   if (props.isAISending) return;
-  const value = e.detail.value;
-  emit('update:modelValue', value);
+  // 直接透传原生 input 事件的值，避免双向绑定延迟导致的跳变
+  // v-model 在 uniapp textarea 上有时会有 bug，改为 :value + @input
+  emit('update:modelValue', e.detail.value);
 };
 
 // 点击按钮触发

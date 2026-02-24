@@ -83,16 +83,22 @@
     <!-- Invite Stats -->
     <view class="invite-stats-cards">
       <view class="stats-card">
-        <text class="stats-num">{{ systemUser?.invite_count || 0 }}</text>
+        <text class="stats-num">{{ inviteStats.invited_count }}</text>
         <text class="stats-label">已邀请人数</text>
       </view>
       <view class="stats-card">
-        <text class="stats-num">{{ systemUser?.invite_reward_tokens || 0 }}</text>
-        <text class="stats-label">获赠额度(次)</text>
+        <text class="stats-num">{{ inviteStats.gifted_quota_times }}</text>
+        <text class="stats-label">获赠对话(次)</text>
+        <view class="stats-tag normal">
+          <text class="stats-tag-text">普通用户</text>
+        </view>
       </view>
       <view class="stats-card">
-        <text class="stats-num">{{ systemUser?.invite_reward_days || 0 }}</text>
-        <text class="stats-label">获赠时长(天)</text>
+        <text class="stats-num">{{ inviteStats.gifted_membership_days }}</text>
+        <text class="stats-label">延长会员(天)</text>
+        <view class="stats-tag vip">
+          <text class="stats-tag-text">会员专属</text>
+        </view>
       </view>
     </view>
     
@@ -106,7 +112,10 @@ import { ref, computed, watch } from 'vue';
 import { userStore, MembershipType } from '@/store/user';
 import CommonPopup from '@/components/CommonPopup.vue';
 import UserAvatar from '@/components/UserAvatar.vue';
-import { fetchSystemUserInfo, fetchApplyInvite } from '@/api/services';
+import { fetchSystemUserInfo, fetchApplyInvite, fetchInviteStats } from '@/api/services';
+import userSvg from '@/static/icon/user.svg?url';
+import chatSvg from '@/static/icon/chat.svg?url';
+import clockSvg from '@/static/icon/default-clock.svg?url';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -116,6 +125,18 @@ const emit = defineEmits(['update:modelValue', 'open-upgrade']);
 
 const tokenBalance = ref(0);
 const isLoading = ref(false);
+
+interface InviteStats {
+  invited_count: number;
+  gifted_quota_times: number;
+  gifted_membership_days: number;
+}
+
+const inviteStats = ref<InviteStats>({
+  invited_count: 0,
+  gifted_quota_times: 0,
+  gifted_membership_days: 0
+});
 
 const show = computed({
   get: () => props.modelValue,
@@ -164,6 +185,14 @@ const loadData = async () => {
        userStore.setSystemUser({ ...userStore.systemUser, ...data });
        tokenBalance.value = data.token_balance;
     }
+
+    const statsRes = await fetchInviteStats();
+    if (statsRes) {
+        const statsData = (statsRes as any).data || statsRes;
+        if (statsData) {
+            inviteStats.value = statsData;
+        }
+    }
   } catch (error) {
     console.error('Failed to load user info', error);
   } finally {
@@ -206,14 +235,14 @@ const showInputModal = () => {
         
         uni.showLoading({ title: '兑换中...' });
         try {
-          await fetchApplyInvite(res.content);
+          await fetchApplyInvite(res.content, { hideErrorToast: true });
+          uni.hideLoading();
           uni.showToast({ title: '兑换成功', icon: 'success' });
           loadData();
         } catch (error: any) {
-          console.error('Invite failed', error);
-          uni.showToast({ title: error.message || '兑换失败', icon: 'none' });
-        } finally {
           uni.hideLoading();
+          console.error('Invite failed', error);
+          uni.showToast({ title: error.msg || '兑换失败', icon: 'none' });
         }
       }
     }
@@ -539,29 +568,93 @@ const showInputModal = () => {
 
 .stats-card {
   flex: 1;
-  background-color: #ffffff;
-  border: 1px solid #f1f5f9; /* slate-100 */
-  border-radius: 32rpx;
-  padding: 32rpx 16rpx;
+  background-color: transparent;
+  padding: 16rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  border: none;
+}
+
+.stats-icon-bg {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  // box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+  margin-bottom: 12rpx;
+  
+  &.slate {
+    background-color: #f8fafc; /* slate-50 */
+  }
+  
+  &.indigo {
+    background-color: #eef2ff; /* indigo-50 */
+  }
+  
+  &.fuchsia {
+    background-color: #fdf4ff; /* fuchsia-50 */
+  }
+}
+
+.stats-icon {
+  width: 32rpx;
+  height: 32rpx;
+  
+  &.slate {
+    filter: invert(71%) sepia(8%) saturate(762%) hue-rotate(183deg) brightness(88%) contrast(85%); /* #94a3b8 slate-400 */
+  }
+  
+  &.indigo {
+    filter: invert(44%) sepia(76%) saturate(5427%) hue-rotate(224deg) brightness(98%) contrast(93%); /* #6366f1 indigo-500 */
+  }
+  
+  &.fuchsia {
+    filter: invert(58%) sepia(63%) saturate(5486%) hue-rotate(295deg) brightness(92%) contrast(96%); /* #d946ef fuchsia-500 */
+  }
 }
 
 .stats-num {
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 900;
   color: #1e293b; /* slate-800 */
-  margin-bottom: 8rpx;
-  line-height: 1.2;
+  margin-bottom: 4rpx;
+  line-height: 1;
 }
 
 .stats-label {
-  font-size: 24rpx;
-  font-weight: 500;
+  font-size: 20rpx;
+  font-weight: 700;
   color: #94a3b8; /* slate-400 */
+  margin-top: 4rpx;
+  text-transform: uppercase;
+}
+
+.stats-tag {
+  margin-top: 8rpx;
+  padding: 4rpx 8rpx;
+  border-radius: 6rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &.normal {
+    background-color: #eef2ff; /* indigo-50 */
+    .stats-tag-text { color: #818cf8; } /* indigo-400 */
+  }
+  
+  &.vip {
+    background-color: #faf5ff; /* fuchsia-50 */
+    .stats-tag-text { color: #c084fc; } /* fuchsia-500 */
+  }
+}
+
+.stats-tag-text {
+  font-size: 18rpx;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .bottom-spacer {

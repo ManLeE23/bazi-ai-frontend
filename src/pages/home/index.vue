@@ -14,14 +14,6 @@
               <view class="bar short"></view>
             </view>
           </button>
-          
-          <button 
-            v-if="hasProfile"
-            @click="handleShowBazi" 
-            class="bazi-toggle-btn"
-          >
-            <image :src="baguaSvg" class="bazi-icon" mode="aspectFit" />
-          </button>
         </view>
       </template>
     </HeaderBar>
@@ -46,7 +38,7 @@
     <view class="scroll-box" :style="{ paddingTop: (headerHeight + 16) + 'px' }">
       
       <!-- Loading State for Profile Switch -->
-      <view v-if="isSwitchingProfile" class="profile-switching-state">
+      <view v-if="isSwitchingProfile || isInitialLoading" class="profile-switching-state">
         <view class="custom-loader">
           <view class="dot"></view>
           <view class="dot"></view>
@@ -100,7 +92,9 @@
             <view v-else :class="['bubble', message.role === 'user' ? 'user-bubble' : 'ai-bubble']">
               <view class="bubble-content">
                 <text v-if="message.role === 'user' && message.content" :user-select="true" :selectable="true" class="message-text user-text">{{ message.content }}</text>
-                <MarkDown v-else-if="message.role === 'assistant' && message.content" :content="message.content" />
+                <view v-else-if="message.role === 'assistant' && message.content" style="user-select: text; -webkit-user-select: text;">
+                   <MarkDown :content="message.content" />
+                </view>
               </view>
             </view>
           </view>
@@ -171,6 +165,45 @@
     </view>
 
     <!-- Input Area -->
+    <!-- Bazi Drawer (Compact) -->
+    <view 
+      v-if="hasProfile && currentBaziData"
+      class="bazi-drawer-compact"
+      :class="{ 'is-open': isBaziDrawerOpen }"
+    >
+      <!-- Handle -->
+      <view class="drawer-handle-compact" @click="isBaziDrawerOpen = !isBaziDrawerOpen">
+        <image :src="baguaSvg" class="handle-icon-compact" mode="aspectFit" />
+      </view>
+      
+      <!-- Content -->
+      <view class="drawer-content-compact">
+         <view class="pillar-group">
+            <view class="pillar-item">
+                <text class="pillar-label">年柱</text>
+                <view class="pillar-value">
+                   <text :class="getWuXingClass(currentBaziData.pillars?.year?.gan)">{{ currentBaziData.pillars?.year?.gan }}</text>
+                   <text :class="getWuXingClass(currentBaziData.pillars?.year?.zhi)">{{ currentBaziData.pillars?.year?.zhi }}</text>
+                </view>
+             </view>
+             <view class="pillar-item">
+                <text class="pillar-label">日柱</text>
+                <view class="pillar-value">
+                   <text :class="getWuXingClass(currentBaziData.pillars?.day?.gan)">{{ currentBaziData.pillars?.day?.gan }}</text>
+                   <text :class="getWuXingClass(currentBaziData.pillars?.day?.zhi)">{{ currentBaziData.pillars?.day?.zhi }}</text>
+                </view>
+             </view>
+         </view>
+         
+         <view class="divider-vertical"></view>
+         
+         <button class="detail-btn-compact" @click="handleViewBaziDetail">
+            查看详情
+         </button>
+      </view>
+    </view>
+
+    <!-- Chat Input -->
     <InputWithButton 
       :model-value="inputText" 
       :show-bazi="false"
@@ -207,21 +240,40 @@ import BaziCard from './components/BaziCard.vue';
 import downSvg from '@/static/icon/down.svg?url';
 import baguaSvg from '@/static/icon/bagua.svg?url';
 import { doLogin } from '@/utils/auth';
+import { debounce } from 'lodash-es';
 
+const currentInviteCode = ref('');
 const isUserAtBottom = ref(true); // Track if user is at bottom
 
 // Auth Check
+const getWuXingClass = (char: string | undefined) => {
+    if (!char) return '';
+    const map: Record<string, string> = {
+        '甲': 'mu', '乙': 'mu', '寅': 'mu', '卯': 'mu',
+        '丙': 'huo', '丁': 'huo', '巳': 'huo', '午': 'huo',
+        '戊': 'tu', '己': 'tu', '辰': 'tu', '戌': 'tu', '丑': 'tu', '未': 'tu',
+        '庚': 'jin', '辛': 'jin', '申': 'jin', '酉': 'jin',
+        '壬': 'shui', '癸': 'shui', '亥': 'shui', '子': 'shui'
+    };
+    return map[char] || '';
+};
+
 onMounted(() => {
   const token = uni.getStorageSync('token');
   if (!token) {
+    let url = '/pages/login/index';
+    if (currentInviteCode.value) {
+      url += `?inviteCode=${currentInviteCode.value}`;
+    }
     uni.reLaunch({
-      url: '/pages/login/index'
+      url
     });
   } else {
     // Check for pending invite code
     const pendingCode = uni.getStorageSync('pending_invite_code');
     if (pendingCode) {
-      fetchApplyInvite(pendingCode).then(() => {
+      // Auto-redeem silently
+      fetchApplyInvite(pendingCode, { hideErrorToast: true }).then(() => {
         uni.showToast({ title: '邀请奖励已到账', icon: 'none' });
         uni.removeStorageSync('pending_invite_code');
         // Refresh user info
@@ -240,12 +292,12 @@ onShareAppMessage(() => {
   const inviteCode = userStore.systemUser?.invite_code || userStore.systemUser?.id || '';
   return {
     title: '人生趋势：看清趋势，走对下一步',
-    path: `/pages/home/index?inviteCode=${inviteCode}`,
-    imageUrl: '/static/share.jpg'
+    path: `/pages/slogan/index?inviteCode=${inviteCode}`,
   };
 });
 
 const isSwitchingProfile = ref(false);
+const isInitialLoading = ref(true);
 const showSidebar = ref(false);
 const showUserPopup = ref(false);
 const showUpgradePopup = ref(false);
@@ -271,6 +323,8 @@ const isFromIndexPage = ref(false);
 
 // 思维链相关状态
 const isThinking = ref(false);
+const currentBaziData = ref<any>(null);
+const isBaziDrawerOpen = ref(false);
 
 const userInfo = computed({
   get: () => userStore.userInfo,
@@ -358,7 +412,7 @@ const simulateWelcomeMessages = () => {
     // Message 2
     chatMessages.value.push({
       role: 'assistant',
-      content: '我是 Trenlify，现在可以聊聊你当下最关心的人生方向啦',
+      content: '我是知势，现在可以聊聊你当下最关心的人生方向啦',
       timestamp: new Date(),
       id: `welcome-2-${Date.now()}`
     });
@@ -409,7 +463,12 @@ const initBaziData = (info: any) => {
     return;
   }
   baziFetchPromise.value = fetchBaziCalculate(info.id)
-    .then(res => ({ success: true, res }))
+    .then(res => {
+      if (res && res.data) {
+        currentBaziData.value = res.data;
+      }
+      return { success: true, res };
+    })
     .catch(error => {
       console.error('Bazi pre-fetch failed:', error);
       return { success: false, error };
@@ -418,7 +477,7 @@ const initBaziData = (info: any) => {
 
 onLoad(async (options: any) => {
   if (options.inviteCode) {
-    uni.setStorageSync('pending_invite_code', options.inviteCode);
+    currentInviteCode.value = options.inviteCode;
   }
 
   // Only check profiles if no specific info is provided (normal entry)
@@ -477,7 +536,7 @@ onLoad(async (options: any) => {
     isFromIndexPage.value = options.from === 'index' || !options.from;
 
     if (options.isNewProfile !== 'true') {
-      getChatHistory();
+      await getChatHistory();
     }
   }
 
@@ -502,21 +561,24 @@ onLoad(async (options: any) => {
     isLoadingUserInfo.value = false;
   } else if (sessionId.value && (options.sessionId || !userInfo.value)) {
     // Historical session: fetch user info (only if deep linked or no user loaded)
-    fetchSessionUserInfo(sessionId.value).then(res => {
+    try {
+      const res = await fetchSessionUserInfo(sessionId.value);
       if (res.data) {
         userInfo.value = res.data as UserInfo;
         initBaziData(res.data);
       }
-    }).catch(err => {
+    } catch (err) {
       console.error('Fetch session user info error:', err);
-    }).finally(() => {
+    } finally {
       isLoadingUserInfo.value = false;
-    });
+    }
   } else {
     // New session: do not create session immediately if user profile is missing
     // Instead, let showProfileGuide handle the UI
     isLoadingUserInfo.value = false;
   }
+  
+  isInitialLoading.value = false;
 });
 
 onPageScroll(() => {
@@ -687,6 +749,22 @@ onMounted(() => {
 
   headerHeight.value = statusBarHeight + navBarHeight;
 });
+
+const handleViewBaziDetail = () => {
+  if (showProfileGuide.value) {
+    uni.showToast({
+      title: '请先录入档案',
+      icon: 'none'
+    });
+    return;
+  }
+  
+  if (userInfo.value && userInfo.value.id) {
+    uni.navigateTo({
+        url: `/pages/bazi/detail?id=${userInfo.value.id}`
+    });
+  }
+};
 
 const handleOpenUserCenter = () => {
   showSidebar.value = false;
@@ -1056,9 +1134,10 @@ const sendQuestion = async () => {
   }
 };
 
-const onInputUpdate = (value: string) => {
+const onInputUpdate = debounce((value: string) => {
+  console.log('value', value);
   inputText.value = value;
-};
+}, 300);
 
 </script>
 
@@ -1969,7 +2048,7 @@ const onInputUpdate = (value: string) => {
   gap: 12px;
 }
 
-.sidebar-toggle-btn, .bazi-toggle-btn {
+.sidebar-toggle-btn {
   width: 40px;
   height: 40px;
   display: flex;
@@ -2011,13 +2090,6 @@ const onInputUpdate = (value: string) => {
         width: 10px;
       }
     }
-  }
-}
-
-.bazi-toggle-btn {
-  .bazi-icon {
-    width: 24px;
-    height: 24px;
   }
 }
 
@@ -2259,5 +2331,116 @@ const onInputUpdate = (value: string) => {
   padding: 32rpx;
   box-sizing: border-box;
   max-height: 60vh;
+}
+
+/* Bazi Drawer (Compact) Styles */
+.bazi-drawer-compact {
+  position: fixed;
+  top: 18vh;
+  right: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  background-color: #1e293b; /* Slate 800 */
+  border-radius: 44rpx 0 0 44rpx;
+  padding: 12rpx;
+  box-shadow: -4rpx 8rpx 24rpx rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transform: translateX(calc(100% - 88rpx)); /* Only handle visible */
+  width: auto;
+  max-width: 90vw;
+  
+  &.is-open {
+    transform: translateX(0);
+  }
+}
+
+.drawer-handle-compact {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.handle-icon-compact {
+  width: 40rpx;
+  height: 40rpx;
+  opacity: 0.9;
+  filter: brightness(0) invert(1);
+}
+
+.drawer-content-compact {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+  padding-right: 12rpx;
+  white-space: nowrap;
+  opacity: 1; /* Always rendered but off-screen */
+}
+
+.pillar-group {
+  display: flex;
+  gap: 32rpx;
+}
+
+.pillar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.pillar-label {
+  font-size: 20rpx;
+  color: #94a3b8; /* Slate 400 */
+  font-weight: 500;
+}
+
+.pillar-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  line-height: 1.2;
+  
+  &.year { color: #fbbf24; } /* Amber 400 */
+  &.day { color: #f87171; } /* Red 400 */
+}
+
+/* Wu Xing Colors */
+.mu { color: #10B981; }
+.huo { color: #EF4444; }
+.tu { color: #B45309; }
+.jin { color: #D99014; }
+.shui { color: #3B82F6; }
+
+.divider-vertical {
+  width: 1px;
+  height: 48rpx;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.detail-btn-compact {
+  font-size: 26rpx;
+  color: #1e293b;
+  background-color: #ffffff;
+  padding: 0 32rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: 32rpx;
+  margin: 0;
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
 }
 </style>

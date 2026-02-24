@@ -2,7 +2,7 @@
   <view class="login-container">
     <!-- Header Visual -->
     <view class="header-visual">
-      <view class="header-bg-text">TRENDLIFY</view>
+      <view class="header-bg-text">知势</view>
     </view>
 
     <view class="content-wrapper">
@@ -55,13 +55,21 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { fetchPhoneLogin, fetchLegalDocs, fetchApplyInvite } from '@/api/services';
+import { onLoad } from '@dcloudio/uni-app';
+import { fetchPhoneLogin, fetchLegalDocs } from '@/api/services';
 import { userStore } from '@/store/user';
 
 const isLoading = ref(false);
+const inviteCode = ref('');
 const showLegalPopup = ref(false);
 const legalTitle = ref('');
 const legalContent = ref('');
+
+onLoad((options: any) => {
+  if (options.inviteCode) {
+    inviteCode.value = options.inviteCode;
+  }
+});
 
 const handleOpenLegal = async (type: 'user_agreement' | 'privacy_policy') => {
   uni.showLoading({ title: '加载中...' });
@@ -94,7 +102,8 @@ const handleGetPhoneNumber = async (e: any) => {
 
       const res: any = await fetchPhoneLogin({ 
         code: e.detail.code,
-        login_code: loginCode
+        login_code: loginCode,
+        invite_code: inviteCode.value || undefined
       });
       console.log('Phone login response:', res);
       
@@ -106,18 +115,6 @@ const handleGetPhoneNumber = async (e: any) => {
         // Save user info if available
         if (data.user) {
            userStore.setSystemUser(data.user);
-        }
-
-        // Apply pending invite code if exists
-        const pendingCode = uni.getStorageSync('pending_invite_code');
-        if (pendingCode) {
-          try {
-            await fetchApplyInvite(pendingCode);
-            uni.removeStorageSync('pending_invite_code');
-          } catch (e) {
-            console.error('Failed to apply invite code after login', e);
-            // Don't block login success if invite fails
-          }
         }
 
         uni.showToast({ title: '登录成功', icon: 'none' });

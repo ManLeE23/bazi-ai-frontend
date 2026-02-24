@@ -94,7 +94,7 @@
 
           <!-- Footer -->
           <view class="card-footer">
-            <text class="footer-brand">Trenlify Reader</text>
+            <text class="footer-brand">知势 Reader</text>
             <view class="footer-share">
               <text>Share</text>
               <text class="share-arrow">→</text>

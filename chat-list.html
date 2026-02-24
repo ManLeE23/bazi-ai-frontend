@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Trenlify - 深度趋势决策</title>
+    <title>知势 - 深度趋势决策</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
@@ -23,7 +23,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body x-data="trenlify()" class="breath-surface">
+<body x-data="zhishi()" class="breath-surface">
 
     <template x-if="step !== 'ready'">
         <div class="h-screen flex flex-col px-10 pt-32 relative">
@@ -127,7 +127,7 @@
     </template>
 
     <script>
-        function trenlify() {
+        function zhishi() {
             return {
                 step: 1, // 引导步骤
                 showMenu: false,

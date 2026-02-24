@@ -168,12 +168,12 @@ const handleApplyInvite = async () => {
   }
   
   try {
-    await fetchApplyInvite(inputInviteCode.value);
+    await fetchApplyInvite(inputInviteCode.value, { hideErrorToast: true });
     uni.showToast({ title: '兑换成功', icon: 'success' });
     inputInviteCode.value = '';
     loadData(); // Reload data to show updated balance
-  } catch (error) {
-    uni.showToast({ title: '兑换失败', icon: 'none' });
+  } catch (error: any) {
+    uni.showToast({ title: error.msg || '兑换失败', icon: 'none' });
     console.error(error);
   }
 };

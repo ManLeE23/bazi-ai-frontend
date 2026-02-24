@@ -36,9 +36,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
 import { doLogin } from '@/utils/auth';
 
 const isExiting = ref(false);
+const inviteCode = ref('');
+
+onLoad((options: any) => {
+  if (options.inviteCode) {
+    inviteCode.value = options.inviteCode;
+  }
+});
 
 onMounted(async () => {
   const minDisplayTime = new Promise(resolve => setTimeout(resolve, 1500));
@@ -57,8 +65,12 @@ onMounted(async () => {
           url: '/pages/home/index'
         });
       } else {
+        let url = '/pages/login/index';
+        if (inviteCode.value) {
+          url += `?inviteCode=${inviteCode.value}`;
+        }
         uni.reLaunch({
-          url: '/pages/login/index'
+          url
         });
       }
     }, 1000); // 1s matches the CSS transition duration
@@ -71,8 +83,12 @@ onMounted(async () => {
         url: '/pages/home/index'
       });
     } else {
+      let url = '/pages/login/index';
+      if (inviteCode.value) {
+        url += `?inviteCode=${inviteCode.value}`;
+      }
       uni.reLaunch({
-        url: '/pages/login/index'
+        url
       });
     }
   }
