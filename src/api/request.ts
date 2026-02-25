@@ -52,7 +52,7 @@ const handleResponse = (res: any, hideErrorToast: boolean = false) => {
     // 未登录或登录过期
     // uni.showToast({ title: '登录过期，请重新登录', icon: 'none' });
     uni.removeStorageSync('token');
-    uni.reLaunch({ url: '/pages/login/index' });
+    // uni.reLaunch({ url: '/pages/login/index' });
     return Promise.reject(res);
   }
 
@@ -116,14 +116,14 @@ export const httpGet = async ({
   skipAuth,
   hideErrorToast,
 }: RequestParams) => {
-  if (!skipAuth) {
-    try {
-      await ensureLoggedIn();
-    } catch (e) {
-      console.error('Login guard failed:', e);
-      return Promise.reject(e);
-    }
-  }
+  // if (!skipAuth) {
+  //   try {
+  //     await ensureLoggedIn();
+  //   } catch (e) {
+  //     console.error('Login guard failed:', e);
+  //     return Promise.reject(e);
+  //   }
+  // }
   return request(
     {
       method: 'GET',
@@ -142,14 +142,14 @@ export const httpPost = async ({
   skipAuth,
   hideErrorToast,
 }: RequestParams) => {
-  if (!skipAuth) {
-    try {
-      await ensureLoggedIn();
-    } catch (e) {
-      console.error('Login guard failed:', e);
-      return Promise.reject(e);
-    }
-  }
+  // if (!skipAuth) {
+  //   try {
+  //     await ensureLoggedIn();
+  //   } catch (e) {
+  //     console.error('Login guard failed:', e);
+  //     return Promise.reject(e);
+  //   }
+  // }
   return request(
     {
       method: 'POST',
@@ -168,14 +168,14 @@ export const httpPut = async ({
   skipAuth,
   hideErrorToast,
 }: RequestParams) => {
-  if (!skipAuth) {
-    try {
-      await ensureLoggedIn();
-    } catch (e) {
-      console.error('Login guard failed:', e);
-      return Promise.reject(e);
-    }
-  }
+  // if (!skipAuth) {
+  //   try {
+  //     await ensureLoggedIn();
+  //   } catch (e) {
+  //     console.error('Login guard failed:', e);
+  //     return Promise.reject(e);
+  //   }
+  // }
   return request(
     {
       method: 'PUT',
@@ -194,14 +194,14 @@ export const httpDelete = async ({
   skipAuth,
   hideErrorToast,
 }: RequestParams) => {
-  if (!skipAuth) {
-    try {
-      await ensureLoggedIn();
-    } catch (e) {
-      console.error('Login guard failed:', e);
-      return Promise.reject(e);
-    }
-  }
+  // if (!skipAuth) {
+  //   try {
+  //     await ensureLoggedIn();
+  //   } catch (e) {
+  //     console.error('Login guard failed:', e);
+  //     return Promise.reject(e);
+  //   }
+  // }
   return request(
     {
       method: 'DELETE',

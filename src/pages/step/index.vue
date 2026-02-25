@@ -3,17 +3,17 @@
     <!-- <view class="content-wrapper"> -->
       <!-- Header -->
       <view class="header">
-        <!-- Left: Back/Close Button -->
+        <!-- Left: Close Button -->
         <view class="header-left">
-          <view class="btn-circle" @click="handleLeftClick">
-            <text :class="formStep > 1 ? 'icon-back' : 'icon-close'">{{ formStep > 1 ? '←' : '×' }}</text>
+          <view class="btn-circle" @click="handleClose">
+            <text class="icon-close">×</text>
           </view>
         </view>
 
         <!-- Center: Progress Dots -->
         <view class="progress-dots">
           <view 
-            v-for="i in 4" 
+            v-for="i in 5" 
             :key="i" 
             class="dot"
             :class="{ 'active': formStep === i }"
@@ -114,11 +114,53 @@
               </view>
             </view>
           </view>
+
+          <!-- Step 5: Confirmation -->
+          <view v-else-if="formStep === 5" class="step-inner" key="5">
+            <text class="title">确认信息</text>
+            <text class="subtitle">请仔细核对以下信息，确保分析结果的准确性</text>
+            
+            <view class="form-section">
+              <view class="info-card">
+                <view class="info-row" @click="formStep = 1">
+                  <text class="info-label">姓名</text>
+                  <view class="info-value-group">
+                    <text class="info-value">{{ form.name }}</text>
+                  </view>
+                </view>
+                <view class="info-row" @click="formStep = 2">
+                  <text class="info-label">性别</text>
+                  <view class="info-value-group">
+                    <text class="info-value">{{ form.gender }}</text>
+                  </view>
+                </view>
+                <view class="info-row" @click="formStep = 3">
+                  <text class="info-label">出生日期</text>
+                  <view class="info-value-group">
+                    <text class="info-value">{{ formattedBirthday }}</text>
+                  </view>
+                </view>
+                <view class="info-row" @click="formStep = 4">
+                  <text class="info-label">出生地点</text>
+                  <view class="info-value-group">
+                    <text class="info-value">{{ form.birthAddress }}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
         </transition>
       </view>
 
       <!-- Footer -->
       <view class="footer">
+        <view 
+          v-if="formStep > 1" 
+          class="btn-back"
+          @click="formStep--"
+        >
+          <text class="icon-back">←</text>
+        </view>
         <button 
           class="btn-primary" 
           :disabled="!isValid || isLoading" 
@@ -126,7 +168,7 @@
           :loading="isLoading"
           @click="handleNext"
         >
-          {{ isLoading ? '分析中...' : (formStep < 4 ? '继续' : '开始趋势诊断') }}
+          {{ isLoading ? '分析中...' : (formStep < 5 ? '继续' : '开始趋势诊断') }}
         </button>
       </view>
     <!-- </view> -->
@@ -167,11 +209,28 @@ const isValid = computed(() => {
   if (formStep.value === 2) return form.gender !== '';
   if (formStep.value === 3) return !!form.birthday && !!form.birthtime;
   if (formStep.value === 4) return form.birthAddress !== '';
+  if (formStep.value === 5) return true;
   return false;
 });
 
+const formattedBirthday = computed(() => {
+  const dateStr = (form.mode === 'lunar' && form.lunarBirthday) 
+    ? form.lunarBirthday 
+    : form.birthday;
+  const timeStr = form.birthtime || '00:00';
+  const typeStr = form.mode === 'lunar' ? ' (阴历)' : ' (阳历)';
+  return `${dateStr} ${timeStr}${typeStr}`;
+});
+
 const handleClose = () => {
-  uni.navigateBack();
+  const pages = getCurrentPages();
+  if (pages.length > 1) {
+    uni.navigateBack();
+  } else {
+    uni.reLaunch({
+      url: '/pages/home/index'
+    });
+  }
 };
 
 const handleLeftClick = () => {
@@ -185,7 +244,7 @@ const handleLeftClick = () => {
 const handleNext = () => {
   if (!isValid.value || isLoading.value) return;
   
-  if (formStep.value < 4) {
+  if (formStep.value < 5) {
     formStep.value++;
   } else {
     startAnalysis();
@@ -537,10 +596,36 @@ const startAnalysis = async () => {
   z-index: 1;
   width: 100%;
   font-size: 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-back {
+  width: 72px;
+  height: 72px;
+  border-radius: 26px;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+  
+  &:active {
+    transform: scale(0.95);
+    background-color: #f8fafc;
+  }
+}
+
+.icon-back {
+  font-size: 24px;
+  color: #1e293b;
 }
 
 .btn-primary {
-  width: 100%;
+  flex: 1;
+  width: auto;
   height: 72px; /* h-18 */
   background-color: #4f46e5; /* bg-indigo-600 */
   color: #ffffff;
@@ -568,5 +653,74 @@ const startAnalysis = async () => {
     background-color: #e0e7ff; /* lighter indigo */
     color: #a5b4fc;
   }
+}
+
+/* Info Card & Warning */
+.info-card {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 24px;
+  padding: 8px 24px;
+  border: 1px solid #ffffff;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.info-label {
+  font-size: 16px;
+  color: #64748b; /* text-slate-500 */
+}
+
+.info-value-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1e293b; /* text-slate-800 */
+}
+
+.warning-box {
+  background: rgba(254, 242, 242, 0.6); /* bg-red-50/60 */
+  border: 1px solid rgba(254, 202, 202, 0.5); /* border-red-200 */
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.warning-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #ef4444; /* bg-red-500 */
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.warning-text {
+  font-size: 14px;
+  color: #b91c1c; /* text-red-700 */
+  line-height: 1.5;
+  flex: 1;
 }
 </style>

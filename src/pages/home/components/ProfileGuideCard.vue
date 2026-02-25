@@ -19,12 +19,11 @@
         </view>
         
         <view class="desc-wrapper">
-          <text class="desc">帮你看清趋势，走对下一步</text>
+          <text class="desc">先补全你的基本信息，我才能更准确地看趋势。</text>
         </view>
 
-        <button class="action-btn" hover-class="btn-hover" @click="goToCreateProfile">
-          <text>立即前往</text>
-          <!-- <u-icon name="arrow-right" size="28" color="#ffffff" custom-style="margin-left: 4px"></u-icon> -->
+        <button class="action-btn" hover-class="btn-hover" @click="handleClick">
+          <text>{{ buttonText }}</text>
         </button>
       </view>
     </view>
@@ -32,7 +31,32 @@
 </template>
 
 <script setup lang="ts">
-const goToCreateProfile = () => {
+import { computed } from 'vue';
+
+const props = defineProps<{
+  hasToken?: boolean;
+  inviteCode?: string;
+}>();
+
+const buttonText = computed(() => {
+  if (props.hasToken) {
+    return '填写档案，开始对话';
+  }
+  return '登录并填写档案';
+});
+
+const handleClick = () => {
+  if (!props.hasToken) {
+    let url = '/pages/login/index?redirect=step&from=home';
+    if (props.inviteCode) {
+      url += `&inviteCode=${props.inviteCode}`;
+    }
+    uni.navigateTo({
+      url
+    });
+    return;
+  }
+
   uni.navigateTo({
     url: '/pages/step/index'
   });

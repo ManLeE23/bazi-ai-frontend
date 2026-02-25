@@ -49,20 +49,19 @@
 
       <template v-else>
 
-        <!-- Profile Guide Card -->
         <view v-if="showProfileGuide" class="profile-guide-wrapper">
-        <view class="slogan-section">
-          <view class="slogan-bar"></view>
-          <view class="slogan-title">
-            <text>看清</text><text class="text-gray">趋势，</text>
+          <view class="slogan-section">
+            <view class="slogan-bar"></view>
+            <view class="slogan-title">
+              <text>看清</text><text class="text-gray">趋势，</text>
+            </view>
+            <view class="slogan-title">
+              <text>走对</text><text class="text-indigo">下一步。</text>
+            </view>
+            <text class="slogan-sub">DIGITAL WISDOM & DESTINY ALGORITHMS</text>
           </view>
-          <view class="slogan-title">
-            <text>走对</text><text class="text-indigo">下一步。</text>
-          </view>
-          <text class="slogan-sub">DIGITAL WISDOM & DESTINY ALGORITHMS</text>
+          <ProfileGuideCard :has-token="hasToken" :invite-code="currentInviteCode" />
         </view>
-        <ProfileGuideCard />
-      </view>
 
       <!-- Chat Message List -->
       <view class="chat-message-list">
@@ -243,9 +242,9 @@ import { doLogin } from '@/utils/auth';
 import { debounce } from 'lodash-es';
 
 const currentInviteCode = ref('');
-const isUserAtBottom = ref(true); // Track if user is at bottom
+const isUserAtBottom = ref(true);
+const hasToken = ref(false);
 
-// Auth Check
 const getWuXingClass = (char: string | undefined) => {
     if (!char) return '';
     const map: Record<string, string> = {
@@ -257,36 +256,6 @@ const getWuXingClass = (char: string | undefined) => {
     };
     return map[char] || '';
 };
-
-onMounted(() => {
-  const token = uni.getStorageSync('token');
-  if (!token) {
-    let url = '/pages/login/index';
-    if (currentInviteCode.value) {
-      url += `?inviteCode=${currentInviteCode.value}`;
-    }
-    uni.reLaunch({
-      url
-    });
-  } else {
-    // Check for pending invite code
-    const pendingCode = uni.getStorageSync('pending_invite_code');
-    if (pendingCode) {
-      // Auto-redeem silently
-      fetchApplyInvite(pendingCode, { hideErrorToast: true }).then(() => {
-        uni.showToast({ title: '邀请奖励已到账', icon: 'none' });
-        uni.removeStorageSync('pending_invite_code');
-        // Refresh user info
-        fetchSystemUserInfo().then(res => {
-          if(res.data) userStore.setSystemUser(res.data as SystemUser);
-        });
-      }).catch(err => {
-        console.error('Apply invite failed:', err);
-        uni.removeStorageSync('pending_invite_code');
-      });
-    }
-  }
-});
 
 onShareAppMessage(() => {
   const inviteCode = userStore.systemUser?.invite_code || userStore.systemUser?.id || '';
@@ -480,16 +449,23 @@ onLoad(async (options: any) => {
     currentInviteCode.value = options.inviteCode;
   }
 
-  // Only check profiles if no specific info is provided (normal entry)
+  const token = uni.getStorageSync('token');
+  hasToken.value = !!token;
+
+  if (!hasToken.value) {
+    isProfileListEmpty.value = true;
+    isLoadingUserInfo.value = false;
+    isInitialLoading.value = false;
+    return;
+  }
+
   if (!options.userInfo && !options.sessionId) {
     try {
       const profilesRes: any = await fetchProfilesList();
       if (profilesRes.data && Array.isArray(profilesRes.data.items) && profilesRes.data.items.length === 0) {
-        // No profiles, show guide
         isProfileListEmpty.value = true;
         userInfo.value = null;
       } else {
-        // Has profiles, try to get history for current or first profile
         const profiles = profilesRes.data?.items || (Array.isArray(profilesRes.data) ? profilesRes.data : []);
         if (profiles.length > 0) {
           let targetProfile = profiles[0];
@@ -508,24 +484,20 @@ onLoad(async (options: any) => {
 
           userInfo.value = targetProfile;
           
-          // Pre-fetch Bazi data
           initBaziData(targetProfile);
 
           if (targetProfile.session_id) {
             sessionId.value = targetProfile.session_id;
             await getChatHistory();
           } else {
-            // Profile exists but no session, simulate welcome
             simulateWelcomeMessages();
           }
         } else {
-          // Fallback
           simulateWelcomeMessages();
         }
       }
     } catch (e) {
       console.error('Failed to check profiles:', e);
-      // Fallback to welcome messages on error
       simulateWelcomeMessages();
     }
   }
@@ -909,6 +881,11 @@ const handleShowBazi = async () => {
 };
 
 const sendQuestion = async () => {
+  if (!hasToken.value) {
+    goToLogin();
+    return;
+  }
+
   // Check quota
   if (isQuotaExhausted.value) {
      uni.showModal({
@@ -1138,6 +1115,16 @@ const onInputUpdate = debounce((value: string) => {
   console.log('value', value);
   inputText.value = value;
 }, 300);
+
+const goToLogin = () => {
+  let url = '/pages/login/index';
+  if (currentInviteCode.value) {
+    url += `?inviteCode=${currentInviteCode.value}`;
+  }
+  uni.navigateTo({
+    url
+  });
+};
 
 </script>
 

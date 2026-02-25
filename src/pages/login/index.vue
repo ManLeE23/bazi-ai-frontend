@@ -61,6 +61,7 @@ import { userStore } from '@/store/user';
 
 const isLoading = ref(false);
 const inviteCode = ref('');
+const redirect = ref('');
 const showLegalPopup = ref(false);
 const legalTitle = ref('');
 const legalContent = ref('');
@@ -68,6 +69,9 @@ const legalContent = ref('');
 onLoad((options: any) => {
   if (options.inviteCode) {
     inviteCode.value = options.inviteCode;
+  }
+  if (options.redirect) {
+    redirect.value = options.redirect;
   }
 });
 
@@ -119,9 +123,12 @@ const handleGetPhoneNumber = async (e: any) => {
 
         uni.showToast({ title: '登录成功', icon: 'none' });
         
-        // Navigate to home
         setTimeout(() => {
-          uni.reLaunch({ url: '/pages/home/index' });
+          if (redirect.value === 'step') {
+            uni.reLaunch({ url: '/pages/step/index' });
+          } else {
+            uni.reLaunch({ url: '/pages/home/index' });
+          }
         }, 500);
       } else {
         uni.showToast({ title: '登录失败，请重试', icon: 'none' });

@@ -94,8 +94,8 @@
           <u-icon name="file-text" size="64" color="#cbd5e1"></u-icon>
         </view>
         <text class="empty-title">暂无档案</text>
-        <text class="empty-desc">添加档案开始对话</text>
-        <button class="add-profile-btn" @click="navigateToAddProfile">立即添加</button>
+        <text class="empty-desc">先建立一份档案，再开始趋势对话</text>
+        <button class="add-profile-btn" @click="navigateToAddProfile">{{ emptyActionText }}</button>
       </view>
     </view>
 
@@ -118,13 +118,29 @@
       <text v-if="isQuotaExhausted" class="quota-tip">额度已用完，升级会员或邀请好友获取更多</text>
     </view> -->
 
-    <view class="sidebar-footer" @click="openUserCenter">
-      <view class="user-row">
+    <view class="sidebar-footer">
+      <view 
+        v-if="hasToken" 
+        class="user-row" 
+        @click="openUserCenter"
+      >
         <UserAvatar :name="systemUser?.nickname || 'User'" size="small" :shadow="false" />
         <view class="user-details">
           <text class="user-name">{{ systemUser?.nickname || '未登录' }}</text>
-          <text class="user-status">{{ systemUser?.membership_type === MembershipType.VIP ? '趋势会员' : '普通用户' }}</text>
+          <text class="user-status">
+            {{ systemUser?.membership_type === MembershipType.VIP ? '趋势会员' : '普通用户' }}
+          </text>
         </view>
+      </view>
+
+      <view v-else class="user-row">
+        <UserAvatar :name="'U'" size="small" :shadow="false" />
+        <view class="user-details">
+          <text class="user-name">未登录</text>
+        </view>
+        <button class="login-footer-btn" @click.stop="navigateToLogin">
+          登录
+        </button>
       </view>
     </view>
   </view>
@@ -159,6 +175,15 @@ const emit = defineEmits(['open-user-center', 'switch-profile', 'open-fortune'])
   const profiles = ref<any[]>([]);
   const activeMenuId = ref<string | null>(null);
   const currentRoute = ref('chat');
+
+  const hasToken = computed(() => {
+    const token = uni.getStorageSync('token');
+    return !!token || !!systemUser.value;
+  });
+
+  const emptyActionText = computed(() => {
+    return hasToken.value ? '填写档案，开始对话' : '登录并填写档案';
+  });
 
   const displayProfile = computed(() => {
     return props.currentProfile || userStore.userInfo || (profiles.value.length > 0 ? profiles.value[0] : null);
@@ -202,6 +227,14 @@ const loadSystemUser = async () => {
 };
 
 const navigateToAddProfile = () => {
+  const token = uni.getStorageSync('token');
+  if (!token && !systemUser.value) {
+    uni.navigateTo({
+      url: '/pages/login/index?redirect=step&from=sidebar'
+    });
+    return;
+  }
+
   uni.navigateTo({
     url: '/pages/step/index'
   });
@@ -335,6 +368,12 @@ const navigateToNewWorld = () => {
 const navigateToInvite = () => {
   uni.navigateTo({
     url: '/pages/invite/index'
+  });
+};
+
+const navigateToLogin = () => {
+  uni.navigateTo({
+    url: '/pages/login/index?from=sidebar-footer'
   });
 };
 
@@ -743,6 +782,23 @@ const navigateToHistory = () => {
 .user-status {
   font-size: 22rpx;
   color: #94a3b8;
+}
+
+.login-footer-btn {
+  padding: 4rpx 24rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #111827;
+  background-color: #111827;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.login-footer-btn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
 .settings-icon {
