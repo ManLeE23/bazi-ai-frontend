@@ -198,7 +198,7 @@ const getWuXingClass = (char: string | undefined) => {
 .detail-btn {
   /* w-full mt-6 py-2.5 bg-slate-900 text-white rounded-full text-[11px] font-black tracking-widest active:scale-95 transition-all */
   width: 100%;
-  margin-top: 48rpx; /* mt-6 = 1.5rem = 24px = 48rpx */
+  margin-top: 24rpx; /* mt-6 = 1.5rem = 24px = 48rpx */
   padding: 20rpx 0; /* py-2.5 = 0.625rem = 10px = 20rpx */
   background-color: #0f172a; /* slate-900 */
   color: white;
