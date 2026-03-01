@@ -137,7 +137,6 @@ const getWuXingClass = (char: string | undefined) => {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1rpx solid rgba(255, 255, 255, 0.8);
   border-radius: 56rpx; /* 28px * 2 */
   border-top-left-radius: 0;
   box-shadow: 0 2rpx 4rpx 0 rgba(0, 0, 0, 0.05);

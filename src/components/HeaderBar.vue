@@ -12,14 +12,14 @@
         <!-- Left Area -->
         <view class="header-left">
           <view v-if="showBack" class="header-btn" @click="goBack">
-            <u-icon name="arrow-left" color="#94a3b8" size="40"></u-icon>
+            <u-icon name="arrow-left" color="#64748b" size="36"></u-icon>
           </view>
           <slot name="left" v-else></slot>
         </view>
 
         <!-- Center Area -->
-        <view class="header-center" :style="{ opacity: title ? 1 : 0 }">
-          <text class="app-title">{{ title }}</text>
+        <view class="header-center">
+          <text v-if="title" class="app-title">{{ title }}</text>
           <slot name="center"></slot>
         </view>
 
@@ -143,15 +143,15 @@ const goBack = () => {
 }
 
 .header-btn {
-  width: 80rpx;
-  height: 80rpx;
+  width: 70rpx;
+  height: 70rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 32rpx;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
-  color: #94a3b8;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  color: #64748b;
   transition: transform 0.2s;
   
   &:active {

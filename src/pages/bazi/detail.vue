@@ -262,9 +262,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { fetchBaziCalculate } from '@/api/services';
+import { useSWR } from '@/hooks/useSWR';
 import HeaderBar from '@/components/HeaderBar.vue';
 
 // --- Types ---
@@ -352,33 +353,89 @@ interface BaziData {
 }
 
 // --- State ---
-const baziData = ref<BaziData>({
-    base_info: { name: '', gender: '', birth_date: '', chinese_birth_date: '', birth_location: '', birth_datetime: '', chinese_birth_datetime: '' },
-    pillars: {
-        year: {} as Pillar,
-        month: {} as Pillar,
-        day: {} as Pillar,
-        hour: {} as Pillar
-    },
-    extra_info: { tai_yuan: '', ming_gong: '', shen_gong: '' },
-    da_yun: { start_age: 0, list: [] },
-    liu_nian: []
+const queryParams = ref<any>({});
+const profileId = computed(() => queryParams.value.id || queryParams.value.profile_id);
+
+const { data: swrData, error: swrError, isLoading } = useSWR(
+  () => profileId.value ? `/api/bazi/calculate/profile/${profileId.value}` : null,
+  () => {
+    if (!profileId.value) return Promise.reject('No profile ID');
+    return fetchBaziCalculate(profileId.value);
+  },
+  {
+     revalidateOnFocus: false,
+     revalidateIfStale: false,
+  }
+);
+
+const hasInitializedSelection = ref(false);
+
+watch(
+  () => swrData.value,
+  (data) => {
+    if (data?.da_yun?.list?.length > 0 && !hasInitializedSelection.value) {
+      // Ensure DOM update or data stability
+      nextTick(() => {
+        initSelection();
+        hasInitializedSelection.value = true;
+      });
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+const baziData = computed<BaziData>(() => {
+    console.log('swrData', swrData.value);
+    if (swrData.value) return swrData.value;
+    return {
+        base_info: { name: '', gender: '', birth_date: '', chinese_birth_date: '', birth_location: '', birth_datetime: '', chinese_birth_datetime: '' },
+        pillars: {
+            year: {} as Pillar,
+            month: {} as Pillar,
+            day: {} as Pillar,
+            hour: {} as Pillar
+        },
+        extra_info: { tai_yuan: '', ming_gong: '', shen_gong: '' },
+        da_yun: { start_age: 0, list: [] },
+        liu_nian: []
+    };
+});
+
+watch(isLoading, (val) => {
+    if (val && !swrData.value) {
+        uni.showLoading({ title: '排盘中...' });
+    } else {
+        uni.hideLoading();
+    }
+}, { immediate: true });
+
+watch(swrError, (val) => {
+    if (val) {
+        uni.showToast({ title: '排盘失败', icon: 'none' });
+    }
 });
 
 const activeYunIndex = ref(0);
 const activeLiunianYear = ref<number | null>(null);
 const activeLiuYue = ref<LiuYueItem | null>(null);
 
+const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+const BRANCHES = ['寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子', '丑'];
+
 // --- Computed ---
 const currentDayun = computed(() => {
+    console.log('activeYunIndex', activeYunIndex.value);
     return baziData.value.da_yun?.list[activeYunIndex.value];
 });
 
 const currentLiuNianList = computed(() => {
     if (!currentDayun.value) return [];
-    const start = currentDayun.value.start_year;
-    const end = currentDayun.value.end_year;
-    return baziData.value.liu_nian.filter(ln => ln.year >= start && ln.year <= end);
+    const start = Number(currentDayun.value.start_year);
+    const end = Number(currentDayun.value.end_year);
+    return baziData.value.liu_nian.filter(ln => {
+        const y = Number(ln.year);
+        return y >= start && y <= end;
+    });
 });
 
 const currentLiunian = computed(() => {
@@ -391,9 +448,9 @@ const currentLiunianPillar = computed(() => {
 });
 
 const getTenGod = (dayMaster: string, targetStem: string): string => {
-    const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-    const dIdx = stems.indexOf(dayMaster);
-    const tIdx = stems.indexOf(targetStem);
+    if (!dayMaster || !targetStem) return '';
+    const dIdx = STEMS.indexOf(dayMaster);
+    const tIdx = STEMS.indexOf(targetStem);
     if (dIdx === -1 || tIdx === -1) return '';
     
     const dElem = Math.floor(dIdx / 2);
@@ -414,12 +471,13 @@ const getTenGod = (dayMaster: string, targetStem: string): string => {
     return '';
 };
 
+const BRANCH_MAIN_QI: Record<string, string> = {
+    '子': '癸', '丑': '己', '寅': '甲', '卯': '乙', '辰': '戊', '巳': '丙',
+    '午': '丁', '未': '己', '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬'
+};
+
 const getBranchMainQi = (branch: string): string => {
-    const map: Record<string, string> = {
-        '子': '癸', '丑': '己', '寅': '甲', '卯': '乙', '辰': '戊', '巳': '丙',
-        '午': '丁', '未': '己', '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬'
-    };
-    return map[branch] || '';
+    return BRANCH_MAIN_QI[branch] || '';
 };
 
 // Five Tigers Seeking Month Logic (Wu Hu Dun) & Data Mapping
@@ -447,14 +505,12 @@ const currentLiuYueList = computed(() => {
             // If missing stem, calculate it
             if ((!pillar || pillar.length < 2) && m.month_zhi && ln.pillar) {
                 const yearStem = ln.pillar[0];
-                const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-                const branches = ['寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子', '丑'];
-                const yearStemIdx = stems.indexOf(yearStem);
-                const branchIdx = branches.indexOf(m.month_zhi);
+                const yearStemIdx = STEMS.indexOf(yearStem);
+                const branchIdx = BRANCHES.indexOf(m.month_zhi);
                 
                 if (yearStemIdx > -1 && branchIdx > -1) {
                     const startStemIdx = ((yearStemIdx % 5) * 2 + 2) % 10;
-                    const stem = stems[(startStemIdx + branchIdx) % 10];
+                    const stem = STEMS[(startStemIdx + branchIdx) % 10];
                     pillar = stem + m.month_zhi;
                 }
             }
@@ -486,11 +542,9 @@ const currentLiuYueList = computed(() => {
     if (!yearPillar) return [];
     
     const yearStem = yearPillar[0];
-    const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-    const branches = ['寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子', '丑']; // Starts from Yin month
     
     // Find index of year stem (0-9)
-    const yearStemIdx = stems.indexOf(yearStem);
+    const yearStemIdx = STEMS.indexOf(yearStem);
     if (yearStemIdx === -1) return []; // Should not happen
     
     // Calculate first month stem index
@@ -499,8 +553,8 @@ const currentLiuYueList = computed(() => {
     
     const months = [];
     for (let i = 0; i < 12; i++) {
-        const stem = stems[(startStemIdx + i) % 10];
-        const branch = branches[i];
+        const stem = STEMS[(startStemIdx + i) % 10];
+        const branch = BRANCHES[i];
         
         // Calculate Ten Gods for fallback
         let stemTenGod = '';
@@ -540,26 +594,27 @@ const handleLiunianSelect = (item: LiuNianItem) => {
 };
 
 const handleLiuYueSelect = (month: LiuYueItem) => {
-    console.log('month', month);
+    // console.log('month', month);
     if (activeLiuYue.value?.month === month.month) {
         activeLiuYue.value = null; // Toggle off
     } else {
         activeLiuYue.value = month;
     }
-    console.log('activeLiuYue', activeLiuYue.value);
+    // console.log('activeLiuYue', activeLiuYue.value);
 };
 
 // Styling Helpers
+const WUXING_CLASS_MAP: Record<string, string> = {
+    '甲': 'mu', '乙': 'mu', '寅': 'mu', '卯': 'mu',
+    '丙': 'huo', '丁': 'huo', '巳': 'huo', '午': 'huo',
+    '戊': 'tu', '己': 'tu', '辰': 'tu', '戌': 'tu', '丑': 'tu', '未': 'tu',
+    '庚': 'jin', '辛': 'jin', '申': 'jin', '酉': 'jin',
+    '壬': 'shui', '癸': 'shui', '亥': 'shui', '子': 'shui'
+};
+
 const getWuXingClass = (char: string | undefined) => {
     if (!char) return '';
-    const map: Record<string, string> = {
-        '甲': 'mu', '乙': 'mu', '寅': 'mu', '卯': 'mu',
-        '丙': 'huo', '丁': 'huo', '巳': 'huo', '午': 'huo',
-        '戊': 'tu', '己': 'tu', '辰': 'tu', '戌': 'tu', '丑': 'tu', '未': 'tu',
-        '庚': 'jin', '辛': 'jin', '申': 'jin', '酉': 'jin',
-        '壬': 'shui', '癸': 'shui', '亥': 'shui', '子': 'shui'
-    };
-    return map[char] || '';
+    return WUXING_CLASS_MAP[char] || '';
 };
 
 const getElementClass = (tenGod: string | undefined) => {
@@ -573,48 +628,54 @@ const getElementClass = (tenGod: string | undefined) => {
     return 'text-slate-600';
 };
 
-const queryParams = ref<any>({});
-
 onLoad((options) => {
     queryParams.value = options || {};
-    fetchData();
 });
 
-const fetchData = async () => {
-    try {
-        uni.showLoading({ title: '排盘中...' });
+const initSelection = () => {
+    // Force re-read from computed to ensure freshness
+    const currentData = baziData.value;
+    const daYunList = currentData?.da_yun?.list;
+    
+    if (daYunList && daYunList.length > 0) {
+        const currentYear = new Date().getFullYear();
         
-        const profileId = queryParams.value.id || queryParams.value.profile_id;
-        
-        if (!profileId) {
-            throw new Error('缺少档案ID');
-        }
+        // Find the index of the Da Yun that includes the current year
+        const index = daYunList.findIndex(dy => {
+            const start = Number(dy.start_year);
+            const end = Number(dy.end_year);
+            return start <= currentYear && end >= currentYear;
+        });
 
-        const res: any = await fetchBaziCalculate(profileId);
-        if (res.data) {
-            baziData.value = res.data;
+        const targetIndex = index >= 0 ? index : 0;
+        
+        // Always set the active Da Yun index on initialization
+        activeYunIndex.value = targetIndex;
+
+        // If current year is within the range, select it
+        if (index >= 0) {
+             const matchingLn = currentData.liu_nian.find(ln => Number(ln.year) === currentYear);
+             if (matchingLn) {
+                 activeLiunianYear.value = matchingLn.year;
+             } else {
+                 activeLiunianYear.value = currentYear;
+             }
+        } else {
+            // Fallback: Select the first year of the selected Da Yun
+            // If targetIndex is 0 (default), select its first year
+            const startYear = Number(daYunList[targetIndex].start_year);
+            const endYear = Number(daYunList[targetIndex].end_year);
             
-            // Init selection
-            if (baziData.value.da_yun?.list?.length > 0) {
-                const currentYear = new Date().getFullYear();
-                const index = baziData.value.da_yun.list.findIndex(dy => dy.start_year <= currentYear && dy.end_year >= currentYear);
-                const targetIndex = index >= 0 ? index : 0;
-                activeYunIndex.value = targetIndex;
-                
-                // If current year is within the range, select it
-                if (index >= 0) {
-                    activeLiunianYear.value = currentYear;
-                } else {
-                    // Fallback to first year of the selected Da Yun
-                    handleDayunSelect(targetIndex);
-                }
+            // Try to find the first year in the liu_nian list
+            const list = currentData.liu_nian.filter(ln => {
+                const y = Number(ln.year);
+                return y >= startYear && y <= endYear;
+            });
+            
+            if (list.length > 0) {
+                activeLiunianYear.value = list[0].year;
             }
         }
-    } catch (e) {
-        console.error(e);
-        uni.showToast({ title: '排盘失败', icon: 'none' });
-    } finally {
-        uni.hideLoading();
     }
 };
 
@@ -874,7 +935,6 @@ const fetchData = async () => {
     // background-color: rgba(255, 255, 255, 0.25);
     border-radius: 12px;
     padding: 8px 0;
-    margin-top: 12px;
     // border: 1px solid rgba(255, 255, 255, 0.3);
 
     .yun-row {

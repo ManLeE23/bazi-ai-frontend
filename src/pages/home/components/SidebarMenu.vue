@@ -3,27 +3,32 @@
     <!-- Explore Section -->
     <view class="menu-section">
       <text class="menu-title">发现</text>
-      
-      <view 
-        class="discovery-item" 
-        :class="{ active: currentRoute === 'chat' }"
-        @click="navigateToChat"
-      >
-        <!-- <view class="icon-box">
-           <u-icon name="chat" size="36" color="#6366f1"></u-icon>
-        </view> -->
-        <text class="item-text" :class="{ 'active-text': currentRoute === 'chat' }">聊天</text>
-      </view>
 
-      <view 
-        class="discovery-item" 
+      <view
+        class="discovery-item"
         :class="{ active: currentRoute === 'explore' }"
         @click="navigateToNewWorld"
       >
         <!-- <view class="icon-box">
            <u-icon name="flask" size="36" color="#6366f1"></u-icon>
         </view> -->
-        <text class="item-text" :class="{ 'active-text': currentRoute === 'explore' }">探索中心</text>
+        <text
+          class="item-text"
+          :class="{ 'active-text': currentRoute === 'explore' }"
+          >探索中心</text
+        >
+      </view>
+
+      <view
+        class="discovery-item"
+        :class="{ active: currentRoute === 'feedback' }"
+        @click="navigateToFeedback"
+      >
+        <text
+          class="item-text"
+          :class="{ 'active-text': currentRoute === 'feedback' }"
+          >意见反馈</text
+        >
       </view>
 
       <!-- <view 
@@ -40,18 +45,31 @@
       <view class="recent-header">
         <text class="section-title">我的档案库</text>
         <view class="add-btn" @click="navigateToAddProfile">
-          <u-icon name="plus" :size="28" color="#4f46e5" style="font-weight: 700;" />
+          <u-icon
+            name="plus"
+            :size="28"
+            color="#4f46e5"
+            style="font-weight: 700"
+          />
           <!-- <text class="add-text">添加</text> -->
         </view>
       </view>
 
       <!-- Profiles List -->
-      <scroll-view scroll-y :show-scrollbar="false" class="profiles-list" v-if="profiles.length > 0">
+      <scroll-view
+        scroll-y
+        :show-scrollbar="false"
+        class="profiles-list"
+        v-if="profiles.length > 0"
+      >
         <view
           v-for="(item, index) in profiles"
           :key="item.id"
-          class="profile-item" 
-          :class="{ active: isActive(item), 'menu-active': activeMenuId === item.id }" 
+          class="profile-item"
+          :class="{
+            active: isActive(item),
+            'menu-active': activeMenuId === item.id,
+          }"
           @click="switchProfile(item)"
         >
           <view v-if="isActive(item)" class="active-dot"></view>
@@ -61,25 +79,41 @@
               <text class="profile-name">{{ item.name }}</text>
               <view v-if="item.is_self" class="self-tag">我</view>
             </view>
-            <text class="profile-desc">{{ item.gender === 'male' || item.gender === '男' ? '男' : '女' }} · {{ item.birth_date }}</text>
+            <text class="profile-desc"
+              >{{
+                item.gender === 'male' || item.gender === '男' ? '男' : '女'
+              }}
+              · {{ item.birth_date }}</text
+            >
           </view>
-          
+
           <view class="more-btn" @click.stop="handleMoreClick(item)">
             <u-icon name="more-dot-fill" size="16px" color="#94a3b8"></u-icon>
-            
+
             <!-- Dropdown Menu -->
             <template v-if="activeMenuId === item.id">
               <view class="menu-mask-fixed" @click.stop="closeMenu"></view>
-              <view 
-                class="dropdown-menu" 
-                :class="{ 'dropdown-up': index >= profiles.length - 2 && profiles.length > 4 }"
+              <view
+                class="dropdown-menu"
+                :class="{
+                  'dropdown-up':
+                    index >= profiles.length - 2 && profiles.length > 4,
+                }"
                 @click.stop
               >
-                <view class="dropdown-item" @click.stop="handleToggleSelf(item)">
-                  <text class="dropdown-text">{{ item.is_self ? '解除本人' : '设为本人' }}</text>
+                <view
+                  class="dropdown-item"
+                  @click.stop="handleToggleSelf(item)"
+                >
+                  <text class="dropdown-text">{{
+                    item.is_self ? '解除本人' : '设为本人'
+                  }}</text>
                 </view>
                 <view class="dropdown-divider"></view>
-                <view class="dropdown-item delete" @click.stop="handleDelete(item)">
+                <view
+                  class="dropdown-item delete"
+                  @click.stop="handleDelete(item)"
+                >
                   <text class="dropdown-text">删除</text>
                 </view>
               </view>
@@ -95,7 +129,9 @@
         </view>
         <text class="empty-title">暂无档案</text>
         <text class="empty-desc">先建立一份档案，再开始趋势对话</text>
-        <button class="add-profile-btn" @click="navigateToAddProfile">{{ emptyActionText }}</button>
+        <button class="add-profile-btn" @click="navigateToAddProfile">
+          {{ emptyActionText }}
+        </button>
       </view>
     </view>
 
@@ -119,16 +155,20 @@
     </view> -->
 
     <view class="sidebar-footer">
-      <view 
-        v-if="hasToken" 
-        class="user-row" 
-        @click="openUserCenter"
-      >
-        <UserAvatar :name="systemUser?.nickname || 'User'" size="small" :shadow="false" />
+      <view v-if="hasToken" class="user-row" @click="openUserCenter">
+        <UserAvatar
+          :name="systemUser?.nickname || 'User'"
+          size="small"
+          :shadow="false"
+        />
         <view class="user-details">
           <text class="user-name">{{ systemUser?.nickname || '未登录' }}</text>
           <text class="user-status">
-            {{ systemUser?.membership_type === MembershipType.VIP ? '趋势会员' : '普通用户' }}
+            {{
+              systemUser?.membership_type === MembershipType.VIP
+                ? '趋势会员'
+                : '普通用户'
+            }}
           </text>
         </view>
       </view>
@@ -150,50 +190,69 @@
 import { ref, computed, onMounted } from 'vue';
 import { userStore, type UserInfo, MembershipType } from '@/store/user';
 import UserAvatar from '@/components/UserAvatar.vue';
-import { fetchProfilesList, fetchDeleteProfile, fetchSystemUserInfo, fetchUpdateSelfStatus } from '@/api/services';
+import {
+  fetchProfilesList,
+  fetchDeleteProfile,
+  fetchSystemUserInfo,
+  fetchUpdateSelfStatus,
+} from '@/api/services';
 import TrialCard from './TrialCard.vue';
 
 const props = defineProps<{
   currentProfile?: UserInfo | null;
 }>();
 
-const emit = defineEmits(['open-user-center', 'switch-profile', 'open-fortune']);
+const emit = defineEmits([
+  'open-user-center',
+  'switch-profile',
+  'open-fortune',
+]);
 
-  const systemUser = computed(() => userStore.systemUser);
-  const currentUserId = computed(() => props.currentProfile?.id);
+const systemUser = computed(() => userStore.systemUser);
+const currentUserId = computed(() => props.currentProfile?.id);
 
-  // Quota Computed Properties
-  const totalQuota = computed(() => systemUser.value?.free_quota_total ?? 5);
-  const usedQuota = computed(() => systemUser.value?.free_quota_used ?? 0);
-  const remainingQuota = computed(() => Math.max(0, totalQuota.value - usedQuota.value));
-  const isQuotaExhausted = computed(() => systemUser.value?.membership_type !== MembershipType.VIP && remainingQuota.value <= 0);
-  const quotaPercent = computed(() => {
-    if (totalQuota.value === 0) return 100;
-    return Math.min(100, (usedQuota.value / totalQuota.value) * 100);
-  });
+// Quota Computed Properties
+const totalQuota = computed(() => systemUser.value?.free_quota_total ?? 5);
+const usedQuota = computed(() => systemUser.value?.free_quota_used ?? 0);
+const remainingQuota = computed(() =>
+  Math.max(0, totalQuota.value - usedQuota.value),
+);
+const isQuotaExhausted = computed(
+  () =>
+    systemUser.value?.membership_type !== MembershipType.VIP &&
+    remainingQuota.value <= 0,
+);
+const quotaPercent = computed(() => {
+  if (totalQuota.value === 0) return 100;
+  return Math.min(100, (usedQuota.value / totalQuota.value) * 100);
+});
 
-  const profiles = ref<any[]>([]);
-  const activeMenuId = ref<string | null>(null);
-  const currentRoute = ref('chat');
+const profiles = ref<any[]>([]);
+const activeMenuId = ref<string | null>(null);
+const currentRoute = ref('chat');
 
-  const hasToken = computed(() => {
-    const token = uni.getStorageSync('token');
-    return !!token || !!systemUser.value;
-  });
+const hasToken = computed(() => {
+  const token = uni.getStorageSync('token');
+  return !!token;
+});
 
-  const emptyActionText = computed(() => {
-    return hasToken.value ? '填写档案，开始对话' : '登录并填写档案';
-  });
+const emptyActionText = computed(() => {
+  return hasToken.value ? '填写档案，开始对话' : '登录并填写档案';
+});
 
-  const displayProfile = computed(() => {
-    return props.currentProfile || userStore.userInfo || (profiles.value.length > 0 ? profiles.value[0] : null);
-  });
+const displayProfile = computed(() => {
+  return (
+    props.currentProfile ||
+    userStore.userInfo ||
+    (profiles.value.length > 0 ? profiles.value[0] : null)
+  );
+});
 
-  const openFortune = () => {
-    emit('open-fortune');
-  };
+const openFortune = () => {
+  emit('open-fortune');
+};
 
-  const isActive = (item: any) => {
+const isActive = (item: any) => {
   if (!currentUserId.value || !item.id) return false;
   return String(currentUserId.value) === String(item.id);
 };
@@ -207,7 +266,7 @@ const loadProfiles = async () => {
     const res: any = await fetchProfilesList();
     if (res.data) {
       // Handle both { data: [...] } and { data: { items: [...] } }
-      const list = Array.isArray(res.data) ? res.data : (res.data.items || []);
+      const list = Array.isArray(res.data) ? res.data : res.data.items || [];
       profiles.value = list;
     }
   } catch (error) {
@@ -230,13 +289,13 @@ const navigateToAddProfile = () => {
   const token = uni.getStorageSync('token');
   if (!token && !systemUser.value) {
     uni.navigateTo({
-      url: '/pages/login/index?redirect=step&from=sidebar'
+      url: '/pages/login/index?redirect=step&from=sidebar',
     });
     return;
   }
 
   uni.navigateTo({
-    url: '/pages/step/index'
+    url: '/pages/step/index',
   });
 };
 
@@ -291,7 +350,7 @@ const handleToggleSelf = async (profile: any) => {
 
 const handleDelete = (profile: any) => {
   closeMenu();
-  
+
   if (profile.is_self) {
     uni.showToast({ title: '自己的档案不支持删除', icon: 'none' });
     return;
@@ -305,13 +364,13 @@ const handleDelete = (profile: any) => {
         try {
           uni.showLoading({ title: '删除中' });
           await fetchDeleteProfile(profile.id);
-          
+
           // Remove from list
-          const index = profiles.value.findIndex(p => p.id === profile.id);
+          const index = profiles.value.findIndex((p) => p.id === profile.id);
           if (index > -1) {
             profiles.value.splice(index, 1);
           }
-          
+
           uni.hideLoading();
           uni.showToast({ title: '删除成功', icon: 'none' });
 
@@ -320,16 +379,17 @@ const handleDelete = (profile: any) => {
             if (profiles.value.length > 0) {
               // Try to select the one at the same index (which was the next one)
               // If index is out of bounds (was the last one), select index - 1
-              const nextIndex = index < profiles.value.length ? index : index - 1;
+              const nextIndex =
+                index < profiles.value.length ? index : index - 1;
               const nextProfile = profiles.value[nextIndex];
               if (nextProfile) {
-                 emit('switch-profile', nextProfile);
+                emit('switch-profile', nextProfile);
               }
             } else {
               // No profiles left, reload
               setTimeout(() => {
                 uni.reLaunch({
-                  url: '/pages/home/index'
+                  url: '/pages/home/index',
                 });
               }, 500);
             }
@@ -339,53 +399,36 @@ const handleDelete = (profile: any) => {
           uni.showToast({ title: '删除失败', icon: 'none' });
         }
       }
-    }
+    },
   });
 };
 
 onMounted(() => {
   loadProfiles();
   loadSystemUser();
-  
+
   const pages = getCurrentPages();
   const page = pages[pages.length - 1];
   if (page && page.route) {
     if (page.route.includes('new-world')) {
       currentRoute.value = 'explore';
-    } else {
-      currentRoute.value = 'chat';
     }
   }
 });
 
 const navigateToNewWorld = () => {
-  uni.showToast({
-    title: '功能正在开发',
-    icon: 'none'
-  });
+  uni.showToast({ title: '功能暂未开放', icon: 'none' });
 };
 
-const navigateToInvite = () => {
+const navigateToFeedback = () => {
   uni.navigateTo({
-    url: '/pages/invite/index'
+    url: '/pages/feedback/index',
   });
 };
 
 const navigateToLogin = () => {
   uni.navigateTo({
-    url: '/pages/login/index?from=sidebar-footer'
-  });
-};
-
-const navigateToChat = () => {
-  uni.reLaunch({
-    url: '/pages/home/index'
-  });
-};
-
-const navigateToHistory = () => {
-  uni.navigateTo({
-    url: '/pages/chat-history/index'
+    url: '/pages/login/index?from=sidebar',
   });
 };
 </script>
@@ -410,7 +453,7 @@ const navigateToHistory = () => {
   border-radius: 999px; /* Pill shape */
   margin-bottom: 16rpx;
   transition: all 0.2s;
-  
+
   &.active {
     background-color: #f1f5f9; /* Light gray background */
   }
@@ -430,7 +473,7 @@ const navigateToHistory = () => {
   align-items: center;
   justify-content: center;
   margin-right: 24rpx;
-  
+
   &.transparent {
     background-color: transparent;
   }
@@ -439,13 +482,13 @@ const navigateToHistory = () => {
 .item-text {
   font-size: 30rpx;
   font-weight: 500;
-  
+
   &.active-text {
     color: #6366f1; /* Indigo/Purple */
     font-weight: 800;
     font-size: 34rpx;
   }
-  
+
   &.gray-text {
     color: #94a3b8; /* Slate gray */
   }
@@ -454,36 +497,36 @@ const navigateToHistory = () => {
 .quota-container {
   padding: 24rpx 32rpx;
   border-top: 1rpx solid #e2e8f0;
-  
+
   .quota-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12rpx;
-    
+
     .quota-label {
       font-size: 26rpx;
       color: #64748b;
     }
-    
+
     .quota-value {
       font-size: 26rpx;
       font-weight: 600;
       color: #334155;
-      
+
       &.text-warning {
         color: #ef4444;
       }
     }
   }
-  
+
   .progress-bar {
     height: 8rpx;
     background-color: #f1f5f9;
     border-radius: 4rpx;
     overflow: hidden;
     margin-bottom: 8rpx;
-    
+
     .progress-inner {
       height: 100%;
       background-color: #6366f1;
@@ -491,7 +534,7 @@ const navigateToHistory = () => {
       transition: width 0.3s ease;
     }
   }
-  
+
   .quota-tip {
     font-size: 22rpx;
     color: #ef4444;
@@ -519,7 +562,7 @@ const navigateToHistory = () => {
   align-items: center;
   gap: 6px;
   margin-bottom: 4rpx;
-  
+
   .self-tag {
     font-size: 10px;
     color: #fff;
@@ -546,7 +589,7 @@ const navigateToHistory = () => {
   display: flex;
   align-items: center;
   transition: opacity 0.2s;
-  
+
   &:active {
     opacity: 0.6;
   }
@@ -600,7 +643,7 @@ const navigateToHistory = () => {
   flex: 1;
   overflow-y: auto;
   padding-bottom: 12px;
-  
+
   /* Hide scrollbar specifically for this container */
   &::-webkit-scrollbar {
     display: none;
@@ -623,11 +666,11 @@ const navigateToHistory = () => {
   position: relative;
   width: 100%;
   box-sizing: border-box;
-  
+
   &:active {
     background-color: #f8fafc;
   }
-  
+
   &.active {
     background: rgba(224, 231, 255, 0.5);
     backdrop-filter: blur(8px);
@@ -662,7 +705,7 @@ const navigateToHistory = () => {
   margin-right: 24rpx;
   flex-shrink: 0;
   position: relative;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -697,7 +740,7 @@ const navigateToHistory = () => {
   align-items: center;
   justify-content: center;
   position: relative;
-  
+
   &:active {
     opacity: 0.6;
   }
@@ -745,7 +788,7 @@ const navigateToHistory = () => {
   padding: 0 48rpx;
   line-height: 80rpx;
   border: none;
-  
+
   &:active {
     opacity: 0.9;
   }
@@ -793,7 +836,9 @@ const navigateToHistory = () => {
   font-weight: 700;
   color: #ffffff;
   flex-shrink: 0;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .login-footer-btn:active {
@@ -847,11 +892,11 @@ const navigateToHistory = () => {
   align-items: center;
   padding: 16rpx 24rpx;
   transition: all 0.2s;
-  
+
   &:active {
     background-color: #f8fafc;
   }
-  
+
   &.delete {
     color: #f43f5e;
   }

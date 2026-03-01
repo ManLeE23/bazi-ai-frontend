@@ -14,6 +14,7 @@ interface MessageData {
 interface SSEParams {
   session_id: string;
   user_input: string;
+  deep_thinking?: boolean;
 }
 
 function decodeUTF8(arrayBuffer: ArrayBuffer): string {
@@ -110,6 +111,15 @@ export default function useSSEMessage(params: SSEParams) {
               json.message ||
               `Error ${json.code}`;
             error.value = friendlyMsg;
+            // 构造错误消息展示给用户
+            messageList.value.push({
+              session_id: params.session_id,
+              user_id: '',
+              role: 'assistant',
+              content: friendlyMsg,
+              id: `error_${Date.now()}`,
+              created_at: new Date().toISOString(),
+            });
           }
           stopSSE();
           return;
@@ -124,7 +134,19 @@ export default function useSSEMessage(params: SSEParams) {
         // General error handling
         if (json.code && json.code !== 0 && json.code !== 200) {
           console.warn('API error received:', json);
-          error.value = json.message || 'Unknown error';
+          const errMsg = json.message || '服务器错误，请稍后重试';
+          error.value = errMsg;
+
+          // 构造错误消息展示给用户
+          messageList.value.push({
+            session_id: params.session_id,
+            user_id: '',
+            role: 'assistant',
+            content: errMsg,
+            id: `error_${Date.now()}`,
+            created_at: new Date().toISOString(),
+          });
+
           stopSSE();
           return;
         }
@@ -324,8 +346,18 @@ export default function useSSEMessage(params: SSEParams) {
       },
       fail: (err) => {
         console.error('SSE连接失败', err);
-        error.value = err.errMsg || '连接失败';
+        error.value = err.errMsg || '服务器错误，请稍后重试';
         isLoading.value = false;
+
+        // 如果连接失败，向消息列表添加一条错误消息
+        messageList.value.push({
+          session_id: params.session_id,
+          user_id: '',
+          role: 'assistant',
+          content: '服务器错误，请稍后重试',
+          id: `error_${Date.now()}`,
+          created_at: new Date().toISOString(),
+        });
       },
       complete: () => {
         // WeChat 小程序端会在流结束时触发 complete，并可能返回空字符串

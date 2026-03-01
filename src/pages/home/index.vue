@@ -38,14 +38,7 @@
     <view class="scroll-box" :style="{ paddingTop: (headerHeight + 16) + 'px' }">
       
       <!-- Loading State for Profile Switch -->
-      <view v-if="isSwitchingProfile || isInitialLoading" class="profile-switching-state">
-        <view class="custom-loader">
-          <view class="dot"></view>
-          <view class="dot"></view>
-          <view class="dot"></view>
-        </view>
-        <text class="loading-text">正在加载...</text>
-      </view>
+      <ProfileSwitchingState v-if="isSwitchingProfile || isInitialLoading" />
 
       <template v-else>
 
@@ -80,6 +73,14 @@
                   {{ (isThinking && index === chatMessages.length - 1) ? '深度思考中...' : '已完成深度思考' }}
                 </text>
               </view>
+              <view class="thinking-arrow" :class="{ 'rotate': message.isReasoningExpanded }">
+                <image :src="downSvg" class="arrow-icon-img" mode="aspectFit" />
+              </view>
+            </view>
+            <view v-if="message.isReasoningExpanded" class="thinking-content">
+              <scroll-view scroll-y class="thinking-scroll-view" :scroll-top="message.reasoningScrollTop">
+                <text class="thinking-text" user-select>{{ message.reasoning_content }}</text>
+              </scroll-view>
             </view>
           </view>
 
@@ -117,12 +118,12 @@
               <view class="quick-header-bar"></view>
               <text class="quick-header-title">猜你想问</text>
             </view>
-            <view class="quick-header-right" @click="loadQuickQuestions">
+            <!-- <view class="quick-header-right" @click="loadQuickQuestions">
               <view class="refresh-icon">
                 <image src="@/static/icon/refresh.svg" class="refresh-img" />
               </view>
               <text class="refresh-text">换一批</text>
-            </view>
+            </view> -->
           </view>
           
           <!-- Questions List -->
@@ -204,12 +205,14 @@
 
     <!-- Chat Input -->
     <InputWithButton 
-      :model-value="inputText" 
       :show-bazi="false"
       :is-a-i-sending="isGenerating"
-      @update:model-value="onInputUpdate" 
-      @click="sendQuestion"
+      :deep-thinking="isDeepThinkingMode"
+      :is-quota-exhausted="isQuotaExhausted"
+      @click="getInputValue"
+      @confirm="getInputValue"
       @show-bazi="handleShowBazi" 
+      @toggle-deep-thinking="handleToggleDeepThinking(!isDeepThinkingMode)"
     >
       <template #top>
         <view v-if="isQuotaExhausted" class="quota-banner-inline">
@@ -230,7 +233,9 @@ import ProfileGuideCard from './components/ProfileGuideCard.vue';
 import SidebarMenu from './components/SidebarMenu.vue';
 import UserCenterPopup from './components/UserCenterPopup.vue';
 import UpgradePopup from './components/UpgradePopup.vue';
+import ProfileSwitchingState from './components/ProfileSwitchingState.vue';
 import useSSEMessage from './hooks/useSSEMessage'; // 导入新的hook
+import { useSWR } from '@/hooks/useSWR';
 import { fetchChatHistory, fetchBaziCalculate, fetchSessionUserInfo, fetchProfilesList, fetchCreateSession, fetchSuggestedQuestions, fetchSystemUserInfo, fetchApplyInvite } from '@/api/services';
 import InputWithButton from '@/components/InputWithButton.vue';
 import LoadingIndicator from '@/components/LoadingIndicator.vue';
@@ -238,8 +243,6 @@ import MarkDown from '../components/MarkDown/index.vue';
 import BaziCard from './components/BaziCard.vue';
 import downSvg from '@/static/icon/down.svg?url';
 import baguaSvg from '@/static/icon/bagua.svg?url';
-import { doLogin } from '@/utils/auth';
-import { debounce } from 'lodash-es';
 
 const currentInviteCode = ref('');
 const isUserAtBottom = ref(true);
@@ -282,6 +285,7 @@ const chatMessages = ref<{
   isStreaming?: boolean;
   type?: 'text' | 'bazi';
   baziData?: any;
+  reasoningScrollTop?: number;
 }[]>([]);
 const inputText = ref('');
 const isTyping = ref(false);
@@ -292,8 +296,16 @@ const isFromIndexPage = ref(false);
 
 // 思维链相关状态
 const isThinking = ref(false);
-const currentBaziData = ref<any>(null);
-const isBaziDrawerOpen = ref(false);
+const isDeepThinkingMode = ref(uni.getStorageSync('isDeepThinkingMode') === true);
+
+const handleToggleDeepThinking = (val: boolean) => {
+  isDeepThinkingMode.value = val;
+  uni.setStorageSync('isDeepThinkingMode', val);
+  uni.showToast({
+    title: val ? '深度思考模式已开启' : '深度思考模式已关闭',
+    icon: 'none'
+  });
+};
 
 const userInfo = computed({
   get: () => userStore.userInfo,
@@ -305,6 +317,18 @@ const userInfo = computed({
     }
   }
 });
+
+const { data: currentBaziData, mutate: mutateBazi, error: baziError } = useSWR(
+  () => userInfo.value?.id ? `/api/bazi/calculate/profile/${userInfo.value.id}` : null,
+  () => {
+    if (!userInfo.value?.id) return Promise.reject('No profile ID');
+    return fetchBaziCalculate(userInfo.value.id);
+  },
+  {
+    revalidateOnFocus: false
+  }
+);
+const isBaziDrawerOpen = ref(false);
 
 const isQuotaExhausted = computed(() => {
   const user = userStore.systemUser;
@@ -318,7 +342,7 @@ const isQuotaExhausted = computed(() => {
 });
 
 const isLoadingUserInfo = ref(true);
-const baziFetchPromise = ref<Promise<any> | null>(null);
+// const baziFetchPromise = ref<Promise<any> | null>(null);
 
 const showQuickQuestions = ref(false);
 const quickQuestions = ref<string[]>([]);
@@ -327,6 +351,8 @@ const isLoadingQuickQuestions = ref(false);
 const loadQuickQuestions = async () => {
   if (isQuotaExhausted.value) {
     isLoadingQuickQuestions.value = false;
+    showQuickQuestions.value = false;
+    quickQuestions.value = [];
     return;
   }
   isLoadingQuickQuestions.value = true;
@@ -336,11 +362,17 @@ const loadQuickQuestions = async () => {
       limit: 3,
       prev_questions: quickQuestions.value
     });
-    if (res && res.data && Array.isArray(res.data.questions)) {
+    if (res && res.data && Array.isArray(res.data.questions) && res.data.questions.length > 0) {
       quickQuestions.value = res.data.questions;
+      showQuickQuestions.value = true;
+    } else {
+      quickQuestions.value = [];
+      showQuickQuestions.value = false;
     }
   } catch (e) {
     console.error('Failed to load suggested questions:', e);
+    quickQuestions.value = [];
+    showQuickQuestions.value = false;
   } finally {
     isLoadingQuickQuestions.value = false;
   }
@@ -364,8 +396,7 @@ const sendQuickQuestion = (q: string) => {
 
 const simulateWelcomeMessages = () => {
   clearWelcomeTimers();
-  // Start loading questions early
-  loadQuickQuestions();
+  showQuickQuestions.value = false;
   
   const name = userInfo.value?.name || '你';
   
@@ -403,11 +434,14 @@ const simulateWelcomeMessages = () => {
            await execShowBaziCard(true);
         }
 
+        // 欢迎语和八字卡展示完成后，再加载「猜你想问」
         if (!isQuotaExhausted.value) {
-          showQuickQuestions.value = true;
-          nextTick(() => {
-            scrollToBottom(false);
-          });
+          await loadQuickQuestions();
+          if (quickQuestions.value.length > 0) {
+            nextTick(() => {
+              scrollToBottom(false);
+            });
+          }
         }
       }, 1000);
       welcomeTimers.value.push(timer3);
@@ -426,23 +460,7 @@ const showProfileGuide = computed(() => {
   return isProfileListEmpty.value || (!isLoadingUserInfo.value && !hasProfile.value);
 });
 
-const initBaziData = (info: any) => {
-  if (!info || !info.id) {
-    console.error('Bazi pre-fetch failed: Missing profile ID');
-    return;
-  }
-  baziFetchPromise.value = fetchBaziCalculate(info.id)
-    .then(res => {
-      if (res && res.data) {
-        currentBaziData.value = res.data;
-      }
-      return { success: true, res };
-    })
-    .catch(error => {
-      console.error('Bazi pre-fetch failed:', error);
-      return { success: false, error };
-    });
-};
+// initBaziData removed - handled by useSWR
 
 onLoad(async (options: any) => {
   if (options.inviteCode) {
@@ -451,6 +469,10 @@ onLoad(async (options: any) => {
 
   const token = uni.getStorageSync('token');
   hasToken.value = !!token;
+
+  if (!token && userStore.systemUser) {
+    userStore.clearSystemUser();
+  }
 
   if (!hasToken.value) {
     isProfileListEmpty.value = true;
@@ -462,43 +484,46 @@ onLoad(async (options: any) => {
   if (!options.userInfo && !options.sessionId) {
     try {
       const profilesRes: any = await fetchProfilesList();
-      if (profilesRes.data && Array.isArray(profilesRes.data.items) && profilesRes.data.items.length === 0) {
+      const raw = profilesRes.data;
+      const profiles = Array.isArray(raw?.items)
+        ? raw.items
+        : (Array.isArray(raw) ? raw : []);
+
+      if (profiles.length === 0) {
+        // 已登录但没有任何档案：只展示建档引导，不展示欢迎对话流
         isProfileListEmpty.value = true;
         userInfo.value = null;
       } else {
-        const profiles = profilesRes.data?.items || (Array.isArray(profilesRes.data) ? profilesRes.data : []);
-        if (profiles.length > 0) {
-          let targetProfile = profiles[0];
-          
-          try {
-            const lastUser = userStore.userInfo;
-            if (lastUser && lastUser.id) {
-              const foundProfile = profiles.find((p: any) => p.id === lastUser.id);
-              if (foundProfile) {
-                targetProfile = foundProfile;
-              }
+        let targetProfile = profiles[0];
+        
+        try {
+          const lastUser = userStore.userInfo;
+          if (lastUser && lastUser.id) {
+            const foundProfile = profiles.find((p: any) => p.id === lastUser.id);
+            if (foundProfile) {
+              targetProfile = foundProfile;
             }
-          } catch (e) {
-            console.error('Restoring last profile failed:', e);
           }
+        } catch (e) {
+          console.error('Restoring last profile failed:', e);
+        }
 
-          userInfo.value = targetProfile;
-          
-          initBaziData(targetProfile);
+        userInfo.value = targetProfile;
+        
+        // initBaziData(targetProfile); // Removed
 
-          if (targetProfile.session_id) {
-            sessionId.value = targetProfile.session_id;
-            await getChatHistory();
-          } else {
-            simulateWelcomeMessages();
-          }
+        if (targetProfile.session_id) {
+          sessionId.value = targetProfile.session_id;
+          await getChatHistory();
         } else {
           simulateWelcomeMessages();
         }
       }
     } catch (e) {
       console.error('Failed to check profiles:', e);
-      simulateWelcomeMessages();
+      // 档案接口异常时，保守起见只展示建档引导
+      isProfileListEmpty.value = true;
+      userInfo.value = null;
     }
   }
   if (options.sessionId) {
@@ -521,7 +546,7 @@ onLoad(async (options: any) => {
     try {
       const parsedInfo = JSON.parse(decodeURIComponent(options.userInfo));
       userInfo.value = parsedInfo;
-      initBaziData(parsedInfo);
+      // initBaziData(parsedInfo); // Removed
 
       // Handle new profile creation flow
       if (options.isNewProfile === 'true') {
@@ -537,7 +562,7 @@ onLoad(async (options: any) => {
       const res = await fetchSessionUserInfo(sessionId.value);
       if (res.data) {
         userInfo.value = res.data as UserInfo;
-        initBaziData(res.data);
+        // initBaziData(res.data);
       }
     } catch (err) {
       console.error('Fetch session user info error:', err);
@@ -659,35 +684,66 @@ const execShowBaziCard = async (isAuto = false) => {
   isGenerating.value = true;
   
   try {
-    let result;
-    
-    // Use pre-fetched promise if available
-    if (baziFetchPromise.value) {
-      result = await baziFetchPromise.value;
-    } else {
-      try {
-        if (!userInfo.value || !userInfo.value.id) {
-           throw new Error('User info or ID not ready');
-        }
-        const res = await fetchBaziCalculate(userInfo.value.id);
-        result = { success: true, res };
-      } catch (error) {
-        result = { success: false, error };
-      }
-    }
+    const messageId = `ai_${Date.now()}`;
+    let showedCache = false;
 
-    if (result.success && result.res && result.res.data) {
+    // SWR: Show cache immediately if available
+    if (currentBaziData.value) {
        chatMessages.value.push({
         role: 'assistant',
         content: '',
         timestamp: new Date(),
-        id: `ai_${Date.now()}`,
+        id: messageId,
         type: 'bazi',
-        baziData: result.res.data
+        baziData: currentBaziData.value
       });
       scrollToBottom(true);
+      showedCache = true;
+    }
+
+    let resultData;
+    let fetchError;
+
+    try {
+      // Trigger SWR revalidation to get latest data
+      // mutateBazi() returns the fresh data after revalidation
+      await mutateBazi();
+      resultData = currentBaziData.value;
+      if (baziError.value) {
+        fetchError = baziError.value;
+      }
+    } catch (error) {
+      fetchError = error;
+    }
+
+    if (resultData) {
+       // We have data (either fresh or validated cache)
+       
+       if (showedCache) {
+          // Update existing message with fresh data
+          const msgIndex = chatMessages.value.findIndex(m => m.id === messageId);
+          if (msgIndex !== -1) {
+             chatMessages.value[msgIndex].baziData = resultData;
+          }
+       } else {
+          // No cache showed, push new message
+          chatMessages.value.push({
+            role: 'assistant',
+            content: '',
+            timestamp: new Date(),
+            id: messageId,
+            type: 'bazi',
+            baziData: resultData
+          });
+          scrollToBottom(true);
+       }
     } else {
-       throw result.error || new Error('Unknown error');
+       // Fetch failed and no data returned
+       if (!showedCache) {
+          throw fetchError || new Error('Unknown error');
+       }
+       // If showed cache, suppress error (maybe log it), keep showing cache
+       console.warn('Network fetch failed, keeping cached Bazi data.', fetchError);
     }
   } catch (error) {
     console.error('获取八字数据失败:', error);
@@ -719,7 +775,8 @@ onMounted(() => {
   navBarHeight = menuButtonInfo.height + (gap * 2);
   // #endif
 
-  headerHeight.value = statusBarHeight + navBarHeight;
+  // Add extra buffer for the two-row title/selector layout
+  headerHeight.value = statusBarHeight + navBarHeight + 12;
 });
 
 const handleViewBaziDetail = () => {
@@ -774,7 +831,7 @@ const handleSwitchProfile = async (profile: UserInfo) => {
     userInfo.value = profile;
     
     // Initialize/Update Bazi data for the new profile
-    initBaziData(profile);
+    // initBaziData(profile); // Removed
     
     // Check if session exists
     if (profile.session_id) {
@@ -817,7 +874,7 @@ const getChatHistory = async () => {
       chatMessages.value = [];
 
       // 遍历聊天历史数据并添加到消息列表
-      res.data.forEach(item => {
+      res.data.forEach((item: any) => {
         // 添加用户消息
         if (item.role === 'user') {
           chatMessages.value.push({
@@ -879,6 +936,18 @@ const toggleReasoning = (message: any) => {
 const handleShowBazi = async () => {
   await execShowBaziCard(false);
 };
+
+const getInputValue = (value: string) => {
+  inputText.value = value;
+  if (value.trim()) {
+    sendQuestion();
+  } else {
+    uni.showToast({
+      title: '请输入问题',
+      icon: 'none'
+    });
+  }
+}
 
 const sendQuestion = async () => {
   if (!hasToken.value) {
@@ -970,7 +1039,8 @@ const sendQuestion = async () => {
       // 使用SSE获取流式响应
       const { messageList, isLoading, startSSE, error } = useSSEMessage({
         session_id: sessionId.value,
-        user_input: question
+        user_input: question,
+        deep_thinking: isDeepThinkingMode.value
       });
 
       // 开始SSE连接
@@ -998,14 +1068,27 @@ const sendQuestion = async () => {
             typeof latestMessage.content === 'string' &&
             latestMessage.content.length > 0;
 
-          if (startedContent) {
+          const startedReasoning = 
+            latestMessage.role === 'assistant' &&
+            typeof latestMessage.reasoning_content === 'string' &&
+            latestMessage.reasoning_content.length > 0;
+
+          if (startedContent || startedReasoning) {
             isTyping.value = false;
+          }
+
+          if (startedContent) {
             isThinking.value = false;
             if (existingMessage) {
               existingMessage.isReasoningExpanded = false;
             }
           }
           if (existingMessage) {
+            // Check if reasoning content has grown to trigger scroll
+            if (latestMessage.reasoning_content && latestMessage.reasoning_content.length > (existingMessage.reasoning_content?.length || 0)) {
+               existingMessage.reasoningScrollTop = (existingMessage.reasoningScrollTop || 0) + 9999;
+            }
+
             existingMessage.content = latestMessage.content;
             existingMessage.reasoning_content = latestMessage.reasoning_content;
             existingMessage.timestamp = new Date(latestMessage.created_at || Date.now());
@@ -1111,11 +1194,6 @@ const sendQuestion = async () => {
   }
 };
 
-const onInputUpdate = debounce((value: string) => {
-  console.log('value', value);
-  inputText.value = value;
-}, 300);
-
 const goToLogin = () => {
   let url = '/pages/login/index';
   if (currentInviteCode.value) {
@@ -1129,56 +1207,6 @@ const goToLogin = () => {
 </script>
 
 <style lang="scss" scoped>
-.profile-switching-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-top: 200rpx;
-  width: 100%;
-  
-  .loading-text {
-    margin-top: 32rpx;
-    font-size: 28rpx;
-    color: #6366f1; /* indigo-500, matching app theme */
-    font-weight: 500;
-    letter-spacing: 0.05em;
-  }
-}
-
-.custom-loader {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  
-  .dot {
-    width: 24rpx;
-    height: 24rpx;
-    background-color: #6366f1;
-    border-radius: 50%;
-    animation: loader-bounce 1.4s infinite ease-in-out both;
-    
-    &:nth-child(1) {
-      animation-delay: -0.32s;
-    }
-    &:nth-child(2) {
-      animation-delay: -0.16s;
-    }
-  }
-}
-
-@keyframes loader-bounce {
-  0%, 80%, 100% {
-    transform: scale(0);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
 .root {
   width: 100%;
   min-height: 100vh;
@@ -1323,7 +1351,7 @@ const goToLogin = () => {
 }
 
 .quota-banner-inline {
-  margin: 0 -32rpx 0 -32rpx;
+  margin: 0 -32rpx 24rpx -32rpx;
   background: #eef2ff;
   padding: 20rpx 32rpx;
   display: flex;
@@ -1857,34 +1885,44 @@ const goToLogin = () => {
 
 /* Thinking Chain Styles */
 .thinking-box {
-  background-color: rgba(238, 242, 255, 0.5); /* bg-indigo-50/50 */
-  border-left: 8rpx solid rgba(129, 140, 248, 0.3); /* border-l-4 border-indigo-400/30 */
-  border-top-right-radius: 24rpx; /* rounded-r-[20px] */
-  border-bottom-right-radius: 24rpx;
-  border-bottom-left-radius: 24rpx; /* rounded-bl-[20px] */
+  background-color: rgba(255, 255, 255, 0.6); /* Translucent background */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.8); /* Very subtle border */
+  border-left: 6rpx solid #818cf8; /* Lighter indigo accent */
+  border-top-right-radius: 20rpx;
+  border-bottom-right-radius: 20rpx;
+  border-bottom-left-radius: 20rpx;
   border-top-left-radius: 0;
   overflow: hidden;
-  box-shadow: 0 2rpx 4rpx 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+  box-shadow: 0 4rpx 16rpx rgba(31, 38, 135, 0.05); /* Softer shadow */
   margin-bottom: 24rpx;
   max-width: 95%;
+  transition: all 0.3s ease;
+  
+  &:hover {
+     background-color: rgba(255, 255, 255, 0.75);
+     box-shadow: 0 8rpx 24rpx rgba(31, 38, 135, 0.08);
+  }
 }
 
 .thinking-header {
-  padding: 20rpx 32rpx;
+  padding: 20rpx 24rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
   transition: background-color 0.3s;
+  background-color: transparent;
+}
 
-  &:active {
-    background-color: rgba(224, 231, 255, 0.3); /* hover:bg-indigo-100/30 equivalent */
-  }
+.thinking-header:active {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .thinking-header-left {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: 12rpx;
 }
 
 .thinking-icon {
@@ -1893,86 +1931,72 @@ const goToLogin = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-
-  .icon-svg {
-    width: 100%;
-    height: 100%;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234f46e5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M13 10V3L4 14h7v7l9-11h-7z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-  }
-
-  &.animate-spin .icon-svg {
-    animation: spin 1s linear infinite;
-  }
 }
 
-.status-text {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #818cf8; /* text-indigo-400 */
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+.thinking-icon .icon-svg {
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 10V3L4 14h7v7l9-11h-7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
-.toggle-text {
-  font-size: 26rpx;
+.thinking-icon.animate-spin .icon-svg {
+  animation: spin 1s linear infinite;
+}
+
+.status-text-thinking {
+  font-size: 24rpx;
   font-weight: 500;
-  color: #a5b4fc; /* text-indigo-300 */
+  color: #6366f1; /* Indigo-500 */
+  letter-spacing: 0.02em;
+}
+
+.thinking-arrow {
+  width: 32rpx;
+  height: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+  opacity: 0.5;
+}
+
+.thinking-arrow.rotate {
+  transform: rotate(180deg);
+}
+
+.arrow-icon-img {
+  width: 20rpx;
+  height: 20rpx;
 }
 
 .thinking-content {
-  padding: 24rpx 32rpx;
-  border-top: 1px solid rgba(255, 255, 255, 0.5); /* border-white/50 */
+  padding: 0 24rpx 24rpx 24rpx;
+  border-top: 1rpx solid rgba(99, 102, 241, 0.05); /* Almost invisible separator */
+  margin-top: 0;
+  padding-top: 16rpx;
+  background-color: transparent; /* Seamless background */
 }
 
-.thought-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 16rpx;
-  margin-bottom: 16rpx;
+.thinking-scroll-view {
+  max-height: 400rpx;
+  width: 100%;
+  overflow-y: auto;
+  padding-right: 12rpx;
 }
 
-.thought-dot {
-  width: 8rpx;
-  height: 8rpx;
-  border-radius: 50%;
-  background-color: #818cf8; /* bg-indigo-400 */
-  margin-top: 12rpx;
-  flex-shrink: 0;
-  box-shadow: 0 0 8rpx rgba(129, 140, 248, 0.5); /* shadow-[0_0_4px_rgba(129,140,248,0.5)] */
+.thinking-text {
+  font-size: 26rpx;
+  color: #475569; /* Slate-600 */
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-weight: 400;
 }
 
-.thought-text {
-  font-size: 28rpx;
-  color: #475569; /* text-slate-600 */
-  font-weight: 500;
-  line-height: 1.625;
-}
-
-.thinking-loading {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  margin-top: 8rpx;
-}
-
-.loading-dot {
-  width: 8rpx;
-  height: 8rpx;
-  border-radius: 50%;
-  background-color: #6366f1; /* bg-indigo-500 */
-  animation: pulse 2s infinite;
-}
-
-.loading-bar {
-  height: 12rpx;
-  width: 128rpx;
-  background-color: rgba(199, 210, 254, 0.5); /* bg-indigo-200/50 */
-  border-radius: 9999rpx;
-  animation: pulse 1.5s infinite;
-}
 
 @keyframes spin {
   from { transform: rotate(0deg); }
@@ -2429,5 +2453,120 @@ const goToLogin = () => {
     opacity: 0.9;
     transform: scale(0.98);
   }
+}
+
+.header-center-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.brand-title {
+  font-size: 36rpx;
+  font-weight: 900;
+  color: #1e293b;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+}
+
+.mode-selector {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 4rpx 16rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 24rpx;
+  margin-top: 4rpx;
+  position: relative;
+  transition: background 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+
+  &:active {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.mode-text {
+  font-size: 22rpx;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.mode-arrow {
+  width: 20rpx;
+  height: 20rpx;
+  opacity: 0.6;
+  transition: transform 0.2s;
+
+  &.rotate {
+    transform: rotate(180deg);
+  }
+}
+
+.mode-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 12rpx;
+  background: white;
+  border-radius: 20rpx;
+  box-shadow: 0 10rpx 30rpx -10rpx rgba(0, 0, 0, 0.15), 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 8rpx;
+  min-width: 220rpx;
+  z-index: 100;
+  border: 1rpx solid rgba(0, 0, 0, 0.05);
+}
+
+.mode-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  transition: background 0.2s;
+
+  &:active {
+    background: #f1f5f9;
+  }
+
+  &.active {
+    background: #f8fafc;
+    .option-label text, & > text {
+      color: #6366f1;
+      font-weight: 600;
+    }
+  }
+
+  text {
+    font-size: 26rpx;
+    color: #334155;
+  }
+}
+
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.vip-badge {
+  font-size: 18rpx;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white;
+  padding: 2rpx 6rpx;
+  border-radius: 6rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.check-mark {
+  width: 10rpx;
+  height: 20rpx;
+  border-bottom: 3rpx solid #6366f1;
+  border-right: 3rpx solid #6366f1;
+  transform: rotate(45deg) translate(-2rpx, -2rpx);
 }
 </style>

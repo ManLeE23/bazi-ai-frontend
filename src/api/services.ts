@@ -1,4 +1,5 @@
 import { httpGet, httpPost, httpPut, httpDelete } from './request';
+import { clearSWRCache } from '@/hooks/useSWR';
 
 export interface DailyFortuneResponse {
   profile_id: number | string;
@@ -55,6 +56,7 @@ export const fetchCreateProfile = (params: {
 };
 
 export const fetchDeleteProfile = (id: string) => {
+  clearSWRCache(`/api/bazi/calculate/profile/${id}`);
   return httpDelete({ url: `/api/profiles/${id}`, params: {} });
 };
 
@@ -96,20 +98,14 @@ export const fetchSuggestedQuestions = (params: {
   limit?: number;
   prev_questions: string[];
 }) => {
-  return httpPost({
-    url: '/api/chat/suggested-questions',
-    params,
-  });
+  return httpPost({ url: '/api/chat/suggested-questions', params });
 };
 
-export const fetchChatResponse = (params: {
-  session_id: string;
-  message: string;
+export const fetchSubmitFeedback = (params: {
+  feedback_type: string;
+  content: string;
 }) => {
-  return httpPost({
-    url: `/api/chat/sessions/stream-message/${params.session_id}`,
-    params: { message: params.message },
-  });
+  return httpPost({ url: '/api/feedback/create', params });
 };
 
 export const fetchChatHistory = (session_id: string) => {
@@ -182,7 +178,7 @@ export const fetchInviteStats = () => {
   });
 };
 
-export const fetchBaziCalculate = (profile_id: string) => {
+export const fetchBaziCalculate = async (profile_id: string) => {
   return httpGet({
     url: `/api/bazi/calculate/profile/${profile_id}`,
     params: {},

@@ -1,7 +1,13 @@
 <template>
   <view class="login-container">
-    <!-- Header Visual -->
+    <!-- Header Visual + HeaderBar -->
     <view class="header-visual">
+      <HeaderBar
+        :showBack="true"
+        :fixed="true"
+        :placeholder="true"
+        backgroundColor="transparent"
+      />
       <view class="header-bg-text">知势</view>
     </view>
 
@@ -20,25 +26,33 @@
       </view>
 
       <!-- Action Section -->
-      <view class="action-section">
-        <button 
-          class="login-btn" 
-          open-type="getPhoneNumber"
-          @getphonenumber="handleGetPhoneNumber"
-          :disabled="isLoading"
-        >
-          <text class="btn-text">手机号快捷登录</text>
-        </button>
-        
-        <view class="agreement-text">
-          <text class="agreement-label">登录即代表您已阅读并同意</text>
+    <view class="action-section">
+      <button 
+        class="login-btn" 
+        :open-type="hasAgreed ? 'getPhoneNumber' : ''"
+        @getphonenumber="handleGetPhoneNumber"
+        @click="handleLoginClick"
+        :disabled="isLoading"
+      >
+        <text class="btn-text">手机号快捷登录</text>
+      </button>
+      
+      <view class="agreement-text">
+        <view class="agree-row">
+          <view 
+            class="agree-checkbox" 
+            :class="{ 'agree-checkbox--checked': hasAgreed }" 
+            @click="toggleAgree"
+          ></view>
+          <text class="agreement-label">我已阅读并同意</text>
           <view class="links-row">
-            <text class="link" @click="handleOpenLegal('user_agreement')">用户协议</text>
+            <text class="link" @click.stop="handleOpenLegal('user_agreement')">用户协议</text>
             <text class="agreement-label"> 与 </text>
-            <text class="link" @click="handleOpenLegal('privacy_policy')">隐私政策</text>
+            <text class="link" @click.stop="handleOpenLegal('privacy_policy')">隐私政策</text>
           </view>
         </view>
       </view>
+    </view>
     </view>
 
     <!-- Legal Popup -->
@@ -58,6 +72,7 @@ import { ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { fetchPhoneLogin, fetchLegalDocs } from '@/api/services';
 import { userStore } from '@/store/user';
+import HeaderBar from '@/components/HeaderBar.vue';
 
 const isLoading = ref(false);
 const inviteCode = ref('');
@@ -65,6 +80,7 @@ const redirect = ref('');
 const showLegalPopup = ref(false);
 const legalTitle = ref('');
 const legalContent = ref('');
+const hasAgreed = ref(false);
 
 onLoad((options: any) => {
   if (options.inviteCode) {
@@ -94,7 +110,22 @@ const handleOpenLegal = async (type: 'user_agreement' | 'privacy_policy') => {
   }
 };
 
+const toggleAgree = () => {
+  hasAgreed.value = !hasAgreed.value;
+};
+
+const handleLoginClick = () => {
+  if (!hasAgreed.value) {
+    uni.showToast({ title: '请先勾选并同意协议', icon: 'none' });
+  }
+};
+
 const handleGetPhoneNumber = async (e: any) => {
+  if (!hasAgreed.value) {
+    uni.showToast({ title: '请先勾选并同意协议', icon: 'none' });
+    return;
+  }
+
   console.log('getPhoneNumber result:', e);
   
   if (e.detail.errMsg === "getPhoneNumber:ok" && e.detail.code) {
@@ -160,28 +191,28 @@ const handleGetPhoneNumber = async (e: any) => {
 }
 
 .header-visual {
-    position: relative;
-    height: 40vh;
-    background: radial-gradient(circle at 50% 40%, #818cf8 0%, #6366f1 100%);
-    // Using border-radius to approximate the clip-path ellipse(120% 100% at 50% 0%)
-    // A large bottom radius creates a convex curve downwards
-    border-bottom-left-radius: 40% 20%;
-    border-bottom-right-radius: 40% 20%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    
-    .header-bg-text {
-      font-size: 60px;
-      font-weight: 900;
-      color: rgba(255, 255, 255, 0.2);
-      letter-spacing: -2px;
-      opacity: 0.4;
-      pointer-events: none;
-      user-select: none;
-    }
+  position: relative;
+  height: 40vh;
+  background: radial-gradient(circle at 50% 40%, #818cf8 0%, #6366f1 100%);
+  // Using border-radius to approximate the clip-path ellipse(120% 100% at 50% 0%)
+  // A large bottom radius creates a convex curve downwards
+  border-bottom-left-radius: 40% 20%;
+  border-bottom-right-radius: 40% 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  
+  .header-bg-text {
+    font-size: 60px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.2);
+    letter-spacing: -2px;
+    opacity: 0.4;
+    pointer-events: none;
+    user-select: none;
   }
+}
 
 .content-wrapper {
   display: flex;
@@ -289,12 +320,6 @@ const handleGetPhoneNumber = async (e: any) => {
     color: #cbd5e1; // slate-300
     line-height: 2;
     
-    .links-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    
     .agreement-label {
        color: #cbd5e1;
     }
@@ -304,6 +329,49 @@ const handleGetPhoneNumber = async (e: any) => {
       text-decoration: underline;
       text-decoration-color: #c7d2fe; // decoration-indigo-200
       margin: 0 4px;
+    }
+
+    .agree-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .agree-checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid #cbd5e1;
+      margin-right: 4px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #ffffff;
+    }
+
+    .agree-checkbox.agree-checkbox--checked {
+      background-color: #4f46e5;
+      border-color: #4f46e5;
+    }
+
+    .agree-checkbox.agree-checkbox--checked::after {
+      content: '';
+      width: 8px;
+      height: 12px;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      transform: translateY(-1px) rotate(45deg);
+      box-sizing: border-box;
+    }
+
+    .links-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
 }

@@ -2,8 +2,23 @@
   <view class="root">
     <slot name="top"></slot>
     <!-- Quick Actions -->
-    <view class="quick-actions" v-if="showBazi">
-      <view class="action-chip" @click="emit('showBazi')">
+    <view class="quick-actions" v-if="!isQuotaExhausted">
+      <view 
+        class="action-chip" 
+        :class="{ 'active': deepThinking }"
+        @click="emit('toggleDeepThinking')"
+      >
+        <view class="thinking-icon-wrapper" :class="{ 'active': deepThinking }">
+          <image 
+            :src="deepThinking ? deepActiveSvg : deepInactiveSvg" 
+            class="thinking-icon-img"
+            mode="aspectFit"
+          />
+        </view>
+        <text class="chip-text" :class="{ 'active-text': deepThinking }">深度思考</text>
+      </view>
+
+      <view class="action-chip" v-if="showBazi" @click="emit('showBazi')">
         <image :src="baguaSvg" class="chip-icon-img" mode="aspectFit" />
         <text class="chip-text">看生辰</text>
       </view>
@@ -13,9 +28,9 @@
 
       <!-- Input Field -->
       <textarea
-      :placeholder="isAISending ? '正在输出诊断...' : '快和知势畅所欲言吧～'"
+        :placeholder="isAISending ? '正在输出诊断...' : '快和知势畅所欲言吧～'"
         class="input-field"
-        :value="modelValue"
+        :value="bindingValue"
         @input="onInput"
         @confirm="onConfirm"
         :auto-height="true"
@@ -23,7 +38,7 @@
         :cursor-spacing="20"
         maxlength="1000"
         :disabled="isAISending"
-        placeholder-style="color: #94a3b8; font-size: 14px" 
+        placeholder-style="color: #94a3b8; font-size: 28rpx" 
       ></textarea>
 
       <!-- Right Send Button -->
@@ -42,60 +57,78 @@
       </view>
     </view>
     
-    <text class="risk-warning">内容由 AI 生成</text>
+    <text class="risk-warning">内容由 AI 生成，仅供参考</text>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import baguaSvg from '@/static/icon/bagua.svg?url';
+import deepActiveSvg from '@/static/icon/deep-active.svg?url';
+import deepInactiveSvg from '@/static/icon/deep-inactive.svg?url';
 const upSvg = '/static/icon/up.svg';
-const refreshSvg = '/static/icon/refresh.svg';
 
 interface Props {
   modelValue?: string;
   placeholder?: string;
   showBazi?: boolean;
   isAISending?: boolean;
+  deepThinking?: boolean;
+  isQuotaExhausted?: boolean;
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: string): void;
   (e: 'confirm', value: string): void;
-  (e: 'click'): void;
-  (e: 'generateReport'): void;
+  (e: 'click', value: string): void;
   (e: 'showBazi'): void;
+  (e: 'toggleDeepThinking'): void;
 }
 
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: '',
-  modelValue: '',
   showBazi: true,
-  isAISending: false
+  isAISending: false,
+  deepThinking: false,
+  isQuotaExhausted: false
 });
 
 const emit = defineEmits<Emits>();
 
+const innerValue = ref('');
+// 绑定值，用于控制输入框的显示内容。初始为空，输入时不更新，仅在需要清空时通过变更为 ' ' 再变回 '' 来强制刷新
+const bindingValue = ref('');
+
 // 输入处理
 const onInput = (e: any) => {
   if (props.isAISending) return;
-  // 直接透传原生 input 事件的值，避免双向绑定延迟导致的跳变
-  // v-model 在 uniapp textarea 上有时会有 bug，改为 :value + @input
-  emit('update:modelValue', e.detail.value);
+  const value = e.detail.value;
+  // 仅更新内部值，不触发布局更新（避免闪烁）
+  innerValue.value = value;
 };
 
 // 点击按钮触发
 const onButtonClick = () => {
   if (props.isAISending) return;
-  emit('click');
+  emit('click', innerValue.value);
+  onClear();
 };
 
 // 回车确认触发
 const onConfirm = (e: any) => {
   const value = e.detail.value;
   emit('confirm', value);
+  onClear();
 };
+
+const onClear = () => {
+  // 强制清空逻辑：先设为空格触发更新，再设为空
+  bindingValue.value = ' ';
+  nextTick(() => {
+    bindingValue.value = '';
+    innerValue.value = '';
+  });
+}
 </script>
 
 <style lang="scss" scoped>
@@ -132,16 +165,39 @@ const onConfirm = (e: any) => {
         background: rgba(255, 255, 255, 0.6);
     }
 
+    &.active {
+      background: rgba(99, 102, 241, 0.1); /* indigo-500 with opacity */
+      border-color: #6366f1;
+    }
+
     .chip-icon-img {
-        width: 32rpx;
-        height: 32rpx;
+        width: 28rpx;
+        height: 28rpx;
         opacity: 0.8;
     }
 
     .chip-text {
-        font-size: 28rpx;
+        font-size: 24rpx;
         color: #475569;
         font-weight: 500;
+
+        &.active-text {
+          color: #6366f1;
+          font-weight: 600;
+        }
+    }
+
+    .thinking-icon-wrapper {
+      width: 32rpx;
+      height: 32rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .thinking-icon-img {
+        width: 32rpx;
+        height: 32rpx;
+      }
     }
   }
 }
@@ -213,7 +269,7 @@ const onConfirm = (e: any) => {
 .input-field {
   flex: 1;
   background: transparent;
-  font-size: 32rpx; /* text-[14px] */
+  font-size: 28rpx; /* text-[14px] */
   font-weight: 700; /* font-bold */
   color: #334155; /* text-slate-700 */
   min-height: 48rpx;
@@ -237,7 +293,7 @@ const onConfirm = (e: any) => {
 
 .risk-warning {
   text-align: center;
-  font-size: 20rpx;
+  font-size: 24rpx;
   color: #94a3b8;
   margin-top: 16rpx;
   width: 100%;

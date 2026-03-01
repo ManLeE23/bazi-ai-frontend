@@ -76,7 +76,6 @@ const handleChatClick = (chat: ChatItem) => {
 .chat-item {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(14px);
-  border: 1rpx solid rgba(255, 255, 255, 0.8);
   border-radius: 48rpx;
   padding: 32rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);

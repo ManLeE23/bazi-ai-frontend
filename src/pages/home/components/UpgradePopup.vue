@@ -1,81 +1,92 @@
 <template>
-  <CommonPopup
-    v-model="show"
-    background="linear-gradient(180deg, #dbeafe 0%, #ede9fe 100%)"
-    @close="handleClose"
-  >
-    <!-- Avatar & Title -->
-    <view class="header-section">
-      <UserAvatar 
-        :name="userInfo?.nickname || 'Q'" 
-        size="large"
-        style="margin-bottom: 32rpx;" 
-      />
-      <text class="main-title">人生趋势会员</text>
-      <text class="sub-title">升级后解锁全部功能，随时取消</text>
-    </view>
-
-    <!-- Pricing Cards -->
-    <view class="pricing-container">
-      <view 
-        v-for="plan in plans"
-        :key="plan.id"
-        class="plan-card" 
-        :class="{ 'premium-card': plan.id === 'vip_yearly', 'active': selectedPlanId === plan.id }"
-        @click="selectPlan(plan.id)"
-      >
-        <view class="tag-badge" :class="{ 'premium-tag': plan.id === 'vip_yearly' }">
-          <text class="tag-text">{{ plan.id === 'vip_yearly' ? '省 30%' : '热门' }}</text>
-        </view>
-        
-        <view class="plan-content">
-          <view class="price-row">
-             <text class="plan-duration-num">{{ plan.duration_days > 360 ? Math.floor(plan.duration_days / 30) : plan.duration_days }}</text>
-             <text class="plan-duration-unit">{{ plan.duration_days > 360 ? '个月' : '天' }}</text>
-          </view>
-          
-          <text class="plan-price">¥{{ (plan.price_cents / 100).toFixed(2) }}</text>
-          
-          <view class="plan-desc-wrapper">
-             <text class="plan-desc">{{ plan.membership_mode === MembershipMode.VIP_YEARLY ? '年付' : '月付' }}</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- Plan Benefits List -->
-    <view class="benefits-section" v-if="selectedPlan">
-       <text class="benefits-title">{{ selectedPlan.name }}权益</text>
-       <view class="benefits-list">
-          <view class="benefit-row" v-for="(benefit, index) in selectedPlan.benefits" :key="index">
-            <view class="benefit-icon-wrapper" :class="{ 'premium-icon': true }">
-              <u-icon name="checkmark" size="20" color="#ffffff"></u-icon>
-            </view>
-            <text class="benefit-text">{{ benefit }}</text>
-          </view>
-       </view>
-    </view>
-
-    <!-- Subscribe Button -->
-    <button 
-      class="subscribe-btn" 
-      :loading="isSubscribing" 
-      :disabled="isSubscribing"
-      @click="handleSubscribe"
+  <view>
+    <CommonPopup
+      v-model="show"
+      background="linear-gradient(180deg, #dbeafe 0%, #ede9fe 100%)"
+      @close="handleClose"
     >
-      开通{{ selectedPlan ? selectedPlan.name : '' }}
-    </button>
-
-    <!-- Footer Links -->
-    <view class="footer-links">
-      <text class="footer-tip">开通即代表您已阅读并同意以下协议与政策</text>
-      <view class="links-row">
-        <text class="link-item">用户协议</text>
-        <text class="link-item">会员协议</text>
-        <text class="link-item">隐私政策</text>
+      <!-- Avatar & Title -->
+      <view class="header-section">
+        <UserAvatar 
+          :name="userInfo?.nickname || 'Q'" 
+          size="large"
+          style="margin-bottom: 32rpx;" 
+        />
+        <text class="main-title">人生趋势会员</text>
+        <text class="sub-title">升级后解锁全部功能</text>
       </view>
-    </view>
-  </CommonPopup>
+
+      <!-- Pricing Cards -->
+      <view class="pricing-container">
+        <view 
+          v-for="plan in plans"
+          :key="plan.id"
+          class="plan-card" 
+          :class="{ 'premium-card': plan.id === 'vip_yearly', 'active': selectedPlanId === plan.id }"
+          @click="selectPlan(plan.id)"
+        >
+          <view class="tag-badge" :class="{ 'premium-tag': plan.id === 'vip_yearly' }">
+            <text class="tag-text">{{ plan.id === 'vip_yearly' ? '省 30%' : '热门' }}</text>
+          </view>
+          
+          <view class="plan-content">
+            <view class="price-row">
+               <text class="plan-duration-num">{{ plan.duration_days > 360 ? Math.floor(plan.duration_days / 30) : plan.duration_days }}</text>
+               <text class="plan-duration-unit">{{ plan.duration_days > 360 ? '个月' : '天' }}</text>
+            </view>
+            
+            <text class="plan-price">¥{{ (plan.price_cents / 100).toFixed(2) }}</text>
+            
+            <view class="plan-desc-wrapper">
+               <text class="plan-desc">{{ plan.membership_mode === MembershipMode.VIP_YEARLY ? '年付' : '月付' }}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- Plan Benefits List -->
+      <view class="benefits-section" v-if="selectedPlan">
+         <text class="benefits-title">{{ selectedPlan.name }}权益</text>
+         <view class="benefits-list">
+            <view class="benefit-row" v-for="(benefit, index) in selectedPlan.benefits" :key="index">
+              <view class="benefit-icon-wrapper" :class="{ 'premium-icon': true }">
+                <u-icon name="checkmark" size="20" color="#ffffff"></u-icon>
+              </view>
+              <text class="benefit-text">{{ benefit }}</text>
+            </view>
+         </view>
+      </view>
+
+      <!-- Subscribe Button -->
+      <button 
+        class="subscribe-btn" 
+        :loading="isSubscribing" 
+        :disabled="isSubscribing"
+        @click="handleSubscribe"
+      >
+        开通{{ selectedPlan ? selectedPlan.name : '' }}
+      </button>
+
+      <!-- Footer Links -->
+      <view class="footer-links">
+        <text class="footer-tip">开通即代表您已阅读并同意以下协议与政策</text>
+        <view class="links-row">
+          <text class="link-item" @click.stop="handleOpenLegal('user_agreement')">用户协议</text>
+          <text class="link-item" @click.stop="handleOpenLegal('privacy_policy')">隐私政策</text>
+        </view>
+      </view>
+    </CommonPopup>
+
+    <!-- Legal Popup -->
+    <u-popup v-model="showLegalPopup" mode="bottom" border-radius="24" :closeable="true" :z-index="10080">
+      <view class="legal-popup-content">
+        <view class="legal-title">{{ legalTitle }}</view>
+        <scroll-view scroll-y class="legal-scroll">
+          <text class="legal-text">{{ legalContent }}</text>
+        </scroll-view>
+      </view>
+    </u-popup>
+  </view>
 </template>
 
 <script setup lang="ts">
@@ -84,7 +95,7 @@ import CommonPopup from '@/components/CommonPopup.vue';
 import UserAvatar from '@/components/UserAvatar.vue';
 import { userStore, MembershipMode } from '@/store/user';
 import { handleWechatPayment } from '@/utils/payment';
-import { fetchSystemUserInfo, fetchMembershipPlans, fetchWechatOrderQuery } from '@/api/services';
+import { fetchSystemUserInfo, fetchMembershipPlans, fetchWechatOrderQuery, fetchLegalDocs } from '@/api/services';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -116,6 +127,28 @@ interface MembershipPlan {
 const plans = ref<MembershipPlan[]>([]);
 const selectedPlanId = ref<string>('');
 const isSubscribing = ref(false);
+const showLegalPopup = ref(false);
+const legalTitle = ref('');
+const legalContent = ref('');
+
+const handleOpenLegal = async (type: 'user_agreement' | 'privacy_policy') => {
+  uni.showLoading({ title: '加载中...' });
+  try {
+    legalTitle.value = type === 'user_agreement' ? '用户协议' : '隐私政策';
+    const res: any = await fetchLegalDocs(type);
+    if (res.code === 200 && res.data) {
+      legalContent.value = res.data.content || '暂无内容';
+      showLegalPopup.value = true;
+    } else {
+      uni.showToast({ title: '获取内容失败', icon: 'none' });
+    }
+  } catch (error) {
+    console.error('Fetch legal doc error:', error);
+    uni.showToast({ title: '获取内容失败', icon: 'none' });
+  } finally {
+    uni.hideLoading();
+  }
+};
 
 const loadPlans = async () => {
   try {
@@ -525,8 +558,37 @@ $white: #ffffff;
 }
 
 .link-item {
-  font-size: 20rpx; /* text-[9px] */
-  font-weight: 700; /* font-bold */
-  color: $slate-400; /* Lightened from slate-600 */
+    font-size: 20rpx; /* text-[9px] */
+    font-weight: 700; /* font-bold */
+    color: $slate-400; /* Lightened from slate-600 */
+  }
+
+/* Legal Popup */
+.legal-popup-content {
+  padding: 64rpx 48rpx;
+  background-color: $white;
+  height: 60vh;
+  display: flex;
+  flex-direction: column;
+  
+  .legal-title {
+    font-size: 36rpx;
+    font-weight: 700;
+    color: $slate-800;
+    text-align: center;
+    margin-bottom: 32rpx;
+  }
+  
+  .legal-scroll {
+    flex: 1;
+    height: 0;
+  }
+  
+  .legal-text {
+    font-size: 28rpx;
+    color: $slate-600;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
 }
 </style>
