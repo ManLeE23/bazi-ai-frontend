@@ -1,7 +1,7 @@
 <template>
   <view class="bazi-detail-container" :class="{ 'has-liuyue': !!activeLiuYue }">
     <HeaderBar :showBack="true" :fixed="true" :placeholder="true" backgroundColor="transparent" />
-    <scroll-view scroll-y="true" class="main-scroll" :show-scrollbar="false">
+    <scroll-view v-if="!isLoading" scroll-y="true" class="main-scroll" :show-scrollbar="false">
     <!-- Header -->
     <view class="custom-header">
       <view class="header-content">
@@ -133,7 +133,7 @@
           <text class="grid-cell">{{ baziData.pillars?.hour?.nayin }}</text>
           <text class="grid-cell">{{ currentDayun?.nayin }}</text>
           <text class="grid-cell">{{ currentLiunian?.nayin }}</text>
-          <text class="grid-cell" v-if="activeLiuYue">-</text>
+          <text class="grid-cell" v-if="activeLiuYue">{{ activeLiuYue?.nayin }}</text>
         </view>
 
         <!-- Xing Yun -->
@@ -145,7 +145,7 @@
           <text class="grid-cell">{{ baziData.pillars?.hour?.xing_yun }}</text>
           <text class="grid-cell">{{ currentDayun?.xing_yun }}</text>
           <text class="grid-cell">{{ currentLiunian?.xing_yun }}</text>
-          <text class="grid-cell" v-if="activeLiuYue">-</text>
+          <text class="grid-cell" v-if="activeLiuYue">{{ activeLiuYue?.xing_yun }}</text>
         </view>
 
          <!-- Kong Wang -->
@@ -157,7 +157,7 @@
           <text class="grid-cell empty-death">{{ baziData.pillars?.hour?.kong_wang }}</text>
           <text class="grid-cell empty-death">{{ currentDayun?.kong_wang }}</text>
           <text class="grid-cell empty-death">{{ currentLiunian?.kong_wang }}</text>
-          <text class="grid-cell empty-death" v-if="activeLiuYue">-</text>
+          <text class="grid-cell empty-death" v-if="activeLiuYue">{{ activeLiuYue?.kong_wang }}</text>
         </view>
         
         <!-- Extra Info -->
@@ -311,6 +311,9 @@ interface LiuYueItem {
   hidden_stems?: HiddenStem[]; // Hidden Stems from API
   pillar?: string; // Add pillar field
   term_label?: string; // Added by frontend
+  nayin?: string;
+  xing_yun?: string;
+  kong_wang?: string;
 }
 
 interface LiuNianItem {
@@ -401,17 +404,11 @@ const baziData = computed<BaziData>(() => {
     };
 });
 
-watch(isLoading, (val) => {
-    if (val && !swrData.value) {
-        uni.showLoading({ title: '排盘中...' });
-    } else {
-        uni.hideLoading();
-    }
-}, { immediate: true });
+
 
 watch(swrError, (val) => {
     if (val) {
-        uni.showToast({ title: '排盘失败', icon: 'none' });
+        uni.showToast({ title: '加载失败', icon: 'none' });
     }
 });
 
@@ -483,6 +480,8 @@ const getBranchMainQi = (branch: string): string => {
 // Five Tigers Seeking Month Logic (Wu Hu Dun) & Data Mapping
 const currentLiuYueList = computed(() => {
     if (!activeLiunianYear.value) return [];
+
+    console.log('activeLiunianYear.value', activeLiunianYear.value);
     
     const ln = currentLiunian.value;
     const dayMaster = baziData.value.pillars.day?.gan; // Get Day Master
@@ -531,7 +530,10 @@ const currentLiuYueList = computed(() => {
                 stem_ten_god: stemTenGod,
                 branch_ten_god: branchTenGod,
                 ten_god: m.ten_god,
-                hidden_stems: m.hidden_stems
+                hidden_stems: m.hidden_stems,
+                xing_yun: m.xing_yun,
+                kong_wang: m.kong_wang,
+                nayin: m.nayin
             };
         });
     }
@@ -594,7 +596,7 @@ const handleLiunianSelect = (item: LiuNianItem) => {
 };
 
 const handleLiuYueSelect = (month: LiuYueItem) => {
-    // console.log('month', month);
+    console.log('month', month);
     if (activeLiuYue.value?.month === month.month) {
         activeLiuYue.value = null; // Toggle off
     } else {
@@ -628,8 +630,15 @@ const getElementClass = (tenGod: string | undefined) => {
     return 'text-slate-600';
 };
 
-onLoad((options) => {
-    queryParams.value = options || {};
+onLoad((options: any) => {
+    const params = options || {};
+    queryParams.value = params;
+    
+    if (!params.id && !params.profile_id) {
+        uni.redirectTo({
+            url: '/pages/error/index?message=' + encodeURIComponent('找不到档案') + '&showRetry=false'
+        });
+    }
 });
 
 const initSelection = () => {

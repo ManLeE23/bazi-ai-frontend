@@ -1,5 +1,13 @@
 <template>
   <view class="sidebar-container">
+    <!-- Global mask for dropdowns to avoid fixed positioning issues during transition -->
+    <view 
+      v-if="activeMenuId !== null" 
+      class="menu-mask-absolute" 
+      @click.stop="closeMenu"
+      @touchmove.stop.prevent
+    ></view>
+
     <!-- Explore Section -->
     <view class="menu-section">
       <text class="menu-title">发现</text>
@@ -56,9 +64,7 @@
       </view>
 
       <!-- Profiles List -->
-      <scroll-view
-        scroll-y
-        :show-scrollbar="false"
+      <view
         class="profiles-list"
         v-if="profiles.length > 0"
       >
@@ -92,7 +98,6 @@
 
             <!-- Dropdown Menu -->
             <template v-if="activeMenuId === item.id">
-              <view class="menu-mask-fixed" @click.stop="closeMenu"></view>
               <view
                 class="dropdown-menu"
                 :class="{
@@ -120,7 +125,7 @@
             </template>
           </view>
         </view>
-      </scroll-view>
+      </view>
 
       <!-- Empty State -->
       <view class="empty-state" v-else>
@@ -134,25 +139,6 @@
         </button>
       </view>
     </view>
-
-    <!-- Trial Card -->
-    <!-- <TrialCard 
-      v-if="systemUser?.trial_end_at"
-      :start-time="systemUser?.trial_start_at"
-      :end-time="systemUser?.trial_end_at"
-    /> -->
-
-    <!-- Footer User Info -->
-    <!-- <view class="quota-container" v-if="systemUser && !systemUser.is_vip">
-      <view class="quota-header">
-        <text class="quota-label">免费额度</text>
-        <text class="quota-value" :class="{ 'text-warning': isQuotaExhausted }">{{ remainingQuota }}/{{ totalQuota }}</text>
-      </view>
-      <view class="progress-bar">
-        <view class="progress-inner" :style="{ width: quotaPercent + '%' }"></view>
-      </view>
-      <text v-if="isQuotaExhausted" class="quota-tip">额度已用完，升级会员或邀请好友获取更多</text>
-    </view> -->
 
     <view class="sidebar-footer">
       <view v-if="hasToken" class="user-row" @click="openUserCenter">
@@ -222,10 +208,6 @@ const isQuotaExhausted = computed(
     systemUser.value?.membership_type !== MembershipType.VIP &&
     remainingQuota.value <= 0,
 );
-const quotaPercent = computed(() => {
-  if (totalQuota.value === 0) return 100;
-  return Math.min(100, (usedQuota.value / totalQuota.value) * 100);
-});
 
 const profiles = ref<any[]>([]);
 const activeMenuId = ref<string | null>(null);
@@ -248,17 +230,9 @@ const displayProfile = computed(() => {
   );
 });
 
-const openFortune = () => {
-  emit('open-fortune');
-};
-
 const isActive = (item: any) => {
   if (!currentUserId.value || !item.id) return false;
   return String(currentUserId.value) === String(item.id);
-};
-
-const isSelfProfile = (item: any) => {
-  return item.is_self;
 };
 
 const loadProfiles = async () => {
@@ -640,7 +614,7 @@ const navigateToLogin = () => {
 }
 
 .profiles-list {
-  flex: 1;
+  flex: 0 1 auto;
   overflow-y: auto;
   padding-bottom: 12px;
 
@@ -851,12 +825,12 @@ const navigateToLogin = () => {
 }
 
 /* Dropdown Menu Styles */
-.menu-mask-fixed {
-  position: fixed;
+.menu-mask-absolute {
+  position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   z-index: 99;
   background-color: transparent;
 }

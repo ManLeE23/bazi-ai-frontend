@@ -47,7 +47,7 @@
       </view>
 
       <button class="detail-btn" hover-class="btn-hover" @click="viewDetail">
-        查看详细排盘
+        查看详情
       </button>
     </view>
   </view>

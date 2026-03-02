@@ -72,8 +72,8 @@
 
           <!-- Step 3: Birthday -->
           <view v-else-if="formStep === 3" class="step-inner" key="3">
-            <text class="title">这是趋势建模中最重要的一步</text>
-            <text class="subtitle">出生时间决定了你的人生节律与关键周期</text>
+            <text class="title">生成你的专属成长画像</text>
+            <text class="subtitle">出生时间将作为分析你的成长气质与阶段特征的参考</text>
             
             <view class="form-section">
               <view class="input-group">
@@ -101,7 +101,7 @@
           <!-- Step 4: Birth Address -->
           <view v-else-if="formStep === 4" class="step-inner" key="4">
             <text class="title">最后一步{{ '\n' }}完善你的趋势背景</text>
-            <text class="subtitle">地理经纬度决定了真太阳时的校准</text>
+            <text class="subtitle">出生地点用于校准分析模型，提升结果参考价值</text>
             
             <view class="form-section">
               <view class="input-group">
@@ -177,8 +177,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
-import DateTimePicker from '@/pages/index/components/DateTimePicker.vue';
-import RegionPicker from '@/pages/index/components/RegionPicker.vue';
+import DateTimePicker from '@/components/DateTimePicker.vue';
+import RegionPicker from '@/components/RegionPicker.vue';
 import { fetchCreateProfile, fetchCreateSession } from '@/api/services';
 import { userStore } from '@/store/user';
 import SafeSvg from '@/static/icon/safe.svg?url'

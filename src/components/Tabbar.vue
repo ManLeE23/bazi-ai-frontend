@@ -44,7 +44,7 @@ const list = ref([
     iconPath: analyzeSvg,
     selectedIconPath: analyzeActiveSvg,
     text: '分析',
-    pagePath: '/pages/index/index',
+    // pagePath: '/pages/index/index',
   },
   // {
   //   iconPath: reportSvg,

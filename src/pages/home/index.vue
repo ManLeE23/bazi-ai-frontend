@@ -18,15 +18,29 @@
       </template>
     </HeaderBar>
     
-    <!-- Sidebar -->
-    <u-popup v-model="showSidebar" mode="left" width="600">
-      <SidebarMenu 
-        :current-profile="userInfo"
-        @open-user-center="handleOpenUserCenter" 
-        @switch-profile="handleSwitchProfile" 
-        @open-fortune="handleOpenFortune"
-      />
-    </u-popup>
+    <!-- Custom Sidebar Implementation -->
+    <!-- Mask -->
+    <view 
+      class="sidebar-overlay" 
+      :class="{ 'show': showSidebar }" 
+      @click="showSidebar = false"
+      @touchmove.stop.prevent
+    ></view>
+
+    <!-- Sidebar Panel -->
+    <view 
+      class="sidebar-panel" 
+      :class="{ 'show': showSidebar }"
+    >
+      <view class="sidebar-wrapper-fixed">
+        <SidebarMenu 
+          class="sidebar-menu-root"
+          :current-profile="userInfo"
+          @open-user-center="handleOpenUserCenter" 
+          @switch-profile="handleSwitchProfile" 
+        />
+      </view>
+    </view>
 
     <!-- User Center Popup -->
     <UserCenterPopup v-model="showUserPopup" @open-upgrade="handleOpenUpgrade" />
@@ -173,7 +187,7 @@
     >
       <!-- Handle -->
       <view class="drawer-handle-compact" @click="isBaziDrawerOpen = !isBaziDrawerOpen">
-        <image :src="baguaSvg" class="handle-icon-compact" mode="aspectFit" />
+        <image :src="starShineSvg" class="handle-icon-compact" mode="aspectFit" />
       </view>
       
       <!-- Content -->
@@ -242,7 +256,7 @@ import LoadingIndicator from '@/components/LoadingIndicator.vue';
 import MarkDown from '../components/MarkDown/index.vue';
 import BaziCard from './components/BaziCard.vue';
 import downSvg from '@/static/icon/down.svg?url';
-import baguaSvg from '@/static/icon/bagua.svg?url';
+import starShineSvg from '@/static/icon/star-shine.svg?url';
 
 const currentInviteCode = ref('');
 const isUserAtBottom = ref(true);
@@ -800,13 +814,6 @@ const handleOpenUserCenter = () => {
   showUserPopup.value = true;
 };
 
-const handleOpenFortune = () => {
-  showSidebar.value = false;
-  uni.navigateTo({
-    url: '/pages/daily-fortune/index'
-  });
-};
-
 const handleOpenUpgrade = () => {
   showUserPopup.value = false; // Ensure previous popup is closed
   showUpgradePopup.value = true;
@@ -1218,6 +1225,61 @@ const goToLogin = () => {
   view {
     box-sizing: border-box;
   }
+}
+
+.sidebar-wrapper-fixed {
+  height: 100%;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+/* Custom Sidebar Implementation */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  pointer-events: none;
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+.sidebar-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 600rpx;
+  background-color: #fff;
+  z-index: 1001;
+  transform: translate3d(-100%, 0, 0);
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 4rpx 0 16rpx rgba(0, 0, 0, 0.05);
+  /* Handle safe area */
+
+  &.show {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+:deep(.sidebar-menu-root) {
+  flex: 1;
+  height: 100%;
 }
 
 .fortune-content-wrapper {
