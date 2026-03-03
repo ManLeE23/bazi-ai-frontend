@@ -92,7 +92,7 @@ const props = defineProps<{
 const viewDetail = () => {
   const { id } = props.userInfo;
   uni.navigateTo({
-      url: `/pages/bazi/detail?id=${id}`
+      url: `/pages/qushi/detail?id=${id}`
   });
 };
 

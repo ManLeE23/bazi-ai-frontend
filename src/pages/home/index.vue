@@ -65,7 +65,7 @@
             <view class="slogan-title">
               <text>走对</text><text class="text-indigo">下一步。</text>
             </view>
-            <text class="slogan-sub">DIGITAL WISDOM & DESTINY ALGORITHMS</text>
+            <text class="slogan-sub">DIGITAL WISDOM & CULTURAL ANALYSIS</text>
           </view>
           <ProfileGuideCard :has-token="hasToken" :invite-code="currentInviteCode" />
         </view>
@@ -279,6 +279,7 @@ onShareAppMessage(() => {
   return {
     title: '人生趋势：看清趋势，走对下一步',
     path: `/pages/slogan/index?inviteCode=${inviteCode}`,
+    imageUrl: '/static/slogan.png'
   };
 });
 
@@ -332,7 +333,7 @@ const userInfo = computed({
   }
 });
 
-const { data: currentBaziData, mutate: mutateBazi, error: baziError } = useSWR(
+const { data: currentBaziData, mutate: mutateBazi, error: baziError, isValidating: isBaziValidating } = useSWR(
   () => userInfo.value?.id ? `/api/bazi/calculate/profile/${userInfo.value.id}` : null,
   () => {
     if (!userInfo.value?.id) return Promise.reject('No profile ID');
@@ -426,7 +427,7 @@ const simulateWelcomeMessages = () => {
     // Message 2
     chatMessages.value.push({
       role: 'assistant',
-      content: '我是知势，现在可以聊聊你当下最关心的人生方向啦',
+      content: '我是知势，你的个人成长与趋势分析助手。帮你识别个人周期中的“季节”与“潮汐”，让你在规划重要事项时，多一个参考维度',
       timestamp: new Date(),
       id: `welcome-2-${Date.now()}`
     });
@@ -436,7 +437,7 @@ const simulateWelcomeMessages = () => {
       // Message 3
       chatMessages.value.push({
         role: 'assistant',
-        content: '不管是事业、情感还是其他选择，都可以跟我说，我帮你拆解趋势～',
+        content: '我们可以先聊聊你当下的情况',
         timestamp: new Date(),
         id: `welcome-3-${Date.now()}`
       });
@@ -686,7 +687,7 @@ const execShowBaziCard = async (isAuto = false) => {
 
     chatMessages.value.push({
       role: 'user',
-      content: '看生辰',
+      content: '查看深度解读',
       timestamp: new Date(),
       id: `user_${Date.now()}`,
       type: 'text'
@@ -720,8 +721,22 @@ const execShowBaziCard = async (isAuto = false) => {
 
     try {
       // Trigger SWR revalidation to get latest data
-      // mutateBazi() returns the fresh data after revalidation
-      await mutateBazi();
+    // mutateBazi() returns the fresh data after revalidation
+    if (!currentBaziData.value) {
+      if (isBaziValidating.value) {
+         // If already validating, wait for it to finish
+         await new Promise<void>((resolve) => {
+            const unwatch = watch(isBaziValidating, (val) => {
+               if (!val) {
+                  unwatch();
+                  resolve();
+               }
+            });
+         });
+      } else {
+         await mutateBazi();
+      }
+    }
       resultData = currentBaziData.value;
       if (baziError.value) {
         fetchError = baziError.value;
@@ -760,11 +775,11 @@ const execShowBaziCard = async (isAuto = false) => {
        console.warn('Network fetch failed, keeping cached Bazi data.', fetchError);
     }
   } catch (error) {
-    console.error('获取八字数据失败:', error);
+    console.error('获取分析数据失败:', error);
     if (!isAuto) {
       chatMessages.value.push({
           role: 'assistant',
-          content: '获取八字数据失败，请稍后再试。',
+          content: '获取分析数据失败，请稍后再试。',
           timestamp: new Date(),
           id: `ai_${Date.now()}`,
           type: 'text'
@@ -804,7 +819,7 @@ const handleViewBaziDetail = () => {
   
   if (userInfo.value && userInfo.value.id) {
     uni.navigateTo({
-        url: `/pages/bazi/detail?id=${userInfo.value.id}`
+        url: `/pages/qushi/detail?id=${userInfo.value.id}`
     });
   }
 };

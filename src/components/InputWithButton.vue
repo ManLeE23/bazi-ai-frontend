@@ -28,7 +28,7 @@
 
       <!-- Input Field -->
       <textarea
-        :placeholder="isAISending ? '正在输出诊断...' : '快和知势畅所欲言吧～'"
+        :placeholder="isAISending ? '正在整理你的趋势建议...' : '快和知势畅所欲言吧～'"
         class="input-field"
         :value="bindingValue"
         @input="onInput"

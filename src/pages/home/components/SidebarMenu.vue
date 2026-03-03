@@ -168,6 +168,10 @@
           登录
         </button>
       </view>
+
+      <!-- <view class="disclaimer-text">
+        本应用仅供娱乐和文化研究，不作为人生决策依据
+      </view> -->
     </view>
   </view>
 </template>
@@ -582,7 +586,7 @@ const navigateToLogin = () => {
   flex-direction: column;
   overflow: hidden; /* For scroll-view */
   position: relative;
-  z-index: 1;
+  /* z-index: 1; Removed to allow children (active profile) to pop above the global mask */
 }
 
 .recent-header {
@@ -881,8 +885,16 @@ const navigateToLogin = () => {
 }
 
 .dropdown-divider {
-  height: 1px;
-  background-color: #f1f5f9;
-  margin: 4rpx 0;
-}
+    height: 1px;
+    background-color: #f1f5f9;
+    margin: 4rpx 0;
+  }
+
+  // .disclaimer-text {
+  //   margin-top: 20rpx;
+  //   font-size: 20rpx;
+  //   color: #94a3b8;
+  //   text-align: center;
+  //   line-height: 1.4;
+  // }
 </style>

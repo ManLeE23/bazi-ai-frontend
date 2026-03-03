@@ -29,7 +29,7 @@
           <!-- Step 1: Name -->
           <view v-if="formStep === 1" class="step-inner" key="1">
             <text class="title">你好，{{ '\n' }}该如何称呼你？</text>
-            <text class="subtitle">姓名仅用于区分档案，不影响趋势分析结果</text>
+            <text class="subtitle">姓名仅用于区分档案，不影响趋势分析</text>
             
             <view class="form-section">
               <view class="input-group">
@@ -48,7 +48,7 @@
           <!-- Step 2: Gender -->
           <view v-else-if="formStep === 2" class="step-inner" key="2">
             <text class="title">选择性别</text>
-            <text class="subtitle">用于趋势计算中的基础参数，不涉及任何偏好判断</text>
+            <text class="subtitle">用于分析模型的基础参数</text>
             
             <view class="gender-grid">
               <view 
@@ -72,12 +72,12 @@
 
           <!-- Step 3: Birthday -->
           <view v-else-if="formStep === 3" class="step-inner" key="3">
-            <text class="title">生成你的专属成长画像</text>
-            <text class="subtitle">出生时间将作为分析你的成长气质与阶段特征的参考</text>
+            <text class="title">输入出生时间</text>
+            <text class="subtitle">用于分析模型的基础参数</text>
             
             <view class="form-section">
               <view class="input-group">
-                <text class="input-label">出生日期与时间</text>
+                <text class="input-label">出生时间</text>
                 <DateTimePicker
                   v-model:date="form.birthday"
                   v-model:time="form.birthtime"
@@ -93,7 +93,7 @@
                 <view class="privacy-icon-circle">
                    <image :src="SafeSvg" class="icon-lock" mode="aspectFit" />
                 </view>
-                <text class="privacy-text">你的出生信息仅用于个人趋势分析，将加密存储。</text>
+                <text class="privacy-text">你的出生时间仅用于分析模型的基础参数，将加密存储。</text>
               </view>
             </view>
           </view>
@@ -118,7 +118,7 @@
           <!-- Step 5: Confirmation -->
           <view v-else-if="formStep === 5" class="step-inner" key="5">
             <text class="title">确认信息</text>
-            <text class="subtitle">请仔细核对以下信息，确保分析结果的准确性</text>
+            <!-- <text class="subtitle">请仔细核对以下信息，确保为您生成专属的深度解读</text> -->
             
             <view class="form-section">
               <view class="info-card">
@@ -168,7 +168,7 @@
           :loading="isLoading"
           @click="handleNext"
         >
-          {{ isLoading ? '分析中...' : (formStep < 5 ? '继续' : '开始趋势诊断') }}
+          {{ isLoading ? '生成中...' : (formStep < 5 ? '继续' : '开启趋势分析') }}
         </button>
       </view>
     <!-- </view> -->

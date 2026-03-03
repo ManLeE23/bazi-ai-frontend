@@ -90,7 +90,7 @@
       <!-- Chat Button -->
       <div @click="jumpToChat" class="chat-button">
         <image src="@/static/icon/chat.svg" alt="chat" class="chat-icon" />
-        <span>还有疑问？点我继续问 AI 命师</span>
+        <span>还有疑问？点我继续问 AI 助手</span>
       </div>
 
       <!-- Disclaimer -->
@@ -143,8 +143,9 @@ const jumpToChat = () => {
 
 onShareAppMessage(() => {
   return {
-    title: '你的命盘诊断',
+    title: '你的深度诊断',
     path: `/pages/report/index?id=${reportId.value}`,
+    imageUrl: '/static/slogan.png'
   };
 });
 

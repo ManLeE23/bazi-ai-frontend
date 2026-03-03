@@ -34,9 +34,45 @@ const getPersistentCache = (key: string) => {
 
 const setPersistentCache = (key: string, data: any) => {
   try {
+    // Implement simple LRU for Bazi calculation results (max 1 - current only)
+    if (key.includes('/api/bazi/calculate/profile/')) {
+      const BAZI_CACHE_INDEX_KEY = 'swr_bazi_keys_index';
+      let baziKeys: string[] = [];
+      try {
+        const stored = uni.getStorageSync(BAZI_CACHE_INDEX_KEY);
+        baziKeys = stored ? JSON.parse(stored) : [];
+      } catch {
+        baziKeys = [];
+      }
+
+      // Remove current key if exists (to move to end)
+      baziKeys = baziKeys.filter((k) => k !== key);
+
+      // Add to end
+      baziKeys.push(key);
+
+      // Enforce limit of 1 (current only)
+      while (baziKeys.length > 1) {
+        const toRemove = baziKeys.shift();
+        if (toRemove) {
+          try {
+            uni.removeStorageSync(`swr_cache_${toRemove}`);
+            // globalCache.delete(toRemove); // Keep in memory for session speed, only clear storage
+          } catch (e) {
+            console.error('Failed to remove old Bazi cache:', e);
+          }
+        }
+      }
+
+      // Save index
+      uni.setStorageSync(BAZI_CACHE_INDEX_KEY, JSON.stringify(baziKeys));
+    }
+
     uni.setStorageSync(`swr_cache_${key}`, JSON.stringify(data));
   } catch (e) {
     console.error('SWR Cache Write Error:', e);
+    // Optional: Clear all cache if quota exceeded to recover?
+    // uni.clearStorageSync();
   }
 };
 

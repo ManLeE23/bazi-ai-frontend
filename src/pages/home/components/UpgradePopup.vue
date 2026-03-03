@@ -169,20 +169,6 @@ onMounted(() => {
 });
 
 const currentSwiperIndex = ref(0);
-const testimonials = [
-  {
-    title: '真的很好特别好',
-    content: '用过就知道啦呜呜嗯！！一定要越来越好哦呜呜嗯！之前的算法和布局也超棒的，那个深度思考捏！～好好加油呀！'
-  },
-  {
-    title: '分析得太准了',
-    content: '人生趋势的分析让我对未来更有信心了，尤其是那个流年运势，简直是为我量身定做的，强烈推荐给大家！'
-  },
-  {
-    title: '非常实用的工具',
-    content: '界面简洁美观，功能强大，不仅能看运势还能进行深度对话，解决了我很多困惑，会员非常值得！'
-  }
-];
 
 const onSwiperChange = (e: any) => {
   currentSwiperIndex.value = e.detail.current;

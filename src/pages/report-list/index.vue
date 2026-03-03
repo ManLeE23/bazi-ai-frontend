@@ -11,7 +11,7 @@
         :border-bottom="false"
       />
       <div class="report-title">历史报告</div>
-      <div class="report-subtitle">查看你的往期命理分析记录</div>
+      <div class="report-subtitle">查看你的往期深度分析记录</div>
     </div>
     
     <div class="container">
@@ -71,7 +71,7 @@ const getReportList = async () => {
     if (res && res.data) {
       reports.value = res.data.list.map((item: any) => ({
         id: item.id,
-        title: item.title || '八字命理分析',
+        title: item.title || '八字深度分析',
         date: dayjs(item.created_at).format('YYYY-MM-DD HH:mm'),
         dimensions: item.focus_dimensions || [],
         birthDate: item.user_info.birth_date || '未知',
@@ -85,7 +85,7 @@ const getReportList = async () => {
     reports.value = [
       {
         id: '1',
-        title: '2024 事业·命理分析',
+        title: '2024 事业·深度分析',
         date: '2024-12-05 14:30',
         dimensions: ['事业', '财运'],
         birthDate: '1990-05-15',

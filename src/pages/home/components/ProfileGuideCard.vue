@@ -19,7 +19,7 @@
         </view>
         
         <view class="desc-wrapper">
-          <text class="desc">先补全你的基本信息，我才能更准确地看趋势。</text>
+          <text class="desc">分析模型需要一些基础信息作为输入参数</text>
         </view>
 
         <button class="action-btn" hover-class="btn-hover" @click="handleClick">

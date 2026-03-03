@@ -25,37 +25,13 @@
 			}
 		},
 		{
-			"path": "pages/bazi/detail",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/index",
+			"path": "pages/qushi/detail",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
 			"path": "pages/home/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/daily-fortune/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/my/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/chat-history/index",
 			"style": {
 				"navigationStyle": "custom"
 			}
@@ -68,12 +44,6 @@
 		},
 		{
 			"path": "pages/invite/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/upgrade/index",
 			"style": {
 				"navigationStyle": "custom"
 			}
