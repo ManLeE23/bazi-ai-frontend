@@ -68,8 +68,8 @@ const capsuleWidth = ref(0);
 const totalHeight = computed(() => statusBarHeight.value + navBarHeight.value);
 
 onMounted(() => {
-  const sysInfo = uni.getSystemInfoSync();
-  statusBarHeight.value = sysInfo.statusBarHeight || 20;
+  const windowInfo = uni.getWindowInfo();
+  statusBarHeight.value = windowInfo.statusBarHeight || 20;
 
   // #ifdef MP-WEIXIN
   const menuButtonInfo = uni.getMenuButtonBoundingClientRect();

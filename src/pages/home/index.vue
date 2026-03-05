@@ -172,7 +172,7 @@
     </view>
 
     <!-- Scroll to Bottom Button -->
-    <view class="scroll-to-bottom" v-if="!isUserAtBottom" @click.stop="scrollToBottom(true)">
+    <view class="scroll-to-bottom" v-if="!isUserAtBottom" @click="handleToBottom">
       <view class="arrow-icon">
         <image :src="downSvg" class="icon-img" mode="aspectFit" />
       </view>
@@ -186,7 +186,7 @@
       :class="{ 'is-open': isBaziDrawerOpen }"
     >
       <!-- Handle -->
-      <view class="drawer-handle-compact" @click="isBaziDrawerOpen = !isBaziDrawerOpen">
+      <view class="drawer-handle-compact" @click.stop="toggleBaziDrawer">
         <image :src="starShineSvg" class="handle-icon-compact" mode="aspectFit" />
       </view>
       
@@ -230,7 +230,7 @@
     >
       <template #top>
         <view v-if="isQuotaExhausted" class="quota-banner-inline">
-          <text class="quota-text">免费额度已用完，升级会员或邀请好友获取更多</text>
+          <text class="quota-text">今日免费额度已用完，升级会员或邀请好友获取更多</text>
           <view class="quota-btn" @click="handleOpenUserCenter">去获取</view>
         </view>
       </template>
@@ -239,8 +239,8 @@
 </template>
 
 <script setup lang="ts">
-import { onLoad, onPageScroll, onShareAppMessage } from '@dcloudio/uni-app';
-import { ref, onMounted, nextTick, computed, watch } from 'vue';
+import { onLoad, onUnload, onPageScroll, onShareAppMessage } from '@dcloudio/uni-app';
+import { ref, onMounted, nextTick, computed, watch, getCurrentInstance } from 'vue';
 import { userStore, type UserInfo, type SystemUser, MembershipType } from '@/store/user';
 import HeaderBar from '@/components/HeaderBar.vue';
 import ProfileGuideCard from './components/ProfileGuideCard.vue';
@@ -257,7 +257,13 @@ import MarkDown from '../components/MarkDown/index.vue';
 import BaziCard from './components/BaziCard.vue';
 import downSvg from '@/static/icon/down.svg?url';
 import starShineSvg from '@/static/icon/star-shine.svg?url';
+import debounce from 'lodash-es/debounce';
 
+// 适配小程序：移除 window 依赖，改用 ref 存储定时器（小程序无 window 对象）
+const scrollResetTimer = ref<number | null>(null);
+//  新增：标记是否是用户手动触发的滚动（用于优先级判断）
+const isManualScroll = ref(false);
+const isAutoScrolling = ref(false);
 const currentInviteCode = ref('');
 const isUserAtBottom = ref(true);
 const hasToken = ref(false);
@@ -344,6 +350,9 @@ const { data: currentBaziData, mutate: mutateBazi, error: baziError, isValidatin
   }
 );
 const isBaziDrawerOpen = ref(false);
+const toggleBaziDrawer = () => {
+  isBaziDrawerOpen.value = !isBaziDrawerOpen.value;
+};
 
 const isQuotaExhausted = computed(() => {
   const user = userStore.systemUser;
@@ -593,49 +602,80 @@ onLoad(async (options: any) => {
   isInitialLoading.value = false;
 });
 
-onPageScroll(() => {
-  checkIfAtBottom();
+onUnload(() => {
+  if (scrollResetTimer.value) clearTimeout(scrollResetTimer.value);
+  welcomeTimers.value.forEach(timer => clearTimeout(timer));
 });
 
+// 优化 onPageScroll - 更精准的底部检测
+onPageScroll(debounce((e: { scrollTop: number }) => {
+  if (isAutoScrolling.value) {
+    checkIfAtBottom();
+    return;
+  }
+
+  isManualScroll.value = true;
+  checkIfAtBottom();
+  
+  // 小程序中清理旧定时器，避免内存泄漏
+  if (scrollResetTimer.value) clearTimeout(scrollResetTimer.value);
+  scrollResetTimer.value = setTimeout(() => {
+    isManualScroll.value = false;
+  }, 1000);
+}, 100));
+
 const checkIfAtBottom = () => {
+  const bottomThreshold = 160;
   const query = uni.createSelectorQuery();
   query.select('#chat-bottom').boundingClientRect();
   query.exec((res) => {
     if (!res[0]) return;
     const bottomRect = res[0];
-    const windowHeight = uni.getSystemInfoSync().windowHeight;
+    const windowHeight = uni.getWindowInfo().windowHeight;
+    console.log('bottomRect.top <= windowHeight - 50;', bottomRect.top <= windowHeight - 50);
     // 阈值设为 windowHeight - 130，比 padding-bottom (160) 稍大，允许用户上滑 30px 后即停止自动滚动
-    isUserAtBottom.value = bottomRect.top <= windowHeight - 130;
+    isUserAtBottom.value = bottomRect.top <= windowHeight - bottomThreshold;
   });
 };
 
+
 const checkScrollPosition = () => {
+  const bottomThreshold = 160;
   const query = uni.createSelectorQuery();
   query.selectViewport().scrollOffset((res) => {
     if (!res || Array.isArray(res)) return;
     const scrollTop = res.scrollTop || 0;
-    const windowHeight = uni.getSystemInfoSync().windowHeight;
+    const windowHeight = uni.getWindowInfo().windowHeight;
     
     // 获取页面总高度
     uni.createSelectorQuery().select('.root').boundingClientRect((rect) => {
       if (!rect || Array.isArray(rect)) return;
       const scrollHeight = rect.height || 0;
       // 阈值设为 windowHeight - 130，与 onPageScroll 保持一致
-      isUserAtBottom.value = (scrollTop + windowHeight) >= (scrollHeight - 130);
+      isUserAtBottom.value = (scrollTop + windowHeight) >= (scrollHeight - bottomThreshold);
     }).exec();
   }).exec();
 };
 
-const scrollToBottom = (force = false, delay = 150) => {
-  // If sidebar is open, do not auto-scroll as it may block UI interactions
-  if (showSidebar.value) return;
+const handleToBottom = () => {
+  isManualScroll.value = false;
+  if (scrollResetTimer.value) clearTimeout(scrollResetTimer.value);
+  scrollToBottom(true, 0);
+  scrollResetTimer.value = setTimeout(() => {
+    isManualScroll.value = false;
+  }, 500);
+};
 
-  // First check
+const scrollToBottom = (force = false, delay = 150) => {
+  console.log('scrollToBottom触发:', { force, delay, isUserAtBottom: isUserAtBottom.value, isManualScroll: isManualScroll.value });
+  
+  if (showSidebar.value) return;
+  if (isManualScroll.value && !force) return;
   if (!force && !isUserAtBottom.value) return;
 
-  // Throttling for streaming updates
+  if (delay === 0 && !force && isScrollThrottled.value) return;
+  
   if (delay === 0 && !force) {
-    if (isScrollThrottled.value) return;
     isScrollThrottled.value = true;
     setTimeout(() => {
       isScrollThrottled.value = false;
@@ -643,30 +683,29 @@ const scrollToBottom = (force = false, delay = 150) => {
   }
 
   nextTick(() => {
-    // Add a delay to ensure layout (including header height) is complete
     setTimeout(() => {
-      // Double check: active user scrolling might have changed this state
       if (!force && !isUserAtBottom.value) return;
-      if (showSidebar.value) return; // Re-check sidebar state
+      if (showSidebar.value) return;
+      if (isManualScroll.value && !force) return;
 
+      isAutoScrolling.value = true;
       uni.pageScrollTo({
-        scrollTop: 9999999,
-        duration: delay === 0 ? 100 : 300, // Faster duration for streaming updates
         success: () => {
-           if (force) {
-              isUserAtBottom.value = true;
-           }
+          isAutoScrolling.value = false;
+          if (force) {
+            isUserAtBottom.value = true;
+          }
+        },
+        scrollTop: 9999999,
+        duration: delay === 0 ? 100 : 300,
+        selector: '#chat-bottom', // 小程序兜底 selector
+        fail: () => {
+          isAutoScrolling.value = false;
         }
       });
     }, delay);
   });
 };
-
-watch(headerHeight, () => {
-  if (isUserAtBottom.value) {
-    scrollToBottom(true);
-  }
-});
 
 const execShowBaziCard = async (isAuto = false) => {
   if (showProfileGuide.value) {
@@ -794,8 +833,8 @@ const execShowBaziCard = async (isAuto = false) => {
 
 onMounted(() => {
   // Calculate header height for padding
-  const sysInfo = uni.getSystemInfoSync();
-  const statusBarHeight = sysInfo.statusBarHeight || 20;
+  const windowInfo = uni.getWindowInfo();
+  const statusBarHeight = windowInfo.statusBarHeight || 20;
   let navBarHeight = 44;
 
   // #ifdef MP-WEIXIN
@@ -1082,54 +1121,63 @@ const sendQuestion = async () => {
 
       // 监听SSE消息更新
       const unwatch = watch(messageList, (newMessages) => {
-        if (newMessages.length > 0) {
-          const latestMessage = newMessages[newMessages.length - 1];
-          const existingMessage = chatMessages.value.find((msg) => msg.id === latestMessage.id);
-          const startedContent =
-            latestMessage.role === 'assistant' &&
-            typeof latestMessage.content === 'string' &&
-            latestMessage.content.length > 0;
+  if (newMessages.length > 0) {
+    const latestMessage = newMessages[newMessages.length - 1];
+    const existingMessage = chatMessages.value.find((msg) => msg.id === latestMessage.id);
+    const startedContent =
+      latestMessage.role === 'assistant' &&
+      typeof latestMessage.content === 'string' &&
+      latestMessage.content.length > 0;
 
-          const startedReasoning = 
-            latestMessage.role === 'assistant' &&
-            typeof latestMessage.reasoning_content === 'string' &&
-            latestMessage.reasoning_content.length > 0;
+    const startedReasoning = 
+      latestMessage.role === 'assistant' &&
+      typeof latestMessage.reasoning_content === 'string' &&
+      latestMessage.reasoning_content.length > 0;
 
-          if (startedContent || startedReasoning) {
-            isTyping.value = false;
-          }
+    if (startedContent || startedReasoning) {
+      isTyping.value = false;
+    }
 
-          if (startedContent) {
-            isThinking.value = false;
-            if (existingMessage) {
-              existingMessage.isReasoningExpanded = false;
-            }
-          }
-          if (existingMessage) {
-            // Check if reasoning content has grown to trigger scroll
-            if (latestMessage.reasoning_content && latestMessage.reasoning_content.length > (existingMessage.reasoning_content?.length || 0)) {
-               existingMessage.reasoningScrollTop = (existingMessage.reasoningScrollTop || 0) + 9999;
-            }
+    if (startedContent) {
+      isThinking.value = false;
+      if (existingMessage) {
+        existingMessage.isReasoningExpanded = false;
+      }
+    }
+    
+    if (existingMessage) {
+      // 思维链内容更新时的滚动逻辑优化
+      if (latestMessage.reasoning_content && latestMessage.reasoning_content.length > (existingMessage.reasoning_content?.length || 0)) {
+         existingMessage.reasoningScrollTop = (existingMessage.reasoningScrollTop || 0) + 9999;
+      }
 
-            existingMessage.content = latestMessage.content;
-            existingMessage.reasoning_content = latestMessage.reasoning_content;
-            existingMessage.timestamp = new Date(latestMessage.created_at || Date.now());
-            existingMessage.isStreaming = true;
-            scrollToBottom(false, 0);
-          } else if (latestMessage.role === 'assistant') {
-            chatMessages.value.push({
-              role: 'assistant',
-              reasoning_content: latestMessage.reasoning_content,
-              content: latestMessage.content,
-              timestamp: new Date(latestMessage.created_at || Date.now()),
-              id: latestMessage.id,
-              isStreaming: true,
-              isReasoningExpanded: true // 新消息默认展开思维链
-            });
-            scrollToBottom(true);
-          }
-        }
+      existingMessage.content = latestMessage.content;
+      existingMessage.reasoning_content = latestMessage.reasoning_content;
+      existingMessage.timestamp = new Date(latestMessage.created_at || Date.now());
+      existingMessage.isStreaming = true;
+      
+      // 修复：只在用户原本在底部时才滚动
+      if (isUserAtBottom.value && !isManualScroll.value) {
+        scrollToBottom(false, 0);
+      }
+    } else if (latestMessage.role === 'assistant') {
+      chatMessages.value.push({
+        role: 'assistant',
+        reasoning_content: latestMessage.reasoning_content,
+        content: latestMessage.content,
+        timestamp: new Date(latestMessage.created_at || Date.now()),
+        id: latestMessage.id,
+        isStreaming: true,
+        isReasoningExpanded: true
       });
+      
+      // 修复：新消息只有在用户在底部时才滚动
+      if (isUserAtBottom.value && !isManualScroll.value) {
+        scrollToBottom(true);
+      }
+    }
+  }
+});
 
       // 监听加载状态，完成后获取推荐问题
       const unwatchLoading = watch(isLoading, (newVal) => {
@@ -1392,7 +1440,7 @@ const goToLogin = () => {
 
 .scroll-to-bottom {
   position: fixed;
-  bottom: 240rpx;
+  bottom: 280rpx;
   left: 50%;
   transform: translateX(-50%);
   width: 80rpx;
@@ -1407,6 +1455,7 @@ const goToLogin = () => {
   z-index: 999;
   transition: all 0.3s;
   border: 1px solid rgba(255, 255, 255, 0.8);
+  pointer-events: auto;
 
   .arrow-icon {
     width: 40rpx;

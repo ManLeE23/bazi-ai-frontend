@@ -183,7 +183,6 @@ export default function useSSEMessage(params: SSEParams) {
             continue;
           }
 
-          console.log('SSE data received', data);
           errorCount = 0; // 重置错误计数
 
           const type = (data as any).type;
