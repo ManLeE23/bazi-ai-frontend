@@ -18,7 +18,7 @@
           <text class="logo-text">趋</text>
         </view>
       </view>
-      
+
       <!-- Text Content -->
       <view class="text-center">
         <text class="app-title">人生趋势</text>
@@ -26,37 +26,46 @@
       </view>
 
       <!-- Action Section -->
-    <view class="action-section">
-      <button 
-        class="login-btn" 
-        :open-type="hasAgreed ? 'getPhoneNumber' : ''"
-        @getphonenumber="handleGetPhoneNumber"
-        @click="handleLoginClick"
-        :disabled="isLoading"
-      >
-        <text class="btn-text">手机号快捷登录</text>
-      </button>
-      
-      <view class="agreement-text">
-        <view class="agree-row">
-          <view 
-            class="agree-checkbox" 
-            :class="{ 'agree-checkbox--checked': hasAgreed }" 
-            @click="toggleAgree"
-          ></view>
-          <text class="agreement-label">我已阅读并同意</text>
-          <view class="links-row">
-            <text class="link" @click.stop="handleOpenLegal('user_agreement')">用户协议</text>
-            <text class="agreement-label"> 与 </text>
-            <text class="link" @click.stop="handleOpenLegal('privacy_policy')">隐私政策</text>
+      <view class="action-section">
+        <button
+          class="login-btn"
+          :open-type="hasAgreed ? 'getPhoneNumber' : ''"
+          @getphonenumber="handleGetPhoneNumber"
+          @click="handleLoginClick"
+          :disabled="isLoading"
+        >
+          <text class="btn-text">手机号快捷登录</text>
+        </button>
+
+        <view class="agreement-text">
+          <view class="agree-row">
+            <view
+              class="agree-checkbox"
+              :class="{ 'agree-checkbox--checked': hasAgreed }"
+              @click="toggleAgree"
+            ></view>
+            <text class="agreement-label">我已阅读并同意</text>
+            <view class="links-row">
+              <text class="link" @click.stop="handleOpenLegal('user_agreement')"
+                >用户协议</text
+              >
+              <text class="agreement-label"> 与 </text>
+              <text class="link" @click.stop="handleOpenLegal('privacy_policy')"
+                >隐私政策</text
+              >
+            </view>
           </view>
         </view>
       </view>
     </view>
-    </view>
 
     <!-- Legal Popup -->
-    <u-popup v-model="showLegalPopup" mode="bottom" border-radius="24" :closeable="true">
+    <u-popup
+      v-model="showLegalPopup"
+      mode="bottom"
+      border-radius="24"
+      :closeable="true"
+    >
       <view class="legal-popup-content">
         <view class="legal-title">{{ legalTitle }}</view>
         <scroll-view scroll-y class="legal-scroll">
@@ -77,6 +86,7 @@ import HeaderBar from '@/components/HeaderBar.vue';
 const isLoading = ref(false);
 const inviteCode = ref('');
 const redirect = ref('');
+const agentType = ref('');
 const showLegalPopup = ref(false);
 const legalTitle = ref('');
 const legalContent = ref('');
@@ -88,6 +98,9 @@ onLoad((options: any) => {
   }
   if (options.redirect) {
     redirect.value = options.redirect;
+  }
+  if (options.agentType) {
+    agentType.value = options.agentType;
   }
 });
 
@@ -127,38 +140,42 @@ const handleGetPhoneNumber = async (e: any) => {
   }
 
   console.log('getPhoneNumber result:', e);
-  
-  if (e.detail.errMsg === "getPhoneNumber:ok" && e.detail.code) {
+
+  if (e.detail.errMsg === 'getPhoneNumber:ok' && e.detail.code) {
     isLoading.value = true;
     try {
       // Get login code to bind openid
       const loginRes = await uni.login({ provider: 'weixin' });
       const loginCode = loginRes.code;
 
-      const res: any = await fetchPhoneLogin({ 
+      const res: any = await fetchPhoneLogin({
         code: e.detail.code,
         login_code: loginCode,
-        invite_code: inviteCode.value || undefined
+        invite_code: inviteCode.value || undefined,
       });
       console.log('Phone login response:', res);
-      
+
       const data = res.data;
       if (data && data.token) {
         // Save token
         uni.setStorageSync('token', data.token);
-        
+
         // Save user info if available
         if (data.user) {
-           userStore.setSystemUser(data.user);
+          userStore.setSystemUser(data.user);
         }
 
         uni.showToast({ title: '登录成功', icon: 'none' });
-        
+
         setTimeout(() => {
           if (redirect.value === 'step') {
-            uni.reLaunch({ url: '/pages/step/index' });
+            let url = '/pages/step/index';
+            if (agentType.value) {
+              url += `?agentType=${agentType.value}`;
+            }
+            uni.reLaunch({ url });
           } else {
-            uni.reLaunch({ url: '/pages/home/index' });
+            uni.reLaunch({ url: '/pages/index/index' });
           }
         }, 500);
       } else {
@@ -172,8 +189,8 @@ const handleGetPhoneNumber = async (e: any) => {
     }
   } else {
     // User denied or error
-    if (e.detail.errMsg !== "getPhoneNumber:fail user deny") {
-       uni.showToast({ title: '授权失败，请重试', icon: 'none' });
+    if (e.detail.errMsg !== 'getPhoneNumber:fail user deny') {
+      uni.showToast({ title: '授权失败，请重试', icon: 'none' });
     }
   }
 };
@@ -187,7 +204,9 @@ const handleGetPhoneNumber = async (e: any) => {
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
 }
 
 .header-visual {
@@ -202,7 +221,7 @@ const handleGetPhoneNumber = async (e: any) => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  
+
   .header-bg-text {
     font-size: 60px;
     font-weight: 900;
@@ -225,17 +244,17 @@ const handleGetPhoneNumber = async (e: any) => {
 }
 
 .logo-box {
-    width: 112px; // w-28
-    height: 112px; // h-28
-    background: #ffffff;
-    border-radius: 32px;
-    padding: 4px;
-    box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.2);
-    margin-bottom: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  
+  width: 112px; // w-28
+  height: 112px; // h-28
+  background: #ffffff;
+  border-radius: 32px;
+  padding: 4px;
+  box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.2);
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   .logo-inner {
     width: 100%;
     height: 100%;
@@ -245,7 +264,7 @@ const handleGetPhoneNumber = async (e: any) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     .logo-text {
       font-size: 36px; // text-4xl
       font-weight: 900;
@@ -258,7 +277,7 @@ const handleGetPhoneNumber = async (e: any) => {
 .text-center {
   text-align: center;
   margin-bottom: 48px;
-  
+
   .app-title {
     display: block;
     font-size: 24px; // text-2xl
@@ -267,7 +286,7 @@ const handleGetPhoneNumber = async (e: any) => {
     letter-spacing: -0.025em; // tracking-tight
     margin-bottom: 8px;
   }
-  
+
   .app-subtitle {
     display: block;
     font-size: 12px; // text-xs
@@ -283,7 +302,7 @@ const handleGetPhoneNumber = async (e: any) => {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  
+
   .login-btn {
     width: 100%;
     padding: 24px 0; // py-4 equivalent (check uni-app button height quirks)
@@ -292,38 +311,42 @@ const handleGetPhoneNumber = async (e: any) => {
     border-radius: 16px; // rounded-2xl
     background-color: #1e293b; // btn-main color
     color: #ffffff;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); // shadow-xl
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04); // shadow-xl
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
-    
-    &::after { border: none; }
-    
+
+    &::after {
+      border: none;
+    }
+
     &:active {
       transform: scale(0.96);
       opacity: 0.9;
     }
-    
+
     .btn-text {
       font-size: 14px;
       font-weight: 900;
       letter-spacing: 0.1em; // tracking-widest
     }
   }
-  
+
   .agreement-text {
     text-align: center;
     font-size: 12px;
     font-weight: 700;
     color: #cbd5e1; // slate-300
     line-height: 2;
-    
+
     .agreement-label {
-       color: #cbd5e1;
+      color: #cbd5e1;
     }
-    
+
     .link {
       color: #94a3b8; // slate-400
       text-decoration: underline;
@@ -382,7 +405,7 @@ const handleGetPhoneNumber = async (e: any) => {
   height: 60vh;
   display: flex;
   flex-direction: column;
-  
+
   .legal-title {
     font-size: 18px;
     font-weight: 700;
@@ -390,12 +413,12 @@ const handleGetPhoneNumber = async (e: any) => {
     text-align: center;
     margin-bottom: 16px;
   }
-  
+
   .legal-scroll {
     flex: 1;
     height: 0;
   }
-  
+
   .legal-text {
     font-size: 14px;
     color: #475569;

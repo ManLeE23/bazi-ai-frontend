@@ -15,6 +15,7 @@ interface SSEParams {
   session_id: string;
   user_input: string;
   deep_thinking?: boolean;
+  agent_type?: string;
 }
 
 function decodeUTF8(arrayBuffer: ArrayBuffer): string {

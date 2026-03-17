@@ -8,7 +8,7 @@
     <HeaderBar :fixed="true" :show-back="false">
       <template #left>
         <view class="header-left-group">
-          <button @click="showSidebar = true" class="sidebar-toggle-btn">
+          <button @click="handleBackToHome" class="sidebar-toggle-btn">
             <view class="hamburger-icon">
               <view class="bar long"></view>
               <view class="bar short"></view>
@@ -38,6 +38,7 @@
           :current-profile="userInfo"
           @open-user-center="handleOpenUserCenter" 
           @switch-profile="handleSwitchProfile" 
+          @open-upgrade="handleOpenUpgrade"
         />
       </view>
     </view>
@@ -67,7 +68,7 @@
             </view>
             <text class="slogan-sub">DIGITAL WISDOM & CULTURAL ANALYSIS</text>
           </view>
-          <ProfileGuideCard :has-token="hasToken" :invite-code="currentInviteCode" />
+          <ProfileGuideCard :has-token="hasToken" :invite-code="currentInviteCode" :agent-type="currentAgentType" />
         </view>
 
       <!-- Chat Message List -->
@@ -239,18 +240,19 @@
 </template>
 
 <script setup lang="ts">
-import { onLoad, onUnload, onPageScroll, onShareAppMessage } from '@dcloudio/uni-app';
+import { onLoad, onUnload, onPageScroll } from '@dcloudio/uni-app';
 import { ref, onMounted, nextTick, computed, watch, getCurrentInstance } from 'vue';
 import { userStore, type UserInfo, type SystemUser, MembershipType } from '@/store/user';
 import HeaderBar from '@/components/HeaderBar.vue';
 import ProfileGuideCard from './components/ProfileGuideCard.vue';
-import SidebarMenu from './components/SidebarMenu.vue';
+import SidebarMenu from '@/components/SidebarMenu.vue';
 import UserCenterPopup from './components/UserCenterPopup.vue';
 import UpgradePopup from './components/UpgradePopup.vue';
 import ProfileSwitchingState from './components/ProfileSwitchingState.vue';
 import useSSEMessage from './hooks/useSSEMessage'; // 导入新的hook
+import { useShare } from '@/hooks/useShare';
 import { useSWR } from '@/hooks/useSWR';
-import { fetchChatHistory, fetchBaziCalculate, fetchSessionUserInfo, fetchProfilesList, fetchCreateSession, fetchSuggestedQuestions, fetchSystemUserInfo, fetchApplyInvite } from '@/api/services';
+import { fetchChatHistory, fetchWelcomeMessage, fetchBaziCalculate, fetchSessionUserInfo, fetchProfilesList, fetchCreateSession, fetchSuggestedQuestions, fetchSystemUserInfo, fetchApplyInvite, fetchAgentSession } from '@/api/services';
 import InputWithButton from '@/components/InputWithButton.vue';
 import LoadingIndicator from '@/components/LoadingIndicator.vue';
 import MarkDown from '../components/MarkDown/index.vue';
@@ -280,14 +282,7 @@ const getWuXingClass = (char: string | undefined) => {
     return map[char] || '';
 };
 
-onShareAppMessage(() => {
-  const inviteCode = userStore.systemUser?.invite_code || userStore.systemUser?.id || '';
-  return {
-    title: '人生趋势：看清趋势，走对下一步',
-    path: `/pages/slogan/index?inviteCode=${inviteCode}`,
-    imageUrl: '/static/slogan.png'
-  };
-});
+const { loadShareConfig } = useShare();
 
 const isSwitchingProfile = ref(false);
 const isInitialLoading = ref(true);
@@ -314,6 +309,8 @@ const isGenerating = ref(false);
 
 const sessionId = ref<string>('');
 const isFromIndexPage = ref(false);
+const currentAgentType = ref<string>('');
+const pendingAutoQuestion = ref('');
 
 // 思维链相关状态
 const isThinking = ref(false);
@@ -384,7 +381,8 @@ const loadQuickQuestions = async () => {
     const res: any = await fetchSuggestedQuestions({
       session_id: sessionId.value || undefined,
       limit: 3,
-      prev_questions: quickQuestions.value
+      prev_questions: [],
+      agent_type: currentAgentType.value
     });
     if (res && res.data && Array.isArray(res.data.questions) && res.data.questions.length > 0) {
       quickQuestions.value = res.data.questions;
@@ -418,61 +416,117 @@ const sendQuickQuestion = (q: string) => {
   showQuickQuestions.value = false;
 };
 
-const simulateWelcomeMessages = () => {
+type WelcomeMessage = {
+  role?: string;
+  content?: string;
+  timestamp?: string | Date;
+  id?: string;
+};
+
+const normalizeWelcomeMessages = (items: any[]) => {
+  return items
+    .map((item) => {
+      if (item && typeof item === 'object') {
+        return {
+          role: item.role || 'assistant',
+          content: item.content,
+          timestamp: item.timestamp,
+          id: item.id
+        } as WelcomeMessage;
+      }
+      return null;
+    })
+    .filter((item) => item && item.content);
+};
+
+const getWelcomeMessages = async (name: string) => {
+  try {
+    const params: any = { 
+      name,
+      agent_type: currentAgentType.value 
+    };
+    const res: any = await fetchWelcomeMessage(params);
+    const payload = res?.data ?? res;
+    if (Array.isArray(payload)) {
+      return normalizeWelcomeMessages(payload);
+    }
+  } catch (e) {
+    console.error('Fetch welcome message failed:', e);
+  }
+  return [
+    { role: 'assistant', content: `Hi，${name}，很高兴认识你` },
+    { role: 'assistant', content: '我是知势，你的个人成长与趋势分析助手。帮你识别个人周期中的“季节”与“潮汐”，让你在规划重要事项时，多一个参考维度' },
+    { role: 'assistant', content: '我们可以先聊聊你当下的情况' }
+  ];
+};
+
+const simulateWelcomeMessages = async () => {
+  // 如果有待发送的自动问题，跳过欢迎语
+  if (pendingAutoQuestion.value) return;
+
   clearWelcomeTimers();
   showQuickQuestions.value = false;
   
   const name = userInfo.value?.name || '你';
-  
-  // Message 1
-  chatMessages.value.push({
-    role: 'assistant',
-    content: `Hi，${name}，很高兴认识你`,
-    timestamp: new Date(),
-    id: `welcome-1-${Date.now()}`
-  });
-  
-  const timer1 = setTimeout(() => {
-    // Message 2
-    chatMessages.value.push({
-      role: 'assistant',
-      content: '我是知势，你的个人成长与趋势分析助手。帮你识别个人周期中的“季节”与“潮汐”，让你在规划重要事项时，多一个参考维度',
-      timestamp: new Date(),
-      id: `welcome-2-${Date.now()}`
-    });
-    scrollToBottom(true);
-    
-    const timer2 = setTimeout(() => {
-      // Message 3
-      chatMessages.value.push({
-        role: 'assistant',
-        content: '我们可以先聊聊你当下的情况',
-        timestamp: new Date(),
-        id: `welcome-3-${Date.now()}`
-      });
-      scrollToBottom(true);
-      
-      const timer3 = setTimeout(async () => {
-        // Automatically show BaziCard if user info exists
-        if (userInfo.value && userInfo.value.id) {
-           await execShowBaziCard(true);
-        }
 
-        // 欢迎语和八字卡展示完成后，再加载「猜你想问」
-        if (!isQuotaExhausted.value) {
-          await loadQuickQuestions();
-          if (quickQuestions.value.length > 0) {
-            nextTick(() => {
-              scrollToBottom(false);
-            });
-          }
-        }
-      }, 1000);
-      welcomeTimers.value.push(timer3);
-    }, 1200);
-    welcomeTimers.value.push(timer2);
-  }, 1000);
-  welcomeTimers.value.push(timer1);
+  const messages = await getWelcomeMessages(name);
+  if (!messages.length) return;
+
+  const finalizeWelcome = async () => {
+    if (userInfo.value && userInfo.value.id) {
+      if (currentAgentType.value !== 'emotion' && currentAgentType.value !== 'career') {
+        await execShowBaziCard(true);
+      }
+    }
+
+    if (!isQuotaExhausted.value) {
+      await loadQuickQuestions();
+      if (quickQuestions.value.length > 0) {
+        nextTick(() => {
+          scrollToBottom(false);
+        });
+      }
+    }
+  };
+
+  const pushMessage = (message: any, index: number) => {
+    chatMessages.value.push({
+      role: message.role || 'assistant',
+      content: message.content,
+      timestamp: message.timestamp ? new Date(message.timestamp) : new Date(),
+      id: message.id || `welcome-${index}-${Date.now()}`
+    });
+  };
+
+  pushMessage(messages[0], 1);
+  scrollToBottom(true);
+
+  const scheduleNext = (index: number) => {
+    if (index >= messages.length) return;
+    const delay = index === 1 ? 1000 : 1200;
+    const timer = setTimeout(() => {
+      pushMessage(messages[index], index + 1);
+      scrollToBottom(true);
+      if (index === messages.length - 1) {
+        const finalTimer = setTimeout(async () => {
+          await finalizeWelcome();
+        }, 1000);
+        welcomeTimers.value.push(finalTimer);
+      } else {
+        scheduleNext(index + 1);
+      }
+    }, delay);
+    welcomeTimers.value.push(timer);
+  };
+
+  if (messages.length > 1) {
+    scheduleNext(1);
+  } else {
+    const finalTimer = setTimeout(async () => {
+      await finalizeWelcome();
+    }, 1000);
+    welcomeTimers.value.push(finalTimer);
+  }
 };
 
 const hasProfile = computed(() => {
@@ -490,6 +544,14 @@ onLoad(async (options: any) => {
   if (options.inviteCode) {
     currentInviteCode.value = options.inviteCode;
   }
+  if (options.agentType) {
+    currentAgentType.value = options.agentType;
+  }
+  if (options.question) {
+    pendingAutoQuestion.value = decodeURIComponent(options.question);
+    inputText.value = pendingAutoQuestion.value;
+  }
+  loadShareConfig();
 
   const token = uni.getStorageSync('token');
   hasToken.value = !!token;
@@ -536,11 +598,56 @@ onLoad(async (options: any) => {
         
         // initBaziData(targetProfile); // Removed
 
-        if (targetProfile.session_id) {
-          sessionId.value = targetProfile.session_id;
-          await getChatHistory();
+        // Initialize session ID
+        let targetSessionId = '';
+
+        // If agent type is specified, try to find existing session or create one
+        if (currentAgentType.value) {
+          try {
+            const sessionRes: any = await fetchAgentSession(targetProfile.id, currentAgentType.value);
+            if (sessionRes?.data?.session_id) {
+              targetSessionId = sessionRes.data.session_id;
+            } else {
+              // No session found, create a new one
+              const createRes: any = await fetchCreateSession({
+                profile_id: targetProfile.id,
+                agent_type: currentAgentType.value
+              });
+              if (createRes?.data?.session_id) {
+                targetSessionId = createRes.data.session_id;
+              }
+            }
+          } catch (e) {
+            console.error('Agent session resolution failed:', e);
+            // Fallback: try to create a new session
+            try {
+              const createRes: any = await fetchCreateSession({
+                profile_id: targetProfile.id,
+                agent_type: currentAgentType.value
+              });
+              if (createRes?.data?.session_id) {
+                targetSessionId = createRes.data.session_id;
+              }
+            } catch (createErr) {
+              console.error('Fallback session creation failed:', createErr);
+            }
+          }
         } else {
-          simulateWelcomeMessages();
+          // Default behavior: use profile's last session
+          if (targetProfile.session_id) {
+            targetSessionId = targetProfile.session_id;
+          }
+        }
+
+        if (targetSessionId) {
+          sessionId.value = targetSessionId;
+          await getChatHistory();
+          // If history is empty (newly created session), show welcome messages
+          if (chatMessages.value.length === 0) {
+            await simulateWelcomeMessages();
+          }
+        } else {
+          await simulateWelcomeMessages();
         }
       }
     } catch (e) {
@@ -574,7 +681,7 @@ onLoad(async (options: any) => {
 
       // Handle new profile creation flow
       if (options.isNewProfile === 'true') {
-         simulateWelcomeMessages();
+         await simulateWelcomeMessages();
       }
     } catch (e) {
       console.error('Parse userInfo error:', e);
@@ -599,6 +706,19 @@ onLoad(async (options: any) => {
     isLoadingUserInfo.value = false;
   }
   
+  // Check if we have a pending auto question
+   if (pendingAutoQuestion.value && !isGenerating.value) {
+       // Send question (skip suggested, do not skip push)
+       inputText.value = pendingAutoQuestion.value;
+       
+       // Use nextTick to ensure UI updates before sending
+       nextTick(() => {
+         sendQuestion(true); // skipSuggestedQuestions=true, skipPush=false
+         // Clear pending
+         pendingAutoQuestion.value = '';
+       });
+   }
+
   isInitialLoading.value = false;
 });
 
@@ -869,6 +989,7 @@ const handleOpenUserCenter = () => {
 };
 
 const handleOpenUpgrade = () => {
+  showSidebar.value = false;
   showUserPopup.value = false; // Ensure previous popup is closed
   showUpgradePopup.value = true;
 };
@@ -895,15 +1016,53 @@ const handleSwitchProfile = async (profile: UserInfo) => {
     // initBaziData(profile); // Removed
     
     // Check if session exists
-    if (profile.session_id) {
-      sessionId.value = profile.session_id;
+    let targetSessionId = '';
+
+    if (currentAgentType.value) {
+        try {
+            const sessionRes: any = await fetchAgentSession(profile.id!, currentAgentType.value);
+            if (sessionRes?.data?.session_id) {
+                targetSessionId = sessionRes.data.session_id;
+            } else {
+                 const createRes: any = await fetchCreateSession({
+                     profile_id: profile.id,
+                     agent_type: currentAgentType.value
+                 });
+                 if (createRes?.data?.session_id) {
+                     targetSessionId = createRes.data.session_id;
+                 }
+            }
+        } catch (e) {
+            console.error('Agent session resolution failed:', e);
+             // Fallback create
+              try {
+                 const createRes: any = await fetchCreateSession({
+                     profile_id: profile.id,
+                     agent_type: currentAgentType.value
+                 });
+                 if (createRes?.data?.session_id) {
+                     targetSessionId = createRes.data.session_id;
+                 }
+             } catch (err) {}
+        }
+    } else {
+        if (profile.session_id) {
+            targetSessionId = profile.session_id;
+        }
+    }
+
+    if (targetSessionId) {
+      sessionId.value = targetSessionId;
       chatMessages.value = [];
       await getChatHistory();
+      if (chatMessages.value.length === 0) {
+        await simulateWelcomeMessages();
+      }
     } else {
       // No session yet, just show welcome messages
       sessionId.value = '';
       chatMessages.value = [];
-      simulateWelcomeMessages();
+      await simulateWelcomeMessages();
     }
   } catch (error) {
     console.error('Switch profile failed:', error);
@@ -915,9 +1074,13 @@ const handleSwitchProfile = async (profile: UserInfo) => {
   }
 };
 
+const handleBackToHome = () => {
+  uni.navigateBack();
+};
+
 const getChatHistory = async () => {
   try {
-    const res = await fetchChatHistory(sessionId.value);
+    const res = await fetchChatHistory(sessionId.value, currentAgentType.value);
     console.log('Chat history response:', res);
 
     if (Array.isArray(res.data)) {
@@ -961,7 +1124,7 @@ const getChatHistory = async () => {
 
       // 检查是否需要自动触发 (如果历史记录为空，且已录入档案)
       if (res.data.length === 0 && hasProfile.value) {
-        simulateWelcomeMessages();
+        await simulateWelcomeMessages();
       } else if (hasProfile.value && isFromIndexPage.value) {
         // 如果不是空历史，且是从首页进入（或者是初始化加载），不需要发 "回来啦"
         // 只有在特定场景下才可能需要，但根据用户需求："if the chat history is empty, you can display the welcome message, if not, you should show the chat history"
@@ -1010,7 +1173,7 @@ const getInputValue = (value: string) => {
   }
 }
 
-const sendQuestion = async () => {
+const sendQuestion = async (skipSuggestedQuestions = false, skipPush = false) => {
   if (!hasToken.value) {
     goToLogin();
     return;
@@ -1046,14 +1209,15 @@ const sendQuestion = async () => {
     clearWelcomeTimers();
 
     // 添加用户消息到聊天列表
-    chatMessages.value.push({
-      role: 'user',
-      content: inputText.value,
-      timestamp: new Date(),
-      id: `temp_${Date.now()}`
-    });
-
-    scrollToBottom(true);
+    if (!skipPush) {
+      chatMessages.value.push({
+        role: 'user',
+        content: inputText.value,
+        timestamp: new Date(),
+        id: `temp_${Date.now()}`
+      });
+      scrollToBottom(true);
+    }
 
     // 清空输入框
     const question = inputText.value;
@@ -1069,9 +1233,13 @@ const sendQuestion = async () => {
       if (!sessionId.value) {
         if (userInfo.value && userInfo.value.id) {
           try {
-            const sessionRes: any = await fetchCreateSession({
+            const params: any = {
               profile_id: userInfo.value.id
-            });
+            };
+            if (currentAgentType.value) {
+              params.agent_type = currentAgentType.value;
+            }
+            const sessionRes: any = await fetchCreateSession(params);
             if (sessionRes && sessionRes.data && sessionRes.data.session_id) {
               sessionId.value = sessionRes.data.session_id;
               // Update local user info with new session ID
@@ -1101,7 +1269,8 @@ const sendQuestion = async () => {
       const { messageList, isLoading, startSSE, error } = useSSEMessage({
         session_id: sessionId.value,
         user_input: question,
-        deep_thinking: isDeepThinkingMode.value
+        deep_thinking: isDeepThinkingMode.value,
+        agent_type: currentAgentType.value
       });
 
       // 开始SSE连接
@@ -1227,7 +1396,7 @@ const sendQuestion = async () => {
                   }
                }).finally(() => {
                   nextTick(() => {
-                    if (!isQuotaExhausted.value) {
+                    if (!isQuotaExhausted.value && !skipSuggestedQuestions) {
                       loadQuickQuestions();
                       showQuickQuestions.value = true;
                     } else {
@@ -1240,7 +1409,7 @@ const sendQuestion = async () => {
                });
             } else {
                nextTick(() => {
-                 if (!isQuotaExhausted.value) {
+                 if (!isQuotaExhausted.value && !skipSuggestedQuestions) {
                    loadQuickQuestions();
                    showQuickQuestions.value = true;
                  } else {

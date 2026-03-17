@@ -51,8 +51,8 @@ const handleResponse = (res: any, hideErrorToast: boolean = false) => {
   if (statusCode === 401) {
     // 未登录或登录过期
     // uni.showToast({ title: '登录过期，请重新登录', icon: 'none' });
-    uni.removeStorageSync('token');
-    // uni.reLaunch({ url: '/pages/login/index' });
+    uni.clearStorageSync();
+    uni.reLaunch({ url: '/pages/login/index' });
     return Promise.reject(res);
   }
 

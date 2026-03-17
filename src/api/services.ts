@@ -76,6 +76,16 @@ export const fetchDailyFortune = () => {
   return httpGet({ url: '/api/profiles/self/daily-fortune', params: {} });
 };
 
+export const fetchTodayTrend = (params: { profile_id: string | number }) => {
+  return httpGet({ url: '/api/profiles/self/today-trend', params });
+};
+
+export const fetchTodayTrendDetail = (params: {
+  profile_id: string | number;
+}) => {
+  return httpGet({ url: '/api/profiles/self/today-trend/detail', params });
+};
+
 export const fetchGenReport = (params: GenReportParams) => {
   return httpPost({ url: '/api/reports/create', params });
 };
@@ -97,6 +107,7 @@ export const fetchSuggestedQuestions = (params: {
   session_id?: string;
   limit?: number;
   prev_questions: string[];
+  agent_type?: string;
 }) => {
   return httpPost({ url: '/api/chat/suggested-questions', params });
 };
@@ -108,10 +119,49 @@ export const fetchSubmitFeedback = (params: {
   return httpPost({ url: '/api/feedback/create', params });
 };
 
-export const fetchChatHistory = (session_id: string) => {
+export const fetchChatHistory = (session_id: string, agent_type?: string) => {
+  const params: any = {};
+  if (agent_type) {
+    params.agent_type = agent_type;
+  }
   return httpGet({
     url: `/api/chat/sessions/messages/${session_id}`,
+    params,
+  });
+};
+
+export const fetchRecentQuestions = (
+  params: { limit?: number; days?: number } = {},
+) => {
+  return httpGet({ url: '/api/chat/recent-questions', params });
+};
+
+export const fetchWelcomeMessage = (params: {
+  name: string;
+  agent_type?: string;
+}) => {
+  return httpGet({
+    url: '/api/chat/welcome-message',
+    params,
+  });
+};
+
+export const fetchAgentSession = (
+  profile_id: string | number,
+  agent_type: string,
+) => {
+  return httpGet({
+    url: `/api/profiles/${profile_id}/agent-session`,
+    params: { agent_type },
+  });
+};
+
+export const fetchShareConfig = () => {
+  return httpGet({
+    url: '/api/chat/share-config',
     params: {},
+    skipAuth: true,
+    hideErrorToast: true,
   });
 };
 

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 核心背景：indigo-50/10 混合，营造理性的工具感 */
+        body { 
+            background-color: #F1F4F9; 
+            background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.03) 0px, transparent 50%), 
+                              radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.03) 0px, transparent 50%);
+            font-family: -apple-system, "PingFang SC", sans-serif; 
+            min-height: 100vh;
+        }
+
+        /* 极致白净的卡片 */
+        .immersive-card {
+            background: #FFFFFF;
+            border-radius: 30px;
+            padding: 24px 20px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            min-height: 130px;
+            /* 投影更柔和，增加环境光感 */
+            box-shadow: 0 12px 30px rgba(79, 70, 229, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 右下角沉浸图标逻辑 */
+        .bg-symbol-mesh {
+            position: absolute;
+            bottom: -18px;
+            right: -12px;
+            font-size: 96px;
+            font-weight: 900;
+            line-height: 1;
+            opacity: 0.05;
+            filter: blur(0.5px);
+            user-select: none;
+            transform: rotate(-8deg);
+        }
+
+        /* 底部色彩晕染 */
+        .glow-spot {
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            bottom: -35px;
+            right: -35px;
+            filter: blur(32px);
+            opacity: 0.12;
+            border-radius: 50%;
+        }
+
+        .front-icon {
+            position: absolute;
+            bottom: 22px;
+            right: 22px;
+            z-index: 10;
+        }
+
+        /* 配色方案优化：采用高辨识度 Indigo 核心及辅助色 */
+        .c-trend { color: #4F46E5; } .bg-trend { background: #4F46E5; }
+        .c-match { color: #EC4899; } .bg-match { background: #EC4899; }
+        .c-emo { color: #8B5CF6; } .bg-emo { background: #8B5CF6; }
+        .c-biz { color: #F59E0B; } .bg-biz { background: #F59E0B; }
+        .c-mbti { color: #10B981; } .bg-mbti { background: #10B981; }
+    </style>
+</head>
+<body class="p-6 max-w-sm mx-auto">
+
+    <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="immersive-card">
+            <div class="glow-spot bg-trend"></div>
+            <div class="bg-symbol-mesh c-trend">~</div>
+            <div class="front-icon c-trend">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
+            </div>
+            <div class="z-10">
+                <h4 class="text-[16px] font-black text-slate-800 tracking-tight">问运势</h4>
+                <p class="text-[10px] text-slate-400 font-bold mt-0.5">能量起伏洞察</p>
+            </div>
+        </div>
+
+        <div class="immersive-card">
+            <div class="glow-spot bg-match"></div>
+            <div class="bg-symbol-mesh c-match">∞</div>
+            <div class="front-icon c-match">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
+            <div class="z-10">
+                <h4 class="text-[16px] font-black text-slate-800 tracking-tight">匹配度</h4>
+                <p class="text-[10px] text-slate-400 font-bold mt-0.5">人际关系合盘</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3">
+        <div class="immersive-card !p-4 !min-h-[115px]">
+            <div class="glow-spot bg-emo"></div>
+            <div class="bg-symbol-mesh c-emo !text-[68px] !bottom-[-15px]">☾</div>
+            <div class="front-icon c-emo !bottom-4 !right-4">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </div>
+            <div class="z-10">
+                <h4 class="text-[13px] font-black text-slate-800 leading-tight">情感疏导</h4>
+                <p class="text-[9px] text-slate-400 font-bold mt-1">情绪调节</p>
+            </div>
+        </div>
+
+        <div class="immersive-card !p-4 !min-h-[115px]">
+            <div class="glow-spot bg-biz"></div>
+            <div class="bg-symbol-mesh c-biz !text-[68px] !bottom-[-15px]">#</div>
+            <div class="front-icon c-biz !bottom-4 !right-4">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            </div>
+            <div class="z-10">
+                <h4 class="text-[13px] font-black text-slate-800 leading-tight">事业方向</h4>
+                <p class="text-[9px] text-slate-400 font-bold mt-1">职场节奏</p>
+            </div>
+        </div>
+
+        <div class="immersive-card !p-4 !min-h-[115px]">
+            <div class="glow-spot bg-mbti"></div>
+            <div class="bg-symbol-mesh c-mbti !text-[68px] !bottom-[-15px]">::</div>
+            <div class="front-icon c-mbti !bottom-4 !right-4">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            </div>
+            <div class="z-10">
+                <h4 class="text-[13px] font-black text-slate-800 leading-tight">MBTI</h4>
+                <p class="text-[9px] text-slate-400 font-bold mt-1">人格解析</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

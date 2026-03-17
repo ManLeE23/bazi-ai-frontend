@@ -91,7 +91,7 @@ onLoad((options: any) => {
 
 const goHome = () => {
   uni.reLaunch({
-    url: '/pages/home/index'
+    url: '/pages/index/index'
   });
 };
 

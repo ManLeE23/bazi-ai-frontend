@@ -153,6 +153,7 @@ const goBack = () => {
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
   color: #64748b;
   transition: transform 0.2s;
+  // opacity: 0.9;
   
   &:active {
     transform: scale(0.95);

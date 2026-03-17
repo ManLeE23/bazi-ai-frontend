@@ -177,11 +177,20 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
 import DateTimePicker from '@/components/DateTimePicker.vue';
 import RegionPicker from '@/components/RegionPicker.vue';
 import { fetchCreateProfile, fetchCreateSession } from '@/api/services';
 import { userStore } from '@/store/user';
 import SafeSvg from '@/static/icon/safe.svg?url'
+
+const currentAgentType = ref('');
+
+onLoad((options: any) => {
+  if (options.agentType) {
+    currentAgentType.value = options.agentType;
+  }
+});
 
 onMounted(() => {
   const token = uni.getStorageSync('token');
@@ -228,7 +237,7 @@ const handleClose = () => {
     uni.navigateBack();
   } else {
     uni.reLaunch({
-      url: '/pages/home/index'
+      url: '/pages/index/index'
     });
   }
 };
@@ -285,13 +294,17 @@ const startAnalysis = async () => {
     };
 
     // Create session
-    const sessionRes: any = await fetchCreateSession({
+    const sessionParams: any = {
       profile_id: userInfo.id
-    });
+    };
+    if (currentAgentType.value) {
+      sessionParams.agent_type = currentAgentType.value;
+    }
+    const sessionRes: any = await fetchCreateSession(sessionParams);
 
 
     uni.reLaunch({
-      url: `/pages/home/index?userInfo=${encodeURIComponent(JSON.stringify(userInfo))}&sessionId=${sessionRes.data.session_id}&isNewProfile=true`
+      url: `/pages/index/index?userInfo=${encodeURIComponent(JSON.stringify(userInfo))}&sessionId=${sessionRes.data.session_id}&isNewProfile=true&agentType=${currentAgentType.value}`
     });
     
   } catch (error) {

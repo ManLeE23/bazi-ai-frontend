@@ -189,7 +189,7 @@ import {
   fetchSystemUserInfo,
   fetchUpdateSelfStatus,
 } from '@/api/services';
-import TrialCard from './TrialCard.vue';
+import TrialCard from '@/pages/chat/components/TrialCard.vue';
 
 const props = defineProps<{
   currentProfile?: UserInfo | null;

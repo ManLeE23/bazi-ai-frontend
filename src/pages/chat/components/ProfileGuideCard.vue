@@ -36,6 +36,7 @@ import { computed } from 'vue';
 const props = defineProps<{
   hasToken?: boolean;
   inviteCode?: string;
+  agentType?: string;
 }>();
 
 const buttonText = computed(() => {
@@ -51,14 +52,21 @@ const handleClick = () => {
     if (props.inviteCode) {
       url += `&inviteCode=${props.inviteCode}`;
     }
+    if (props.agentType) {
+      url += `&agentType=${props.agentType}`;
+    }
     uni.navigateTo({
       url
     });
     return;
   }
 
+  let url = '/pages/step/index';
+  if (props.agentType) {
+    url += `?agentType=${props.agentType}`;
+  }
   uni.navigateTo({
-    url: '/pages/step/index'
+    url
   });
 };
 </script>

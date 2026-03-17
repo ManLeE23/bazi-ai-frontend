@@ -60,30 +60,30 @@ onMounted(async () => {
     // Navigate after animation completes
     setTimeout(() => {
       // const token = uni.getStorageSync('token');
-      // if (token) {
-      //   uni.reLaunch({
-      //     url: '/pages/home/index'
-      //   });
-      // } else {
-      //   let url = '/pages/login/index';
-      //   if (inviteCode.value) {
-      //     url += `?inviteCode=${inviteCode.value}`;
-      //   }
-      //   uni.reLaunch({
-      //     url
-      //   });
-      // }
-      uni.reLaunch({
-        url: '/pages/home/index'
-      });
-    }, 1000); // 1s matches the CSS transition duration
+      //   if (token) {
+    //     uni.reLaunch({
+    //       url: '/pages/chat/index'
+    //     });
+    //   } else {
+    //     let url = '/pages/login/index';
+    //     if (inviteCode.value) {
+    //       url += `?inviteCode=${inviteCode.value}`;
+    //     }
+    //     uni.reLaunch({
+    //       url
+    //     });
+    //   }
+    uni.reLaunch({
+      url: '/pages/index/index'
+    });
+  }, 1000); // 1s matches the CSS transition duration
   } catch (error) {
     console.error('Startup error:', error);
     // Ensure we navigate even if something unexpected happens
     const token = uni.getStorageSync('token');
     if (token) {
       uni.reLaunch({
-        url: '/pages/home/index'
+        url: '/pages/index/index'
       });
     } else {
       let url = '/pages/login/index';

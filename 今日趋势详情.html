@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            background: linear-gradient(180deg, #EEF2FF 0%, #F8FAFF 100%); 
+            font-family: -apple-system, "PingFang SC", sans-serif;
+            color: #1E293B;
+        }
+
+        /* 极致毛玻璃感 */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 36px;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.04);
+        }
+
+        /* 统一能量条颜色规范 */
+        .bar-focus { background: linear-gradient(180deg, #FF76C3 0%, #FFB6E1 100%); } /* 专注-粉 */
+        .bar-emotion { background: linear-gradient(180deg, #FFC062 0%, #FFDFA9 100%); } /* 情绪-橙 */
+        .bar-relation { background: linear-gradient(180deg, #62A8FF 0%, #A9D1FF 100%); } /* 关系-蓝 */
+        .bar-luck { background: linear-gradient(180deg, #9C78FF 0%, #CBB6FF 100%); } /* 机缘-紫 */
+        .bar-variable { background: linear-gradient(180deg, #5EEAD4 0%, #A5F3E9 100%); } /* 变量-青 */
+
+        .score-font { font-family: "Georgia", serif; font-style: italic; font-weight: 900; }
+    </style>
+</head>
+<body class="p-6 pb-24">
+
+    <header class="glass-panel p-7 mb-5 flex justify-between items-end">
+        <div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">General Trend</p>
+            <div class="flex items-baseline gap-2">
+                <span class="text-6xl score-font text-indigo-600">65</span>
+                <span class="text-sm font-bold text-indigo-400 bg-indigo-50 px-2 py-0.5 rounded-lg">良好</span>
+            </div>
+        </div>
+        <div class="flex items-end gap-2 h-16">
+            <div class="w-2.5 h-[58%] bar-focus rounded-full"></div>
+            <div class="w-2.5 h-[52%] bar-emotion rounded-full"></div>
+            <div class="w-2.5 h-[46%] bar-relation rounded-full"></div>
+            <div class="w-2.5 h-[38%] bar-luck rounded-full"></div>
+            <div class="w-2.5 h-[22%] bar-variable rounded-full"></div>
+        </div>
+    </header>
+
+    <section class="glass-panel p-7 mb-5">
+        <div class="flex items-center gap-2 mb-4">
+            <div class="w-1 h-4 bg-indigo-500 rounded-full"></div>
+            <h3 class="text-sm font-black text-slate-800">趋势原理解读</h3>
+        </div>
+        <p class="text-[13px] leading-7 text-slate-600">
+            今日流日为<span class="text-indigo-600 font-bold">壬午</span>，对日主呈偏财之象。整体节奏偏向机会感增强，需要外部推动。盘面显示<span class="text-rose-500 font-bold">火偏弱，土偏强</span>。这种能量分布意味着内在动力充足但落地阻力较大。
+        </p>
+    </section>
+
+    <div class="space-y-4 mb-6">
+        <div class="glass-panel !p-5 flex items-start gap-4">
+            <div class="w-11 h-11 rounded-2xl bar-focus flex items-center justify-center text-white font-black shadow-lg shadow-pink-100">专</div>
+            <div class="flex-1">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm font-black text-slate-800">专注维度</span>
+                    <span class="text-xs font-black text-pink-500">58分</span>
+                </div>
+                <p class="text-[12px] text-slate-500 leading-relaxed">专注度偏低，更适合整理、复盘而非高强度决策。</p>
+            </div>
+        </div>
+
+        <div class="glass-panel !p-5 flex items-start gap-4">
+            <div class="w-11 h-11 rounded-2xl bar-relation flex items-center justify-center text-white font-black shadow-lg shadow-blue-100">关</div>
+            <div class="flex-1">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm font-black text-slate-800">关系维度</span>
+                    <span class="text-xs font-black text-blue-500">46分</span>
+                </div>
+                <p class="text-[12px] text-slate-500 leading-relaxed">关系拓展动力有限，更适合安静做好手头事项。</p>
+            </div>
+        </div>
+    </div>
+
+    <section class="glass-panel !bg-slate-900 p-7 shadow-2xl shadow-indigo-200">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">AI Strategic Advice</h3>
+            <span class="text-lg">✨</span>
+        </div>
+        <p class="text-[14px] leading-7 text-white font-medium opacity-90 mb-6">
+            今天整体节奏偏平稳，更适合控节奏而不是硬冲。变量一侧能量薄弱，外部机会不强，适合优化存量而非盲目加码。宜优先围绕“表达观点、推动协作”展开。
+        </p>
+        
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                <span class="text-[10px] font-black text-emerald-400 block mb-1">宜 / YI</span>
+                <span class="text-xs font-bold text-white">表达观点 · 协作</span>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                <span class="text-[10px] font-black text-rose-400 block mb-1">忌 / JI</span>
+                <span class="text-xs font-bold text-white">固执保守 · 顾虑</span>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
