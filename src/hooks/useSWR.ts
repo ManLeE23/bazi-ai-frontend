@@ -34,38 +34,44 @@ const getPersistentCache = (key: string) => {
 
 const setPersistentCache = (key: string, data: any) => {
   try {
-    // Implement simple LRU for Bazi calculation results (max 1 - current only)
+    // Implement simple LRU (max 1 - current only) to minimize storage usage
+    let cacheIndexKey = '';
     if (key.includes('/api/bazi/calculate/profile/')) {
-      const BAZI_CACHE_INDEX_KEY = 'swr_bazi_keys_index';
-      let baziKeys: string[] = [];
+      cacheIndexKey = 'swr_bazi_keys_index';
+    } else if (key.includes('/api/profiles/self/today-trend/detail')) {
+      cacheIndexKey = 'swr_trend_detail_keys_index';
+    }
+
+    if (cacheIndexKey) {
+      let keys: string[] = [];
       try {
-        const stored = uni.getStorageSync(BAZI_CACHE_INDEX_KEY);
-        baziKeys = stored ? JSON.parse(stored) : [];
+        const stored = uni.getStorageSync(cacheIndexKey);
+        keys = stored ? JSON.parse(stored) : [];
       } catch {
-        baziKeys = [];
+        keys = [];
       }
 
       // Remove current key if exists (to move to end)
-      baziKeys = baziKeys.filter((k) => k !== key);
+      keys = keys.filter((k) => k !== key);
 
       // Add to end
-      baziKeys.push(key);
+      keys.push(key);
 
       // Enforce limit of 1 (current only)
-      while (baziKeys.length > 1) {
-        const toRemove = baziKeys.shift();
+      while (keys.length > 1) {
+        const toRemove = keys.shift();
         if (toRemove) {
           try {
             uni.removeStorageSync(`swr_cache_${toRemove}`);
             // globalCache.delete(toRemove); // Keep in memory for session speed, only clear storage
           } catch (e) {
-            console.error('Failed to remove old Bazi cache:', e);
+            console.error(`Failed to remove old cache for ${cacheIndexKey}:`, e);
           }
         }
       }
 
       // Save index
-      uni.setStorageSync(BAZI_CACHE_INDEX_KEY, JSON.stringify(baziKeys));
+      uni.setStorageSync(cacheIndexKey, JSON.stringify(keys));
     }
 
     uni.setStorageSync(`swr_cache_${key}`, JSON.stringify(data));

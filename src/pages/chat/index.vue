@@ -240,7 +240,7 @@
 </template>
 
 <script setup lang="ts">
-import { onLoad, onUnload, onPageScroll } from '@dcloudio/uni-app';
+import { onLoad, onUnload, onPageScroll, onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app';
 import { ref, onMounted, nextTick, computed, watch, getCurrentInstance } from 'vue';
 import { userStore, type UserInfo, type SystemUser, MembershipType } from '@/store/user';
 import HeaderBar from '@/components/HeaderBar.vue';
@@ -282,7 +282,25 @@ const getWuXingClass = (char: string | undefined) => {
     return map[char] || '';
 };
 
-const { loadShareConfig } = useShare();
+const { shareConfig, loadShareConfig } = useShare();
+loadShareConfig();
+
+onShareAppMessage(() => {
+  return {
+    title: shareConfig.value.title,
+    path: shareConfig.value.path,
+    imageUrl:shareConfig.value.imageUrl,
+  };
+});
+
+onShareTimeline(() => {
+  const query = shareConfig.value.path.split('?')[1] || '';
+  return {
+    title: shareConfig.value.title,
+    query: query,
+    imageUrl:shareConfig.value.imageUrl,
+  };
+});
 
 const isSwitchingProfile = ref(false);
 const isInitialLoading = ref(true);

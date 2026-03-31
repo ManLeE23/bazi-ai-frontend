@@ -58,7 +58,7 @@
                 <text class="title-text">建议</text>
               </view>
               <view class="advice-list">
-                <text v-for="(item, idx) in detailData?.yi" :key="idx" class="advice-item-text">{{ item }}</text>
+                <text v-for="(item, idx) in (detailData?.yi || []).slice(0, 2)" :key="idx" class="advice-item-text">{{ item }}</text>
               </view>
             </view>
             
@@ -69,7 +69,7 @@
                 <text class="title-text">避免</text>
               </view>
               <view class="advice-list">
-                <text v-for="(item, idx) in detailData?.ji" :key="idx" class="advice-item-text">{{ item }}</text>
+                <text v-for="(item, idx) in (detailData?.ji || []).slice(0, 2)" :key="idx" class="advice-item-text">{{ item }}</text>
               </view>
             </view>
           </view>
@@ -83,6 +83,19 @@
               </view>
               <view class="advice-list">
                 <text class="advice-item-text">{{ detailData?.time_window || detailData?.time }}</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 颜色建议 -->
+          <view class="advice-section" v-if="detailData?.lucky_colors && detailData?.lucky_colors.length">
+            <view class="advice-column">
+              <view class="advice-header">
+                <text class="title-text" style="font-size: 28rpx; color: #64748b;">幸运色</text>
+              </view>
+              <view class="advice-list" style="flex-direction: row; align-items: center; gap: 12rpx; margin-top: 12rpx;">
+                <view class="lucky-swatch" :style="getLuckyColorStyle(detailData.lucky_colors[0])" style="width: 32rpx; height: 32rpx; border-radius: 50%;"></view>
+                <text class="advice-item-text" style="margin-bottom: 0;">{{ detailData.lucky_colors[0].label }}</text>
               </view>
             </view>
           </view>
@@ -163,8 +176,8 @@ const { data: rawData, error, isLoading } = useSWR(
     return fetchTodayTrendDetail({ profile_id: profileId.value });
   },
   {
-    revalidateOnFocus: false,
-    revalidateIfStale: false
+    revalidateOnFocus: true,
+    dedupingInterval: 60000
   }
 );
 
@@ -172,6 +185,24 @@ const detailData = computed(() => {
   const data: any = rawData.value || {};
   return data.data || data; 
 });
+
+const getLuckyColorStyle = (colorObj: any) => {
+  const colorHex = colorObj?.color || '#cccccc';
+  
+  if (colorObj?.label === '金色') {
+    return {
+      background: 'linear-gradient(135deg, #f6d365 0%, #ffb347 100%)',
+      boxShadow: `0 4rpx 12rpx rgba(255, 179, 71, 0.4)`,
+      border: 'none'
+    };
+  }
+  
+  return {
+    backgroundColor: colorHex,
+    boxShadow: `0 4rpx 12rpx ${colorHex}4d`,
+    border: ['白色', '银色'].includes(colorObj?.label) ? '1px solid #e2e8f0' : 'none'
+  };
+};
 
 // 按照 TrendSummaryCard 提供的颜色规范
 const getDimensionGradient = (index: number) => {

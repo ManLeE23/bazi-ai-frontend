@@ -1,5 +1,4 @@
 import { ref } from 'vue';
-import { onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app';
 import { fetchShareConfig } from '@/api/services';
 
 export interface ShareConfig {
@@ -12,7 +11,7 @@ export function useShare(initialConfig?: Partial<ShareConfig>) {
   const shareConfig = ref<ShareConfig>({
     title: '人生趋势：看清趋势，走对下一步',
     path: '/pages/index/index',
-    imageUrl: '/static/slogan.png',
+    imageUrl: '../../static/slogan.png', // 使用相对路径以确保小程序能够正确解析
     ...initialConfig,
   });
 
@@ -21,40 +20,31 @@ export function useShare(initialConfig?: Partial<ShareConfig>) {
       const res: any = await fetchShareConfig();
       const data = res?.data ?? res;
       const rawImage = data?.image_url;
-      const imageUrl =
-        typeof rawImage === 'string'
-          ? rawImage.trim().replace(/^`|`$/g, '')
-          : shareConfig.value.imageUrl;
+      let imageUrl = shareConfig.value.imageUrl;
 
-      if (data?.title || data?.path || imageUrl) {
+      if (typeof rawImage === 'string' && rawImage.trim() !== '') {
+        const cleaned = rawImage.trim().replace(/^`|`$/g, '');
+        if (cleaned) {
+          imageUrl = cleaned;
+        }
+      }
+
+      if (
+        data?.title ||
+        data?.path ||
+        (typeof rawImage === 'string' && rawImage.trim() !== '')
+      ) {
         shareConfig.value = {
           ...shareConfig.value,
           title: data?.title || shareConfig.value.title,
           path: data?.path || shareConfig.value.path,
-          imageUrl: imageUrl || shareConfig.value.imageUrl,
+          imageUrl: imageUrl,
         };
       }
     } catch (e) {
       console.error('Fetch share config failed:', e);
     }
   };
-
-  onShareAppMessage(() => {
-    return {
-      title: shareConfig.value.title,
-      path: shareConfig.value.path,
-      imageUrl: shareConfig.value.imageUrl,
-    };
-  });
-
-  onShareTimeline(() => {
-    const query = shareConfig.value.path.split('?')[1] || '';
-    return {
-      title: shareConfig.value.title,
-      query: query,
-      imageUrl: shareConfig.value.imageUrl,
-    };
-  });
 
   return {
     shareConfig,

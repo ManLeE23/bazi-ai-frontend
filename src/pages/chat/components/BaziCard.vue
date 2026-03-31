@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { type UserInfo } from '@/store/user';
+import type { UserInfo } from '@/store/user';
 // --- Types ---
 interface HiddenStem {
   gan: string;

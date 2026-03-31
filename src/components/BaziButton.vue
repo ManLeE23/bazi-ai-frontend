@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   type: 'primary',
   disabled: false,
   showShadow: false,
-  customStyle: {},
+  customStyle: () => ({}),
   size: 'large'
 });
 

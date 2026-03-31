@@ -62,9 +62,11 @@ const list = ref([
 
 const handleTabChange = (index: number) => {
   emit('update:current', index);
-  uni.redirectTo({
-    url: list.value[index].pagePath,
-  });
+  if (list.value[index].pagePath) {
+    uni.redirectTo({
+      url: list.value[index].pagePath as string,
+    });
+  }
 };
 </script>
 

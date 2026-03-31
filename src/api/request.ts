@@ -1,5 +1,4 @@
 import { baseUrl } from './config';
-import { ensureLoggedIn } from '@/utils/auth';
 
 interface RequestParams {
   url: string;
@@ -39,7 +38,7 @@ const handleResponse = (res: any, hideErrorToast: boolean = false) => {
   console.log('请求成功:', res);
 
   if (statusCode === 200) {
-    if (code === 200) {
+    if (code === 0 || code === 200) {
       return Promise.resolve(data);
     }
     // If it's not a standard {code, msg, data} response, just return the whole thing
@@ -52,7 +51,26 @@ const handleResponse = (res: any, hideErrorToast: boolean = false) => {
     // 未登录或登录过期
     // uni.showToast({ title: '登录过期，请重新登录', icon: 'none' });
     uni.clearStorageSync();
-    uni.reLaunch({ url: '/pages/login/index' });
+
+    const pages = getCurrentPages();
+    let redirectUrl = '';
+    if (pages.length > 0) {
+      const currentPage = pages[pages.length - 1];
+      redirectUrl = `/${currentPage.route}`;
+      const options = (currentPage as any).options || {};
+      const keys = Object.keys(options);
+      if (keys.length > 0) {
+        const query = keys.map((key) => `${key}=${options[key]}`).join('&');
+        redirectUrl += `?${query}`;
+      }
+    }
+
+    let url = '/pages/login/index';
+    if (redirectUrl) {
+      url += `?redirect=${encodeURIComponent(redirectUrl)}`;
+    }
+
+    uni.redirectTo({ url });
     return Promise.reject(res);
   }
 

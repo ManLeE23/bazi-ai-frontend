@@ -25,6 +25,17 @@
           <view class="trend-summary-group">
             <text class="trend-summary-label">{{ summary.label }}</text>
             <text class="trend-summary-text">{{ summary.insight }}</text>
+            
+            <view v-if="summary.lucky_colors && summary.lucky_colors.length" class="lucky-color-row">
+              <text class="lucky-label">幸运色</text>
+              <view class="lucky-swatches">
+                <view class="lucky-item">
+                  <view class="lucky-swatch" :style="getLuckyColorStyle(summary.lucky_colors[0])"></view>
+                  <text class="lucky-text">{{ summary.lucky_colors[0].label }}</text>
+                </view>
+              </view>
+            </view>
+
           </view>
         </view>
 
@@ -87,6 +98,16 @@ const profileId = computed(() => userStore.userInfo?.id || '');
 const hasProfile = computed(() => !!userStore.userInfo?.name);
 const canShowTrend = computed(() => hasToken.value && hasProfile.value && !!profileId.value);
 
+const getLuckyColorStyle = (colorObj: any) => {
+  const colorHex = colorObj?.color || '#cccccc';
+  
+  return {
+    backgroundColor: colorHex,
+    boxShadow: `0 4rpx 12rpx ${colorHex}4d`, // 30% opacity shadow
+    border: ['白色', '银色'].includes(colorObj?.label) ? '1rpx solid #e2e8f0' : 'none'
+  };
+};
+
 const dateInfo = computed(() => {
   const now = new Date();
   const solar = Solar.fromDate(now);
@@ -144,7 +165,10 @@ const defaultSummary = {
   insight: '适合梳理计划，不宜做重大承诺',
   do: '复盘目标与重点任务',
   avoid: '冲动承诺或情绪化沟通',
-  time: '晚间更利于深度思考'
+  time: '晚间更利于深度思考',
+  lucky_colors: [] as Array<{label: string, color: string}>,
+  avoid_colors: [] as Array<{label: string, color: string}>,
+  lucky_element: ''
 };
 
 const defaultBars = [
@@ -183,7 +207,10 @@ const loadTodayTrend = async () => {
       insight: data.summary ?? data.insight ?? defaultSummary.insight,
       do: data.yi_main ?? data.do ?? defaultSummary.do,
       avoid: data.ji_main ?? data.avoid ?? defaultSummary.avoid,
-      time: data.time_window ?? data.time ?? defaultSummary.time
+      time: data.time_window ?? data.time ?? defaultSummary.time,
+      lucky_colors: data.lucky_colors ?? defaultSummary.lucky_colors,
+      avoid_colors: data.avoid_colors ?? defaultSummary.avoid_colors,
+      lucky_element: data.lucky_element ?? defaultSummary.lucky_element
     };
     bars.value = mapBars(data.dimensions || data.bars || data.energy || []);
   } catch (e) {
@@ -266,13 +293,13 @@ watch([profileId, canShowTrend], () => {
 
 .trend-card-left {
   flex: 1;
-  padding-right: 32rpx;
+  padding-right: 24rpx;
   display: flex;
   flex-direction: column;
 }
 
 .date-header {
-  margin-bottom: 24rpx;
+  margin-bottom: 20rpx;
 }
 
 .date-main {
@@ -317,7 +344,7 @@ watch([profileId, canShowTrend], () => {
 }
 
 .lunar-text {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -339,7 +366,7 @@ watch([profileId, canShowTrend], () => {
   display: flex;
   align-items: center;
   gap: 12rpx;
-  margin-bottom: 32rpx;
+  margin-bottom: 24rpx;
 }
 
 .energy-label-text {
@@ -374,12 +401,6 @@ watch([profileId, canShowTrend], () => {
   color: #64748b;
 }
 
-.lunar-text {
-  font-size: 24rpx;
-  color: #94a3b8;
-  margin-top: 4rpx;
-}
-
 .trend-title {
   font-size: 40rpx;
   font-weight: 900;
@@ -410,12 +431,49 @@ watch([profileId, canShowTrend], () => {
 
 .trend-summary-text {
   font-size: 26rpx;
-  line-height: 1.6;
+  line-height: 1.5;
   color: #64748b;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   overflow: hidden;
+}
+
+.lucky-color-row {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.lucky-label {
+  font-size: 24rpx;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.lucky-swatches {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.lucky-item {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.lucky-swatch {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+}
+
+.lucky-text {
+  font-size: 24rpx;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .trend-card-right {

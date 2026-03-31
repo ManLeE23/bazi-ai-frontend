@@ -31,14 +31,30 @@
             icon="map-fill"
             type="trend"
             @click="navigateTo('trend')"
-          />
+          >
+            <template #icon>
+              <image 
+                src="https://api.dicebear.com/7.x/personas/svg?seed=zhishi_trend&backgroundColor=e0e7ff&facialHairProbability=0&hair=shortCombover&eyes=glasses&mouth=smile&body=squared&hairColor=362c47&skinColor=eeb4a4" 
+                class="avatar-icon"
+                mode="aspectFill"
+              />
+            </template>
+          </ImmersiveCard>
           <ImmersiveCard
             title="知心"
             subtitle="理解关系、情绪、沟通"
             icon="heart-fill"
             type="emo"
             @click="navigateTo('emo')"
-          />
+          >
+            <template #icon>
+              <image 
+                src="https://api.dicebear.com/7.x/personas/svg?seed=zhixin_sister&backgroundColor=fce7f3&facialHairProbability=0&hair=long&eyes=happy&mouth=smile&body=rounded&hairColor=362c47&skinColor=eeb4a4" 
+                class="avatar-icon"
+                mode="aspectFill"
+              />
+            </template>
+          </ImmersiveCard>
           <ImmersiveCard
             title="知业"
             subtitle="分析事业选择与成长路径"
@@ -48,9 +64,9 @@
           >
             <template #icon>
               <image 
-                src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRjU5RTBCIiBzdHJva2Utd2lkdGg9IjIuNSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIyIiB5PSI3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTQiIHJ4PSIyIj48L3JlY3Q+PHBhdGggZD0iTTE2IDIxVjVhMiAyIDAgMCAwLTItMmgtNGEyIDIgMCAwIDAtMiAydjE2Ij48L3BhdGg+PC9zdmc+" 
-                style="width: 48rpx; height: 48rpx;"
-                mode="aspectFit"
+                src="https://api.dicebear.com/7.x/personas/svg?seed=zhiye_career_v4&backgroundColor=fef3c7&facialHairProbability=0&hair=bobBangs&eyes=open&mouth=smirk&body=squared&clothingColor=456dff&hairColor=362c47&skinColor=eeb4a4" 
+                class="avatar-icon"
+                mode="aspectFill"
               />
             </template>
           </ImmersiveCard>
@@ -65,14 +81,31 @@
             icon="grid"
             type="mbti"
             @click="navigateTo('mbti')"
-          />
+          >
+            <template #icon>
+              <view class="mbti-color-grid">
+                <view class="mbti-color-block bg-purple"></view>
+                <view class="mbti-color-block bg-green"></view>
+                <view class="mbti-color-block bg-blue"></view>
+                <view class="mbti-color-block bg-yellow"></view>
+              </view>
+            </template>
+          </ImmersiveCard>
           <ImmersiveCard
-            title="看生辰"
+            title="个人档案"
             subtitle="了解你的能量特质与潜能"
-            icon="calendar-fill"
+            icon="file-text-fill"
             type="bazi"
             @click="navigateTo('bazi')"
-          />
+          >
+            <template #icon>
+              <image 
+                src="https://api.dicebear.com/7.x/personas/svg?seed=user_profile&backgroundColor=f3f4f6&facialHairProbability=0&hair=shortHair&eyes=open&mouth=smile&body=squared&skinColor=eeb4a4" 
+                class="avatar-icon"
+                mode="aspectFill"
+              />
+            </template>
+          </ImmersiveCard>
         </view>
       </view>
     </view>
@@ -118,7 +151,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { onShow } from '@dcloudio/uni-app';
+import { onShow, onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app';
 import { userStore } from '@/store/user';
 import { fetchProfilesList, fetchSystemUserInfo, fetchBaziCalculate } from '@/api/services';
 import HeaderBar from '@/components/HeaderBar.vue';
@@ -134,8 +167,25 @@ import ProfileSelectionPopup from '@/components/ProfileSelectionPopup.vue';
 import { useShare } from '@/hooks/useShare';
 import { useSWR } from '@/hooks/useSWR';
 
-const { loadShareConfig } = useShare();
+const { shareConfig, loadShareConfig } = useShare();
 loadShareConfig();
+
+onShareAppMessage(() => {
+  return {
+    title: shareConfig.value.title,
+    path: shareConfig.value.path,
+    imageUrl:shareConfig.value.imageUrl,
+  };
+});
+
+onShareTimeline(() => {
+  const query = shareConfig.value.path.split('?')[1] || '';
+  return {
+    title: shareConfig.value.title,
+    query: query,
+    imageUrl:shareConfig.value.imageUrl,
+  };
+});
 
 // Pre-fetch Bazi data for current profile using SWR
 // This ensures we have the data cached when navigating to Bazi details
@@ -275,22 +325,11 @@ const navigateTo = (type: string) => {
       });
       return;
     case 'mbti':
-       // MBTI might be a different page or just chat with mbti agent?
-       // User said: "MBTI 放在自我探索中" and "同时匹配先隐藏了，MBTI 放在自我探索中".
-       // The click handler for MBTI in previous code was `@click="navigateTo('mbti')"`.
-       // If MBTI is also an agent, I should map it. If it's a separate page, I should keep it.
-       // The user didn't specify agent type for MBTI, only for the 3 AI advisors.
-       // For now I will keep MBTI as 'function developing' or navigate to mbti page if it exists.
-       // Checking pages.json, there is no specific mbti page.
-       // I'll assume for now MBTI is just a placeholder or maybe it should also go to chat?
-       // The prompt says: "问知势... AgentType.LIFE_TREND ... 枚举如下 ... LIFE_TREND, EMOTION, CAREER".
-       // MBTI is not in the enum provided.
-       // I will leave MBTI as is (toast) or maybe navigate to chat without agentType or a specific one if I knew.
-       // But wait, the user instructions only specified the 3 agents.
-       uni.showToast({
-        title: '功能开发中',
-        icon: 'none'
-      });
+      uni.navigateTo({ url: '/pages/mbti/index' });
+      // uni.showToast({
+      //   title: '功能开发中',
+      //   icon: 'none'
+      // });
       return;
     default:
       uni.showToast({
@@ -503,5 +542,47 @@ const navigateTo = (type: string) => {
 :deep(.sidebar-menu-root) {
   flex: 1;
   height: 100%;
+}
+
+.avatar-icon {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 32rpx;
+}
+
+.mbti-color-grid {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 32rpx;
+  background-color: #f8fafc;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 16rpx;
+  gap: 8rpx;
+  box-sizing: border-box;
+  align-content: space-between;
+  justify-content: space-between;
+}
+
+.mbti-color-block {
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 10rpx;
+}
+
+.bg-purple {
+  background: linear-gradient(135deg, #c084fc 0%, #9333ea 100%);
+}
+
+.bg-green {
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+}
+
+.bg-blue {
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+}
+
+.bg-yellow {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
 }
 </style>

@@ -174,6 +174,13 @@ const handleGetPhoneNumber = async (e: any) => {
               url += `?agentType=${agentType.value}`;
             }
             uni.reLaunch({ url });
+          } else if (redirect.value) {
+            const decodedUrl = decodeURIComponent(redirect.value);
+            if (decodedUrl.startsWith('/')) {
+              uni.redirectTo({ url: decodedUrl });
+            } else {
+              uni.reLaunch({ url: '/pages/index/index' });
+            }
           } else {
             uni.reLaunch({ url: '/pages/index/index' });
           }

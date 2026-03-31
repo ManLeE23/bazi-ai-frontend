@@ -196,6 +196,29 @@ export const fetchSystemUserInfo = () => {
   });
 };
 
+export const fetchMBTIQuestions = () => {
+  return httpGet({
+    url: '/api/mbti/questions',
+    params: {},
+  });
+};
+
+export const fetchMBTISubmit = (params: {
+  answers: Array<{ question_id: number; option: string }>;
+}) => {
+  return httpPost({
+    url: '/api/mbti/submit',
+    params,
+  });
+};
+
+export const fetchMBTIReport = (reportId: string | number) => {
+  return httpGet({
+    url: '/api/mbti/report/' + reportId,
+    params: {},
+  });
+};
+
 export const fetchMembershipPlans = () => {
   return httpGet({
     url: '/api/membership/plans',
@@ -230,7 +253,7 @@ export const fetchInviteStats = () => {
 
 export const fetchBaziCalculate = async (profile_id: string) => {
   return httpGet({
-    url: `/api/bazi/calculate/profile/${profile_id}`,
+    url: '/api/bazi/calculate/profile/' + profile_id,
     params: {},
   });
 };
@@ -245,6 +268,19 @@ export const fetchWechatPayment = (params: {
 }) => {
   return httpPost({
     url: '/api/payments/wechat/jsapi',
+    params,
+  });
+};
+
+export const fetchMBTIWechatPayment = (params: {
+  amount_total: number;
+  description: string;
+  currency?: string;
+  code: string;
+  report_id: string;
+}) => {
+  return httpPost({
+    url: '/api/payments/wechat/mbti/jsapi',
     params,
   });
 };

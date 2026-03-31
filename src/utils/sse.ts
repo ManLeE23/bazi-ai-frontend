@@ -1,6 +1,6 @@
 import { baseUrl } from '@/api/config';
 
-function decodeUTF8(arrayBuffer) {
+function decodeUTF8(arrayBuffer: ArrayBuffer) {
   const bytes = new Uint8Array(arrayBuffer);
   let str = '';
   let i = 0;
@@ -37,10 +37,10 @@ function decodeUTF8(arrayBuffer) {
  * @returns {Object} 包含关闭连接的方法
  */
 export const createSSEConnection = (
-  reportId,
-  onMessage,
-  onError,
-  options = {},
+  reportId: string,
+  onMessage: (data: any) => void,
+  onError: (err: any) => void,
+  options: any = {},
 ) => {
   // 默认配置
   const config = {
@@ -51,13 +51,14 @@ export const createSSEConnection = (
   };
 
   // SSE相关变量
-  let socketTask = null; // 小程序流式请求任务
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let socketTask: any = null; // 小程序流式请求任务
   let reconnectCount = 0; // 重连次数
   let buffer = ''; // 数据流缓冲（处理分片数据）
   let isClosed = false; // 是否手动关闭
 
   // 解析SSE数据流（核心：处理data: {}\n\n格式）
-  const parseSSEData = (chunk) => {
+  const parseSSEData = (chunk: ArrayBuffer) => {
     const chunkStr = decodeUTF8(chunk);
     buffer += chunkStr;
 
@@ -125,9 +126,10 @@ export const createSSEConnection = (
         }
       },
     });
+    // 核心：监听数据分片返回
     socketTask.onChunkReceived &&
-      socketTask.onChunkReceived((res) => {
-        console.log('分片数据接收中', res.data);
+      socketTask.onChunkReceived((res: any) => {
+        if (isClosed) return;
         parseSSEData(res.data);
       });
   };
@@ -168,7 +170,7 @@ export const createSSEConnection = (
  * 关闭小程序版SSE连接
  * @param {Object} sseInstance - createSSEConnection返回的对象
  */
-export const closeSSEConnection = (sseInstance) => {
+export const closeSSEConnection = (sseInstance: any) => {
   console.log('closeSSEConnection');
   if (sseInstance && typeof sseInstance.close === 'function') {
     sseInstance.close();
