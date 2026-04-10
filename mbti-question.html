@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI 测试页 - 结构化设计</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 1. 纯净且具有流动感的背景，为毛玻璃提供折射基础 */
+        body {
+            background-color: #F8FAFC;
+            background-image: 
+                radial-gradient(circle at 15% 0%, #E0E7FF 0%, transparent 45%),
+                radial-gradient(circle at 85% 30%, #FCE7F3 0%, transparent 50%),
+                radial-gradient(circle at 50% 100%, #F3E8FF 0%, transparent 50%);
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden; /* 锁定视口，禁止原生滚动 */
+        }
+
+        /* 2. 核心的高级毛玻璃卡片质感 */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 
+                0 4px 24px -6px rgba(15, 23, 42, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            border-radius: 32px;
+        }
+
+        /* 3. 选项按钮：克制的微交互 */
+        .option-btn {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            border-radius: 20px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .option-btn:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 选中状态：理性的品牌色高亮 */
+        .option-btn.selected {
+            background: #FFFFFF;
+            border-color: #6366F1;
+            box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.1);
+        }
+        
+        .option-btn.selected .letter-badge {
+            background: #EEF2FF;
+            color: #6366F1;
+            font-weight: 800;
+        }
+
+        /* 4. 底部固定操作栏的高斯模糊背景 */
+        .bottom-action-bar {
+            background: linear-gradient(to top, rgba(248, 250, 252, 1) 40%, rgba(248, 250, 252, 0));
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex justify-center">
+
+    <div class="w-full max-w-md h-[100dvh] flex flex-col relative">
+
+        <header class="flex items-center justify-between px-5 py-4 pt-8">
+            <button class="w-10 h-10 flex items-center justify-center bg-white/50 rounded-full backdrop-blur-md text-slate-500 active:bg-white/80 transition">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <h1 class="text-[17px] font-bold tracking-wide">十六人格测试</h1>
+            <div class="flex items-center gap-1 px-3 py-2 bg-white/50 rounded-full backdrop-blur-md">
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                <div class="w-4 h-4 rounded-full border-[2px] border-slate-400 ml-1"></div>
+            </div>
+        </header>
+
+        <main class="flex-1 px-4 mt-2 mb-28 flex flex-col">
+            <div class="glass-panel flex-1 flex flex-col p-6 relative z-10">
+                
+                <div class="flex flex-col items-center mb-8 mt-2">
+                    <div class="grid grid-cols-2 gap-1 mb-4 rotate-45">
+                        <div class="w-4 h-4 rounded-sm bg-indigo-400"></div>
+                        <div class="w-4 h-4 rounded-sm bg-teal-400"></div>
+                        <div class="w-4 h-4 rounded-sm bg-amber-400"></div>
+                        <div class="w-4 h-4 rounded-sm bg-rose-400"></div>
+                    </div>
+                    <h2 class="text-xl font-black tracking-tight text-slate-800">人格维度分析</h2>
+                    <p class="text-xs font-medium text-slate-500 mt-1.5">探索你的行为偏好与思维模式</p>
+                </div>
+
+                <div class="mb-8">
+                    <div class="flex items-baseline gap-1 mb-2">
+                        <span class="text-2xl font-black text-indigo-600 leading-none">1</span>
+                        <span class="text-sm font-bold text-slate-400 leading-none">/ 48</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-300 ease-out w-[2.08%]"></div>
+                    </div>
+                </div>
+
+                <h3 class="text-[22px] font-black leading-snug text-slate-800 mb-8 px-1">
+                    我喜欢主动认识新朋友
+                </h3>
+
+                <div class="space-y-3 mt-auto">
+                    <button class="option-btn w-full flex items-center p-4 text-left group">
+                        <span class="letter-badge flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-[15px] font-bold mr-4 transition-colors">A</span>
+                        <span class="text-[16px] font-semibold text-slate-700">完全符合</span>
+                    </button>
+                    <button class="option-btn w-full flex items-center p-4 text-left group">
+                        <span class="letter-badge flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-[15px] font-bold mr-4 transition-colors">B</span>
+                        <span class="text-[16px] font-semibold text-slate-700">比较符合</span>
+                    </button>
+                    <button class="option-btn w-full flex items-center p-4 text-left group">
+                        <span class="letter-badge flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-[15px] font-bold mr-4 transition-colors">C</span>
+                        <span class="text-[16px] font-semibold text-slate-700">不太符合</span>
+                    </button>
+                    <button class="option-btn w-full flex items-center p-4 text-left group">
+                        <span class="letter-badge flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-[15px] font-bold mr-4 transition-colors">D</span>
+                        <span class="text-[16px] font-semibold text-slate-700">完全不符合</span>
+                    </button>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="bottom-action-bar fixed bottom-0 left-0 w-full flex justify-center pb-8 pt-10 px-5 z-20 pointer-events-none">
+            <div class="w-full max-w-md flex justify-between items-center pointer-events-auto px-2">
+                <button class="flex items-center gap-1.5 text-[15px] font-bold text-slate-400 active:text-slate-600 transition-colors">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    上一题
+                </button>
+                <button class="bg-[#F97316] hover:bg-[#EA580C] text-white px-8 py-3.5 rounded-full font-bold text-[16px] shadow-[0_8px_20px_rgba(249,115,22,0.3)] active:scale-95 transition-all flex items-center gap-1.5">
+                    下一题
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+        </footer>
+
+    </div>
+</body>
+</html>

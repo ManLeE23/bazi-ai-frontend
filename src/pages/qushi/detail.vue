@@ -15,9 +15,9 @@
           <text class="info-text">阳历：{{ baziData.base_info?.birth_datetime }}（真太阳）</text>
           <text class="info-text">阴历：{{ baziData.base_info?.chinese_birth_datetime }}</text>
         </view>
-        <!-- <view class="share-btn">
-          <u-icon name="share" size="20" color="#6366f1"></u-icon>
-        </view> -->
+        <!--// .share-btn {
+        //   u-icon name="share" size="20" color="#7c4dff"></u-icon>
+        // }-->
       </view>
     </view>
 
@@ -705,7 +705,7 @@ const initSelection = () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: linear-gradient(135deg, #EEF2FF 0%, #EBEFFF 50%, #F5F3FF 100%);
+  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 50%, #F3E8FF 100%);
 }
 
 .main-scroll {
@@ -723,7 +723,7 @@ const initSelection = () => {
 .text-rose-500 { color: #f43f5e; }
 .text-slate-600 { color: #475569; }
 .text-emerald-500 { color: #10b981; }
-.text-indigo-600 { color: #4f46e5; }
+.text-indigo-600 { color: #7c4dff; }
 .text-amber-600 { color: #d97706; }
 .text-purple-600 { color: #9333ea; }
 
@@ -759,7 +759,7 @@ const initSelection = () => {
                 
                 .gender-text {
                     font-size: 12px;
-                    color: #4f46e5;
+                    color: #7c4dff;
                     font-weight: 900;
                 }
             }
@@ -784,7 +784,7 @@ const initSelection = () => {
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        box-shadow: 0 4px 12px rgba(124, 77, 255, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.6);
     }
   }
@@ -815,7 +815,7 @@ const initSelection = () => {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #6366f1;
+  background: #7c4dff;
   animation: dot-bounce 1.4s infinite ease-in-out both;
 }
 
@@ -878,7 +878,7 @@ const initSelection = () => {
     position: sticky;
     top: 0;
     z-index: 100;
-    background-color: rgba(238, 242, 255, 0.98);
+    background-color: rgba(245, 243, 255, 0.98);
     backdrop-filter: blur(10px);
     margin: 0 -8px;
     padding: 8px 8px 0;
@@ -904,7 +904,7 @@ const initSelection = () => {
     font-weight: 900;
     
     .highlight {
-        color: #4f46e5;
+        color: #7c4dff;
     }
 }
 
@@ -984,7 +984,7 @@ const initSelection = () => {
     justify-content: space-around;
     padding: 8px 0;
     // border-top: 1px solid #f8fafc;
-    background-color: rgba(248, 250, 252, 0.5);
+    background-color: rgba(245, 243, 255, 0.5);
     
     .extra-item {
         font-size: 13px;

@@ -1,21 +1,23 @@
 <template>
   <view class="login-container">
-    <!-- Header Visual + HeaderBar -->
-    <view class="header-visual">
-      <HeaderBar
-        :showBack="true"
-        :fixed="true"
-        :placeholder="true"
-        backgroundColor="transparent"
-      />
-      <view class="header-bg-text">知势</view>
-    </view>
+    <!-- Ambient Background Elements -->
+    <view class="aura-blob aura-blob-top"></view>
+    <view class="aura-blob aura-blob-bottom"></view>
+
+    <HeaderBar
+      :showBack="true"
+      :fixed="true"
+      :placeholder="true"
+      backgroundColor="transparent"
+    />
 
     <view class="content-wrapper">
       <!-- Logo Box -->
       <view class="logo-box">
-        <view class="logo-inner">
-          <text class="logo-text">趋</text>
+        <view class="css-logo">
+          <view class="shape-1"></view>
+          <view class="shape-2"></view>
+          <view class="core"></view>
         </view>
       </view>
 
@@ -206,7 +208,7 @@ const handleGetPhoneNumber = async (e: any) => {
 <style lang="scss" scoped>
 .login-container {
   min-height: 100vh;
-  background-color: #ffffff;
+  background-color: #F8F9FF;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -216,69 +218,102 @@ const handleGetPhoneNumber = async (e: any) => {
     sans-serif;
 }
 
-.header-visual {
-  position: relative;
-  height: 40vh;
-  background: radial-gradient(circle at 50% 40%, #818cf8 0%, #6366f1 100%);
-  // Using border-radius to approximate the clip-path ellipse(120% 100% at 50% 0%)
-  // A large bottom radius creates a convex curve downwards
-  border-bottom-left-radius: 40% 20%;
-  border-bottom-right-radius: 40% 20%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+.aura-blob {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(124, 77, 255, 0.12) 0%, rgba(124, 77, 255, 0) 70%);
+  filter: blur(80px);
+  z-index: 0;
+  pointer-events: none;
+}
 
-  .header-bg-text {
-    font-size: 60px;
-    font-weight: 900;
-    color: rgba(255, 255, 255, 0.2);
-    letter-spacing: -2px;
-    opacity: 0.4;
-    pointer-events: none;
-    user-select: none;
-  }
+.aura-blob-top {
+  top: -100px;
+  right: -100px;
+}
+
+.aura-blob-bottom {
+  bottom: -200px;
+  left: -200px;
 }
 
 .content-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: -64px; // -mt-16
+  margin-top: 10vh;
   position: relative;
   z-index: 10;
   padding: 0 32px;
+  flex: 1;
 }
 
 .logo-box {
-  width: 112px; // w-28
-  height: 112px; // h-28
-  background: #ffffff;
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 32px;
-  padding: 4px;
-  box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 16px 32px rgba(124, 77, 255, 0.08), inset 0 0 20px rgba(255, 255, 255, 0.6);
   margin-bottom: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 
-  .logo-inner {
-    width: 100%;
-    height: 100%;
-    border-radius: 28px;
-    background-color: #eef2ff; // indigo-50
-    border: 2px solid rgba(224, 231, 255, 0.5); // indigo-100/50
+  .css-logo {
+    width: 64px;
+    height: 64px;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    animation: float-pulse 6s ease-in-out infinite;
 
-    .logo-text {
-      font-size: 36px; // text-4xl
-      font-weight: 900;
-      color: #1e293b; // slate-800
-      font-style: italic;
+    .shape-1 {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #7c4dff 0%, #ec4899 100%);
+      border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+      animation: morph 8s ease-in-out infinite;
+      opacity: 0.8;
+    }
+
+    .shape-2 {
+      position: absolute;
+      width: 90%;
+      height: 90%;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      animation: morph 8s ease-in-out infinite reverse;
+      opacity: 0.8;
+    }
+    
+    .core {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 16px rgba(255, 255, 255, 1);
+      z-index: 2;
     }
   }
+}
+
+@keyframes float-pulse {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.05); }
+}
+
+@keyframes morph {
+  0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+  34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+  67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; }
+  100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
 }
 
 .text-center {
@@ -312,15 +347,13 @@ const handleGetPhoneNumber = async (e: any) => {
 
   .login-btn {
     width: 100%;
-    padding: 24px 0; // py-4 equivalent (check uni-app button height quirks)
+    padding: 28px 0;
     height: auto;
     line-height: 1.5;
-    border-radius: 16px; // rounded-2xl
-    background-color: #1e293b; // btn-main color
+    border-radius: 999px;
+    background: linear-gradient(135deg, #7c4dff 0%, #632ce5 100%);
     color: #ffffff;
-    box-shadow:
-      0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 10px 10px -5px rgba(0, 0, 0, 0.04); // shadow-xl
+    box-shadow: 0 16px 32px rgba(124, 77, 255, 0.2);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
@@ -357,7 +390,7 @@ const handleGetPhoneNumber = async (e: any) => {
     .link {
       color: #94a3b8; // slate-400
       text-decoration: underline;
-      text-decoration-color: #c7d2fe; // decoration-indigo-200
+      text-decoration-color: #d8b4fe; // decoration-purple-200
       margin: 0 4px;
     }
 
@@ -384,8 +417,8 @@ const handleGetPhoneNumber = async (e: any) => {
     }
 
     .agree-checkbox.agree-checkbox--checked {
-      background-color: #4f46e5;
-      border-color: #4f46e5;
+      background-color: #7c4dff;
+      border-color: #7c4dff;
     }
 
     .agree-checkbox.agree-checkbox--checked::after {

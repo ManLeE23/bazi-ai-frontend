@@ -1,22 +1,21 @@
 <template>
   <view class="feedback-page">
+    <!-- Ambient Background Elements -->
+    <view class="aura-blob aura-blob-top"></view>
+    <view class="aura-blob aura-blob-bottom"></view>
+
     <HeaderBar
       title="意见反馈"
       :fixed="true"
       :placeholder="true"
-      background-color="#F1F0FA"
+      background-color="transparent"
     />
 
     <view class="content-container">
-      <!-- Header -->
-      <!-- <view class="page-header">
-        <text class="header-title">用户反馈</text>
-      </view> -->
-
       <view class="main-content">
         
         <!-- Feedback Type Section -->
-        <view class="card-section">
+        <view class="card-section glass-card">
           <text class="section-title">反馈类型</text>
           <view class="type-grid">
             <view 
@@ -24,11 +23,7 @@
               :key="type.value"
               class="type-btn"
               :class="{ 
-                'active': selectedType === type.value,
-                'active-problem': selectedType === 'problem' && type.value === 'problem',
-                'active-feature': selectedType === 'feature' && type.value === 'feature',
-                'active-usage': selectedType === 'usage' && type.value === 'usage',
-                'active-other': selectedType === 'other' && type.value === 'other'
+                'active': selectedType === type.value
               }"
               @click="selectType(type.value)"
             >
@@ -38,14 +33,14 @@
         </view>
 
         <!-- Feedback Content Section -->
-        <view class="card-section">
+        <view class="card-section glass-card">
           <text class="section-title">反馈内容</text>
           <textarea 
             v-model="content"
             placeholder="请详细描述您的反馈..." 
             class="feedback-textarea"
             :maxlength="500"
-            placeholder-style="color: #94a3b8; font-size: 32rpx" 
+            placeholder-style="color: #94a3b8; font-size: 28rpx" 
           ></textarea>
         </view>
 
@@ -62,9 +57,9 @@
         </view>
 
         <!-- Emergency Contact Section -->
-        <view class="emergency-section">
+        <view class="emergency-section glass-card">
           <view class="emergency-header">
-            <u-icon name="server-fill" size="28" color="#6366f1"></u-icon>
+            <u-icon name="server-fill" size="28" color="#7c4dff"></u-icon>
             <text class="emergency-title">紧急联系</text>
           </view>
           <text class="emergency-desc">
@@ -173,8 +168,31 @@ const copyEmail = () => {
 <style lang="scss" scoped>
 .feedback-page {
   min-height: 100vh;
-  background-color: #F1F0FA;
+  background-color: #F8F9FF; /* Transcendental Ether base */
   padding-bottom: 48rpx;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Ambient Background Blobs */
+.aura-blob {
+  position: absolute;
+  width: 1200rpx;
+  height: 1200rpx;
+  background: radial-gradient(circle, rgba(124, 77, 255, 0.12) 0%, rgba(124, 77, 255, 0) 70%);
+  filter: blur(160rpx);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.aura-blob-top {
+  top: -300rpx;
+  right: -300rpx;
+}
+
+.aura-blob-bottom {
+  bottom: -300rpx;
+  left: -300rpx;
 }
 
 .content-container {
@@ -182,22 +200,8 @@ const copyEmail = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.page-header {
-  width: 100%;
-  max-width: 600rpx;
-  display: flex;
-  justify-content: center;
-  padding: 32rpx 0;
-  margin-bottom: 32rpx;
-  
-  .header-title {
-    font-size: 36rpx;
-    font-weight: 900;
-    color: #1e293b;
-    letter-spacing: -0.025em;
-  }
+  position: relative;
+  z-index: 10;
 }
 
 .main-content {
@@ -207,18 +211,22 @@ const copyEmail = () => {
   gap: 32rpx;
 }
 
+.glass-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 16rpx 32rpx rgba(124, 77, 255, 0.04);
+}
+
 .card-section {
-  background-color: #ffffff;
-  border-radius: 64rpx;
-  padding: 48rpx;
-  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+  border-radius: 48rpx;
+  padding: 40rpx;
   
   .section-title {
-    font-size: 24rpx;
+    font-size: 28rpx;
     font-weight: 900;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    color: #191C20;
     margin-bottom: 32rpx;
     display: block;
   }
@@ -233,23 +241,23 @@ const copyEmail = () => {
 .type-btn {
   padding: 16rpx 40rpx;
   border-radius: 9999rpx;
-  background-color: #f8fafc;
-  border: 2rpx solid #f1f5f9;
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(202, 195, 216, 0.4);
   transition: all 0.2s;
   
   .type-text {
     font-size: 26rpx;
-    font-weight: 900;
-    color: #94a3b8;
+    font-weight: 800;
+    color: #64748b;
   }
   
   &.active {
-    background-color: #4f46e5; // indigo-600
-    border-color: #4f46e5;
-    box-shadow: 0 4rpx 12rpx rgba(79, 70, 229, 0.2);
+    background-color: #ffffff;
+    border-color: rgba(124, 77, 255, 0.4);
+    box-shadow: 0 4rpx 12rpx rgba(124, 77, 255, 0.1);
     
     .type-text {
-      color: #ffffff;
+      color: #7c4dff;
     }
   }
 }
@@ -258,42 +266,46 @@ const copyEmail = () => {
   width: 100%;
   box-sizing: border-box;
   height: 350rpx;
-  background-color: #f8fafc;
+  background-color: rgba(255, 255, 255, 0.5);
   border-radius: 32rpx;
   padding: 32rpx;
-  font-size: 32rpx;
-  color: #334155;
+  font-size: 28rpx;
+  color: #191C20;
   line-height: 1.6;
-  border: 2rpx solid transparent;
+  border: 1px solid rgba(202, 195, 216, 0.2);
   transition: all 0.2s;
   
   &:focus {
     background-color: #ffffff;
-    border-color: #818cf8;
+    border-color: rgba(124, 77, 255, 0.4);
+    box-shadow: 0 4rpx 12rpx rgba(124, 77, 255, 0.1);
   }
 }
+
 .submit-container {
   padding-top: 16rpx;
 }
 
 .submit-btn {
   width: 100%;
-  padding: 16rpx 0;
-  height: 100rpx;
+  height: 112rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(90deg, #818cf8 0%, #6366f1 100%);
-  border-radius: 48rpx;
-  box-shadow: 0 8rpx 24rpx rgba(99, 102, 241, 0.25);
+  background-color: #7c4dff;
+  border-radius: 999rpx;
+  box-shadow: 0 16rpx 32rpx rgba(124, 77, 255, 0.2);
   transition: all 0.2s;
+  border: none;
+  
+  &::after { border: none; }
   
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.96);
   }
   
   &.disabled {
-    opacity: 0.7;
+    opacity: 0.6;
     pointer-events: none;
   }
   
@@ -301,14 +313,15 @@ const copyEmail = () => {
     font-size: 32rpx;
     font-weight: 900;
     color: #ffffff;
+    letter-spacing: 0.1em;
   }
 }
 
 .emergency-section {
-  background-color: rgba(235, 234, 245, 0.6);
-  border-radius: 64rpx;
-  padding: 48rpx;
-  border: 2rpx solid rgba(255, 255, 255, 0.5);
+  border-radius: 48rpx;
+  padding: 40rpx;
+  background-color: rgba(124, 77, 255, 0.05);
+  border: 1px solid rgba(124, 77, 255, 0.1);
   
   .emergency-header {
     display: flex;
@@ -319,9 +332,7 @@ const copyEmail = () => {
     .emergency-title {
       font-size: 28rpx;
       font-weight: 900;
-      color: #6366f1;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+      color: #7c4dff;
     }
   }
   
@@ -334,9 +345,8 @@ const copyEmail = () => {
     font-weight: 500;
     
     .email-highlight {
-      color: #4f46e5;
-      font-weight: 700;
-      font-style: italic;
+      color: #7c4dff;
+      font-weight: 800;
     }
   }
   
@@ -346,17 +356,18 @@ const copyEmail = () => {
     gap: 16rpx;
     padding: 16rpx 32rpx;
     background-color: #ffffff;
-    border-radius: 24rpx;
-    border: 2rpx solid #f1f5f9;
-    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+    border-radius: 999rpx;
+    border: 1px solid rgba(202, 195, 216, 0.4);
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.02);
     
     &:active {
       background-color: #f8fafc;
+      transform: scale(0.96);
     }
     
     .copy-text {
       font-size: 24rpx;
-      font-weight: 900;
+      font-weight: 800;
       color: #475569;
     }
   }
@@ -369,8 +380,7 @@ const copyEmail = () => {
     font-size: 22rpx;
     font-weight: 700;
     color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.1em;
   }
 }
 </style>

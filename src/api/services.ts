@@ -219,6 +219,13 @@ export const fetchMBTIReport = (reportId: string | number) => {
   });
 };
 
+export const fetchMBTIReportsList = (params: { paid?: boolean } = {}) => {
+  return httpGet({
+    url: '/api/mbti/reports',
+    params,
+  });
+};
+
 export const fetchMembershipPlans = () => {
   return httpGet({
     url: '/api/membership/plans',

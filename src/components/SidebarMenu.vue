@@ -1,5 +1,6 @@
 <template>
   <view class="sidebar-container">
+    <view class="aura-bg"></view>
     <!-- Global mask for dropdowns to avoid fixed positioning issues during transition -->
     <view 
       v-if="activeMenuId !== null" 
@@ -14,21 +15,6 @@
 
       <view
         class="discovery-item"
-        :class="{ active: currentRoute === 'explore' }"
-        @click="navigateToNewWorld"
-      >
-        <!-- <view class="icon-box">
-           <u-icon name="flask" size="36" color="#6366f1"></u-icon>
-        </view> -->
-        <text
-          class="item-text"
-          :class="{ 'active-text': currentRoute === 'explore' }"
-          >探索中心</text
-        >
-      </view>
-
-      <view
-        class="discovery-item"
         :class="{ active: currentRoute === 'feedback' }"
         @click="navigateToFeedback"
       >
@@ -36,6 +22,18 @@
           class="item-text"
           :class="{ 'active-text': currentRoute === 'feedback' }"
           >意见反馈</text
+        >
+      </view>
+
+      <view
+        class="discovery-item"
+        :class="{ active: currentRoute === 'mbti' }"
+        @click="navigateToMBTI"
+      >
+        <text
+          class="item-text"
+          :class="{ 'active-text': currentRoute === 'mbti' }"
+          >MBTI 报告</text
         >
       </view>
 
@@ -55,8 +53,8 @@
         <view class="add-btn" @click="navigateToAddProfile">
           <u-icon
             name="plus"
-            :size="28"
-            color="#4f46e5"
+            :size="32"
+            color="#632ce5"
             style="font-weight: 700"
           />
           <!-- <text class="add-text">添加</text> -->
@@ -416,6 +414,12 @@ const navigateToFeedback = () => {
   });
 };
 
+const navigateToMBTI = () => {
+  uni.navigateTo({
+    url: '/pages/mbti/list',
+  });
+};
+
 const navigateToLogin = () => {
   uni.navigateTo({
     url: '/pages/login/index?from=sidebar',
@@ -426,30 +430,34 @@ const navigateToLogin = () => {
 <style lang="scss" scoped>
 /* Discovery Section Styles */
 .menu-title {
-  font-size: 24rpx;
-  color: #64748b;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-size: 24rpx; /* label-md */
+  color: #94a3b8;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  margin-bottom: 24rpx;
+  margin-bottom: 32rpx;
   display: block;
-  margin-left: 8rpx;
+  margin-left: 24rpx;
 }
 
 .discovery-item {
   display: flex;
   align-items: center;
-  padding: 16rpx 24rpx;
+  padding: 24rpx 32rpx;
   border-radius: 999px; /* Pill shape */
-  margin-bottom: 16rpx;
-  transition: all 0.2s;
+  margin-bottom: 24rpx;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
   &.active {
-    background-color: #f1f5f9; /* Light gray background */
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 20px 40px rgba(124, 77, 255, 0.06);
+    /* outline: 0.5px solid rgba(202, 195, 216, 0.2); Removed to prevent rendering line artifacts */
+    border: 1px solid rgba(202, 195, 216, 0.2);
   }
 
   &:active {
-    opacity: 0.8;
     transform: scale(0.98);
   }
 }
@@ -470,13 +478,13 @@ const navigateToLogin = () => {
 }
 
 .item-text {
-  font-size: 30rpx;
+  font-size: 32rpx; /* body-lg */
   font-weight: 500;
+  color: #191c20;
 
   &.active-text {
-    color: #6366f1; /* Indigo/Purple */
-    font-weight: 800;
-    font-size: 34rpx;
+    color: #632ce5; /* Primary */
+    font-weight: 700;
   }
 
   &.gray-text {
@@ -484,59 +492,12 @@ const navigateToLogin = () => {
   }
 }
 
-.quota-container {
-  padding: 24rpx 32rpx;
-  border-top: 1rpx solid #e2e8f0;
 
-  .quota-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12rpx;
-
-    .quota-label {
-      font-size: 26rpx;
-      color: #64748b;
-    }
-
-    .quota-value {
-      font-size: 26rpx;
-      font-weight: 600;
-      color: #334155;
-
-      &.text-warning {
-        color: #ef4444;
-      }
-    }
-  }
-
-  .progress-bar {
-    height: 8rpx;
-    background-color: #f1f5f9;
-    border-radius: 4rpx;
-    overflow: hidden;
-    margin-bottom: 8rpx;
-
-    .progress-inner {
-      height: 100%;
-      background-color: #6366f1;
-      border-radius: 4rpx;
-      transition: width 0.3s ease;
-    }
-  }
-
-  .quota-tip {
-    font-size: 22rpx;
-    color: #ef4444;
-    display: block;
-    margin-top: 8rpx;
-  }
-}
 
 .sidebar-container {
   width: 100%;
   height: 100%;
-  background-color: #fff;
+  background-color: #f8f9ff; /* surface */
   padding: 40rpx 32rpx;
   /* Add padding for status bar */
   padding-top: calc(var(--status-bar-height) + 40rpx);
@@ -547,25 +508,42 @@ const navigateToLogin = () => {
   box-sizing: border-box;
 }
 
+.aura-bg {
+  position: absolute;
+  top: -200rpx;
+  right: -200rpx;
+  width: 800rpx;
+  height: 800rpx;
+  background-color: #632ce5;
+  border-radius: 50%;
+  filter: blur(200rpx);
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .name-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12rpx;
   margin-bottom: 4rpx;
 
   .self-tag {
-    font-size: 10px;
+    font-size: 20rpx; /* label-md-like */
     color: #fff;
-    background: #6366f1;
-    padding: 1px 4px;
-    border-radius: 4px;
+    background: #632ce5; /* primary */
+    padding: 2rpx 8rpx;
+    border-radius: 8rpx;
     line-height: 1.2;
+    font-weight: 600;
   }
 }
 
 /* Menu Section */
 .menu-section {
-  margin-bottom: 32rpx;
+  margin-bottom: 48rpx;
+  position: relative;
+  z-index: 1;
 }
 
 .menu-list {
@@ -586,9 +564,9 @@ const navigateToLogin = () => {
 }
 
 .menu-text {
-  font-size: 30rpx;
+  font-size: 32rpx; /* body-lg */
   font-weight: 500;
-  color: #334155;
+  color: #191c20;
 }
 
 /* Recent Section (Now Profiles) */
@@ -605,14 +583,16 @@ const navigateToLogin = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 32rpx;
+  padding-left: 24rpx;
 }
 
 .section-title {
-  font-size: 24rpx;
-  color: #64748b;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-size: 24rpx; /* label-md */
+  color: #94a3b8;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .add-btn {
@@ -620,7 +600,8 @@ const navigateToLogin = () => {
   align-items: center;
   padding: 16rpx;
   border-radius: 999px;
-  background-color: #eef2ff;
+  background-color: transparent;
+  color: #632ce5;
 }
 
 .add-text {
@@ -649,24 +630,26 @@ const navigateToLogin = () => {
 .profile-item {
   display: flex;
   align-items: center;
-  padding: 24rpx 16rpx;
-  border-radius: 16rpx;
-  margin-bottom: 16rpx;
-  background-color: #fff;
-  transition: all 0.2s;
+  padding: 32rpx 24rpx;
+  border-radius: 48rpx; /* 3rem / 48rpx */
+  margin-bottom: 24rpx;
+  background-color: transparent;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   width: 100%;
   box-sizing: border-box;
 
   &:active {
-    background-color: #f8fafc;
+    transform: scale(0.98);
   }
 
   &.active {
-    background: rgba(224, 231, 255, 0.5);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    // border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 20px 40px rgba(124, 77, 255, 0.06);
+    /* outline: 0.5px solid rgba(202, 195, 216, 0.2); Removed to prevent rendering line artifacts */
+    border: 1px solid rgba(202, 195, 216, 0.2);
   }
 }
 
@@ -677,14 +660,13 @@ const navigateToLogin = () => {
 }
 
 .profile-name {
-  font-size: 30rpx;
+  font-size: 32rpx; /* body-lg */
   font-weight: 600;
-  color: #1e293b;
-  // margin-bottom: 4rpx;
+  color: #191c20;
 }
 
 .profile-desc {
-  font-size: 24rpx;
+  font-size: 24rpx; /* label-md-like */
   color: #94a3b8;
 }
 
@@ -692,7 +674,7 @@ const navigateToLogin = () => {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background-color: #6366f1;
+  background-color: #632ce5; /* primary */
   margin-right: 24rpx;
   flex-shrink: 0;
   position: relative;
@@ -747,41 +729,60 @@ const navigateToLogin = () => {
 }
 
 .empty-icon-wrapper {
-  width: 120rpx;
-  height: 120rpx;
-  background-color: #f1f5f9;
-  border-radius: 24rpx;
+  width: 160rpx;
+  height: 160rpx;
+  background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24rpx;
+  margin-bottom: 32rpx;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #632ce5;
+    border-radius: 50%;
+    filter: blur(40rpx);
+    opacity: 0.1;
+    z-index: 0;
+  }
+  
+  u-icon {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .empty-title {
-  font-size: 32rpx;
+  font-size: 32rpx; /* body-lg */
   font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 8rpx;
+  color: #191c20;
+  margin-bottom: 16rpx;
 }
 
 .empty-desc {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: #94a3b8;
-  margin-bottom: 32rpx;
+  margin-bottom: 48rpx;
 }
 
 .add-profile-btn {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #fff;
-  background-color: #4f46e5;
-  border-radius: 12px;
+  font-size: 24rpx; /* label-md */
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #7c4dff; /* primary_container */
+  border-radius: 999rpx; /* rounded-full */
   padding: 0 48rpx;
   line-height: 80rpx;
   border: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
   &:active {
-    opacity: 0.9;
+    transform: scale(0.96);
   }
   &::after {
     border: none !important;
@@ -791,8 +792,9 @@ const navigateToLogin = () => {
 /* Footer */
 .sidebar-footer {
   margin-top: auto;
-  padding-top: 32rpx;
-  border-top: 1px solid #f1f5f9;
+  padding-top: 48rpx;
+  position: relative;
+  z-index: 1;
 }
 
 .user-row {
@@ -808,28 +810,27 @@ const navigateToLogin = () => {
 }
 
 .user-name {
-  font-size: 28rpx;
+  font-size: 32rpx; /* body-lg */
   font-weight: 600;
-  color: #1e293b;
+  color: #191c20;
 }
 
 .user-status {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: #94a3b8;
 }
 
 .login-footer-btn {
-  padding: 4rpx 24rpx;
+  padding: 8rpx 32rpx;
   border-radius: 999rpx;
-  border: 1rpx solid #111827;
-  background-color: #111827;
-  font-size: 24rpx;
-  font-weight: 700;
+  background-color: #7c4dff; /* primary_container */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: none;
+  font-size: 24rpx; /* label-md */
+  font-weight: 600;
   color: #ffffff;
   flex-shrink: 0;
-  transition:
-    transform 0.2s ease,
-    opacity 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .login-footer-btn:active {
@@ -854,38 +855,40 @@ const navigateToLogin = () => {
 
 .profile-item.menu-active {
   z-index: 100;
-  background-color: #f1f5f9;
+  /* background-color: #f1f5f9; Removed gray background on click */
 }
 
 .dropdown-menu {
   position: absolute;
   top: 100%;
   right: 0;
-  width: 200rpx;
-  background-color: #fff;
-  border-radius: 12rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
-  padding: 8rpx 0;
+  width: 240rpx;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 24rpx;
+  box-shadow: 0 20px 40px rgba(124, 77, 255, 0.06);
+  outline: 0.5px solid rgba(202, 195, 216, 0.2);
+  padding: 16rpx 0;
   z-index: 101;
-  margin-top: 8rpx;
-  border: 1px solid #f1f5f9;
+  margin-top: 16rpx;
 }
 
 .dropdown-menu.dropdown-up {
   top: auto;
   bottom: 100%;
   margin-top: 0;
-  margin-bottom: 8rpx;
+  margin-bottom: 16rpx;
 }
 
 .dropdown-item {
   display: flex;
   align-items: center;
-  padding: 16rpx 24rpx;
+  padding: 24rpx 32rpx;
   transition: all 0.2s;
 
   &:active {
-    background-color: #f8fafc;
+    background-color: rgba(248, 250, 252, 0.5);
   }
 
   &.delete {
@@ -895,13 +898,12 @@ const navigateToLogin = () => {
 
 .dropdown-text {
   font-size: 28rpx;
+  font-weight: 500;
 }
 
 .dropdown-divider {
-    height: 1px;
-    background-color: #f1f5f9;
-    margin: 4rpx 0;
-  }
+  display: none; /* No 1px dividers per spec */
+}
 
   // .disclaimer-text {
   //   margin-top: 20rpx;

@@ -1,9 +1,7 @@
 <template>
   <view class="report-page">
-    <view class="bg-fixed">
-      <view class="bg-circle bg-left"></view>
-      <view class="bg-circle bg-right"></view>
-    </view>
+    <view class="aura-blob aura-blob-top"></view>
+    <view class="aura-blob aura-blob-bottom"></view>
 
     <HeaderBar
       title="人格类型报告"
@@ -100,7 +98,14 @@
         <view class="long-text-card">
           <template v-for="(sec, idx) in getModuleSections('context_map')" :key="sec.id || idx">
             <view class="sub-section-container">
-              <text class="sub-section-title">{{ sec.title }}</text>
+              <view class="flex items-center gap-2 mb-3">
+                <text class="sub-section-title" style="margin-bottom: 0; line-height: 1;">{{ sec.title }}</text>
+                <view v-if="contextData?.context_types && getContextType(sec.title)" 
+                      class="s1-badge"
+                      style="margin-bottom: 0; padding: 4rpx 16rpx; line-height: 1.2; display: inline-flex; align-items: center; justify-content: center; transform: translateY(-2rpx);">
+                  {{ getContextType(sec.title) }}
+                </view>
+              </view>
               <text class="prose-text">{{ sec.body }}</text>
             </view>
             <view v-if="idx < getModuleSections('context_map').length - 1" class="s1-divider sub-section-divider"></view>
@@ -138,18 +143,24 @@
         <template v-for="(sec, i) in selfInsightSections" :key="i">
           <view class="long-text-card" :style="{ 
             marginBottom: i < selfInsightSections.length - 1 ? '32rpx' : '0',
-            backgroundColor: i % 4 === 0 ? 'rgba(238, 242, 255, 0.5)' : 
+            backgroundColor: i % 4 === 0 ? 'rgba(124, 77, 255, 0.3)' : 
                              i % 4 === 1 ? 'rgba(255, 241, 242, 0.5)' :
                              i % 4 === 2 ? 'rgba(236, 253, 245, 0.5)' :
                              'rgba(255, 251, 235, 0.5)'
           }">
             <text class="sub-section-title" :style="{ 
-              color: i % 4 === 0 ? '#312e81' : 
+              color: i % 4 === 0 ? '#191C20' : 
                      i % 4 === 1 ? '#881337' : 
                      i % 4 === 2 ? '#064e3b' : 
                      '#78350f' 
             }">{{ i + 1 }}. {{ sec.title }}</text>
-            <text class="prose-text" style="margin-top: 12rpx;">{{ sec.body }}</text>
+            <text class="prose-text" :style="{ 
+              marginTop: '12rpx',
+              color: i % 4 === 0 ? '#334155' : 
+                     i % 4 === 1 ? '#9f1239' : 
+                     i % 4 === 2 ? '#047857' : 
+                     '#92400e' 
+            }">{{ sec.body }}</text>
           </view>
         </template>
       </view>
@@ -168,7 +179,7 @@
             <text class="text-xl font-black" style="color: #ffffff;">核心优势</text>
           </view>
           <view class="space-y-4">
-            <view v-for="(t, i) in strengthsStatic" :key="i" class="flex items-start gap-3">
+            <view v-for="(t, i) in strengthsStatic" :key="i" class="flex items-center gap-3">
               <view class="w-1_5 h-1_5 bg-white rounded-full mt-2 shrink-0"></view>
               <text class="text-sm font-medium leading-relaxed" style="color: #ffffff;">
                 <text v-if="splitText(t)[0]" class="text-indigo-100 font-bold">{{ splitText(t)[0] }}</text>
@@ -195,10 +206,10 @@
         <!-- AI 优势与成长建议 -->
         <view v-if="strengthsFocusAi.length > 0 || growthAi.length > 0" class="long-text-card ai-growth-card">
           <view v-if="strengthsFocusAi.length > 0" class="ai-growth-section" :class="{ 'has-border': growthAi.length > 0 }">
-            <text class="ai-growth-title" style="color: #312e81;">发挥优势的建议</text>
+            <text class="ai-growth-title" style="color: #191C20;">发挥优势的建议</text>
             <view class="ai-growth-list">
               <view v-for="(t, i) in strengthsFocusAi" :key="'sf_'+i" class="ai-growth-item">
-                <text class="ai-growth-dot" style="color: #818cf8;">◆</text>
+                <text class="ai-growth-dot" style="color: #7C4DFF;">◆</text>
                 <text class="prose-text ai-growth-text">{{ t }}</text>
               </view>
             </view>
@@ -261,12 +272,12 @@
             <text class="text-base font-black text-gray-800 mb-4 block">工作环境鉴别</text>
             <view class="grid grid-cols-1 gap-4">
               <view class="bg-emerald-50 rounded-2xl p-4">
-                <text class="font-bold text-emerald-700 mb-2 block">✨ 适合的工作环境</text>
-                <text class="text-sm text-emerald-800 leading-relaxed">{{ getModuleSectionBody('career', 'career_fit_env') }}</text>
+                <text class="text-base font-bold text-emerald-700 mb-2 block">✨ 适合的工作环境</text>
+                <text class="text-base text-emerald-800 leading-relaxed">{{ getModuleSectionBody('career', 'career_fit_env') }}</text>
               </view>
               <view class="bg-rose-50 rounded-2xl p-4">
-                <text class="font-bold text-rose-700 mb-2 block">不适合的工作环境</text>
-                <text class="text-sm text-rose-800 leading-relaxed">{{ getModuleSectionBody('career', 'career_unfit_env') }}</text>
+                <text class="text-base font-bold text-rose-700 mb-2 block">不适合的工作环境</text>
+                <text class="text-base text-rose-800 leading-relaxed">{{ getModuleSectionBody('career', 'career_unfit_env') }}</text>
               </view>
             </view>
           </view>
@@ -276,23 +287,23 @@
             <text class="text-base font-black text-gray-800 mb-4 block">职业建议</text>
             <view class="space-y-4 flex flex-col gap-4">
               <view class="p-4 border border-gray-100 rounded-xl" v-if="getModuleSectionBody('career', 'career_recommend_jobs')">
-                <text class="text-sm font-bold text-indigo-600 mb-1 block">职业推荐 (Top 3)</text>
-                <text class="text-sm text-gray-600 leading-relaxed">{{ getModuleSectionBody('career', 'career_recommend_jobs').replace(/<br>/g, '\n') }}</text>
+                <text class="text-base font-bold text-indigo-600 mb-1 block">职业推荐 (Top 5)</text>
+                <text class="text-base text-gray-600 leading-relaxed">{{ getModuleSectionBody('career', 'career_recommend_jobs').replace(/<br>/g, '\n') }}</text>
               </view>
               <view class="p-4 border border-gray-100 rounded-xl" v-if="getModuleSectionBody('career', 'career_avoid_jobs')">
-                <text class="text-sm font-bold text-rose-600 mb-1 block">职业避雷</text>
-                <text class="text-sm text-gray-600 leading-relaxed">{{ getModuleSectionBody('career', 'career_avoid_jobs').replace(/<br>/g, '\n') }}</text>
+                <text class="text-base font-bold text-rose-600 mb-1 block">职业避雷</text>
+                <text class="text-base text-gray-600 leading-relaxed">{{ getModuleSectionBody('career', 'career_avoid_jobs').replace(/<br>/g, '\n') }}</text>
               </view>
               <view class="p-4 border border-gray-100 rounded-xl" v-if="getModuleSectionBody('career', 'career_development_tips')">
-                <text class="text-sm font-bold text-gray-800 mb-1 block">发展建议</text>
-                <text class="text-sm text-gray-600 leading-relaxed">{{ getModuleSectionBody('career', 'career_development_tips') }}</text>
+                <text class="text-base font-bold text-gray-800 mb-1 block">发展建议</text>
+                <text class="text-base text-gray-600 leading-relaxed">{{ getModuleSectionBody('career', 'career_development_tips') }}</text>
               </view>
             </view>
           </view>
 
           <view v-if="maskNeeded('career') && !getModule('career')?.unlocked" class="module-mask">
             <view class="unlock-icon module-unlock-icon">
-              <u-icon name="lock-closed" color="#6366f1" size="28"></u-icon>
+              <u-icon name="lock-closed" color="#7C4DFF" size="28"></u-icon>
             </view>
             <text class="module-title">解锁职业探索与规划</text>
             <view class="unlock-btn module-unlock-btn" @click="handleModuleUnlock(getModule('career')!)" style="width: 200rpx; height: 80rpx; font-size: 28rpx;">
@@ -321,7 +332,7 @@
 
           <view v-if="maskNeeded('love') && !getModule('love')?.unlocked" class="module-mask">
             <view class="unlock-icon module-unlock-icon">
-              <u-icon name="lock-closed" color="#6366f1" size="28"></u-icon>
+              <u-icon name="lock-closed" color="#7C4DFF" size="28"></u-icon>
             </view>
             <text class="module-title">解锁恋爱与亲密关系</text>
             <view class="unlock-btn module-unlock-btn" @click="handleModuleUnlock(getModule('love')!)" style="width: 200rpx; height: 80rpx; font-size: 28rpx;">
@@ -427,8 +438,17 @@ const {
   getModuleSections,
   getModuleSectionBody,
   maskNeeded,
-  loadReport
+  loadReport,
+  contextData
 } = useMBTIReport();
+
+const getContextType = (title: string) => {
+  if (!contextData.value?.context_types) return '';
+  if (title.includes('日常')) return contextData.value.context_types.private;
+  if (title.includes('工作')) return contextData.value.context_types.work;
+  if (title.includes('社交')) return contextData.value.context_types.social;
+  return '';
+};
 
 const handleUnlock = () => {
   uni.showToast({ title: '即将解锁', icon: 'none' });
@@ -458,31 +478,25 @@ onLoad((options: any) => {
   padding-bottom: 96rpx;
   overflow-x: hidden;
 }
-.bg-fixed {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
+/* Ambient Background Blobs */
+.aura-blob {
+  position: absolute;
+  width: 1200rpx;
+  height: 1200rpx;
+  background: radial-gradient(circle, rgba(124, 77, 255, 0.12) 0%, rgba(124, 77, 255, 0) 70%);
+  filter: blur(160rpx);
+  z-index: 0;
   pointer-events: none;
 }
-.bg-circle {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.4;
+
+.aura-blob-top {
+  top: -300rpx;
+  right: -300rpx;
 }
-.bg-left {
-  top: -10%;
-  left: -10%;
-  width: 50vw;
-  height: 40vh;
-  background-color: rgba(238, 242, 255, 0.4);
-}
-.bg-right {
-  bottom: 10%;
-  right: -10%;
-  width: 40vw;
-  height: 40vh;
-  background-color: rgba(233, 213, 255, 0.4);
+
+.aura-blob-bottom {
+  bottom: -300rpx;
+  left: -300rpx;
 }
 
 .nav-bar {
@@ -555,7 +569,7 @@ onLoad((options: any) => {
   justify-content: center;
   width: 192rpx;
   height: 192rpx;
-  background-color: #0f172a;
+  background-color: #191C20;
   color: #ffffff;
   border-radius: 32rpx;
   box-shadow: 0 40rpx 60rpx -24rpx rgba(0, 0, 0, 0.35);
@@ -565,7 +579,7 @@ onLoad((options: any) => {
   position: absolute;
   inset: 0;
   border-radius: 32rpx;
-  background-color: #6366f1;
+  background-color: #7C4DFF;
   filter: blur(40px);
   opacity: 0.2;
   transform: scale(1.4);
@@ -578,7 +592,7 @@ onLoad((options: any) => {
 .header-title {
   font-size: 44rpx;
   font-weight: 900;
-  color: #0f172a;
+  color: #191C20;
   margin-bottom: 8rpx;
 }
 .header-subtitle {
@@ -597,15 +611,15 @@ onLoad((options: any) => {
 }
 .kw-item {
   padding: 12rpx 24rpx;
-  background-color: rgba(238, 242, 255, 0.5);
-  border: 1rpx solid rgba(199, 210, 254, 0.5);
+  background-color: rgba(124, 77, 255, 0.5);
+  border: 1rpx solid rgba(124, 77, 255, 0.5);
   border-radius: 20rpx;
   backdrop-filter: blur(4px);
 }
 .kw-text {
   font-size: 32rpx;
   font-weight: 900;
-  color: rgba(99, 102, 241, 0.7);
+  color: rgba(124, 77, 255, 0.7);
 }
 
 .section {
@@ -624,8 +638,8 @@ onLoad((options: any) => {
   box-shadow: 0 12rpx 20rpx rgba(0, 0, 0, 0.08);
 }
 .section-mark.indigo {
-  background-color: #6366f1;
-  box-shadow: 0 12rpx 20rpx rgba(99, 102, 241, 0.25);
+  background-color: #7C4DFF;
+  box-shadow: 0 12rpx 20rpx rgba(124, 77, 255, 0.25);
 }
 .section-mark.rose {
   background-color: #fb7185;
@@ -638,7 +652,7 @@ onLoad((options: any) => {
 .section-title {
   font-size: 44rpx;
   font-weight: 900;
-  color: #0f172a;
+  color: #191C20;
 }
 
 .dim-wrap {
@@ -680,7 +694,7 @@ onLoad((options: any) => {
   font-weight: 900;
 }
 .code-active {
-  color: #0f172a;
+  color: #191C20;
 }
 .code-muted {
   color: #cbd5e1;
@@ -768,7 +782,7 @@ onLoad((options: any) => {
 }
 .rarity-note {
   padding: 20rpx;
-  background-color: rgba(238, 242, 255, 0.5);
+  background-color: rgba(124, 77, 255, 0.5);
   border: 1rpx solid rgba(255, 255, 255, 0.5);
   border-radius: 24rpx;
 }
@@ -781,7 +795,7 @@ onLoad((options: any) => {
 .note-head-text {
   font-size: 34rpx;
   font-weight: 900;
-  color: #6366f1;
+  color: #7C4DFF;
 }
 .note-text {
   font-size: 34rpx;
@@ -822,9 +836,9 @@ onLoad((options: any) => {
 }
 .unlock-inline-btn {
   padding: 20rpx 32rpx;
-  background-color: #6366f1;
+  background-color: #7C4DFF;
   border-radius: 24rpx;
-  box-shadow: 0 12rpx 24rpx rgba(99, 102, 241, 0.3);
+  box-shadow: 0 12rpx 24rpx rgba(124, 77, 255, 0.3);
 }
 .unlock-inline-text {
   color: #ffffff;
@@ -861,7 +875,7 @@ onLoad((options: any) => {
 .module-subtitle {
   font-size: 36rpx;
   font-weight: 900;
-  color: #1f2937;
+  color: #191C20;
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -935,7 +949,9 @@ onLoad((options: any) => {
 
 .unlock-section {
   margin-top: 64rpx;
-  background-color: #0f172a;
+  background-color: rgba(25, 28, 32, 0.85);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 44rpx;
   padding: 32rpx;
   color: #ffffff;
@@ -976,7 +992,7 @@ onLoad((options: any) => {
   width: 100%;
   height: 112rpx;
   background-color: #ffffff;
-  color: #0f172a;
+  color: #191C20;
   border-radius: 24rpx;
   font-weight: 900;
   font-size: 36rpx;
@@ -999,13 +1015,13 @@ onLoad((options: any) => {
 .fixed-button {
   width: 100%;
   height: 128rpx;
-  background-color: #6366f1;
+  background-color: #7C4DFF;
   color: #ffffff;
   border-radius: 28rpx;
   font-weight: 900;
   font-size: 40rpx;
   letter-spacing: 0.2em;
-  box-shadow: 0 40rpx 60rpx -24rpx rgba(99, 102, 241, 0.4);
+  box-shadow: 0 40rpx 60rpx -24rpx rgba(124, 77, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1040,7 +1056,7 @@ onLoad((options: any) => {
 .example-name {
   font-size: 32rpx;
   font-weight: 900;
-  color: #1f2937;
+  color: #191C20;
   padding: 12rpx 0 16rpx;
 }
 
@@ -1069,7 +1085,7 @@ onLoad((options: any) => {
 .module-title {
   font-size: 36rpx;
   font-weight: 900;
-  color: #1f2937;
+  color: #191C20;
 }
 
 /* V2 Design Helpers */
@@ -1094,7 +1110,7 @@ onLoad((options: any) => {
   z-index: 1;
   font-size: 40rpx;
   font-weight: 900;
-  color: #1E293B;
+  color: #191C20;
   display: flex;
   align-items: center;
   gap: 8rpx;
@@ -1107,12 +1123,13 @@ onLoad((options: any) => {
   transform: rotate(-15deg);
 }
 .long-text-card {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
   border-radius: 48rpx;
   padding: 48rpx;
   margin-bottom: 48rpx;
-  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.02);
-  border: 2rpx solid rgba(241, 245, 249, 1);
+  box-shadow: 0 16rpx 32rpx rgba(124, 77, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .s1-card {
@@ -1143,8 +1160,8 @@ onLoad((options: any) => {
 .s1-badge {
   display: inline-block;
   padding: 8rpx 24rpx;
-  background-color: #eef2ff;
-  color: #4f46e5;
+  background-color: rgba(124, 77, 255, 0.1);
+  color: #7C4DFF;
   font-size: 24rpx;
   font-weight: 900;
   border-radius: 16rpx;
@@ -1153,7 +1170,7 @@ onLoad((options: any) => {
 .s1-code {
   font-size: 104rpx;
   font-weight: 900;
-  color: #0f172a;
+  color: #191C20;
   margin-bottom: 16rpx;
   letter-spacing: -0.05em;
   display: block;
@@ -1173,7 +1190,7 @@ onLoad((options: any) => {
 .s1-dim-title {
   font-size: 32rpx;
   font-weight: 900;
-  color: #1f2937;
+  color: #191C20;
   margin-bottom: 48rpx;
   display: flex;
   align-items: center;
@@ -1182,11 +1199,14 @@ onLoad((options: any) => {
 .s1-dim-mark {
   width: 12rpx;
   height: 32rpx;
-  background-color: #6366f1;
+  background-color: #7C4DFF;
   border-radius: 9999rpx;
 }
 .advantage-card {
-  background: #6366F1;
+  background: rgba(124, 77, 255, 0.85);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 16rpx 32rpx rgba(124, 77, 255, 0.15);
   border-radius: 32rpx;
   padding: 40rpx 24rpx 24rpx;
   position: relative;
@@ -1194,8 +1214,10 @@ onLoad((options: any) => {
   margin-top: 30rpx;
 }
 .blindspot-card {
-  background: #FFFFFF;
-  border: 2rpx solid #FFF1F2;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 16rpx 32rpx rgba(124, 77, 255, 0.04);
   border-radius: 32rpx;
   padding: 40rpx 24rpx 24rpx;
   position: relative;
@@ -1206,13 +1228,13 @@ onLoad((options: any) => {
   top: -15rpx;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(to right, #E0E7FF, #C7D2FE);
-  color: #4338CA;
+  background: linear-gradient(to right, #f3f0ff, #e0d4ff);
+  color: #7C4DFF;
   font-weight: 900;
   font-size: 28rpx;
   padding: 6rpx 20rpx;
   border-radius: 20rpx;
-  box-shadow: 0 4rpx 10rpx rgba(99, 102, 241, 0.2);
+  box-shadow: 0 4rpx 10rpx rgba(124, 77, 255, 0.2);
   white-space: nowrap;
 }
 .prose-text {
@@ -1231,7 +1253,7 @@ onLoad((options: any) => {
 .sub-section-title {
   font-size: 34rpx;
   font-weight: 900;
-  color: #1E293B;
+  color: #191C20;
   margin-bottom: 8rpx;
   display: flex;
   align-items: center;
@@ -1277,15 +1299,16 @@ onLoad((options: any) => {
 .border-gray-100 { border-color: #F3F4F6; }
 .rounded-xl { border-radius: 24rpx; }
 .text-sm { font-size: 28rpx; }
-.text-indigo-600 { color: #4F46E5; }
+.text-indigo-600 { color: #7C4DFF; }
 .flex-col { flex-direction: column; }
 
 .text-xl { font-size: 40rpx; }
 .w-1_5 { width: 12rpx; }
 .h-1_5 { height: 12rpx; }
 .shrink-0 { flex-shrink: 0; }
-.text-indigo-100 { color: #e0e7ff; }
+.text-indigo-100 { color: #f3f0ff; }
 .text-rose-500 { color: #f43f5e; }
 .bg-rose-400 { background-color: #fb7185; }
 .gap-3 { gap: 24rpx; }
+.bg-white { background-color: white; }
 </style>

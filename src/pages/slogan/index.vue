@@ -1,7 +1,8 @@
 <template>
   <div class="slogan-container" :class="{ 'exit': isExiting }">
     <!-- 背景光晕 -->
-    <div class="glow-blob animate-float"></div>
+    <div class="glow-blob blob-1 animate-float"></div>
+    <div class="glow-blob blob-2 animate-float" style="animation-delay: -2s"></div>
 
     <!-- 标题区域 -->
     <div class="text-section">
@@ -11,26 +12,9 @@
         走对<span class="text-indigo">下一步。</span>
       </h1>
       <p class="sub-text">
-        DIGITAL WISDOM & DESTINY ALGORITHMS
+        DIGITAL WISDOM & CULTURAL ANALYSIS
       </p>
     </div>
-
-    <!-- IP 漂浮区域 -->
-    <!-- <div class="ip-section animate-float">
-       <div class="ip-placeholder">
-         <div class="center-content">
-           <div class="dots">
-             <div class="dot"></div>
-             <div class="dot delay-1"></div>
-             <div class="dot delay-2"></div>
-           </div>
-           <div class="placeholder-tag">
-             IP CHARACTER PLACEHOLDER
-           </div>
-           <p class="placeholder-hint">请替换为你下载的男女 IP 合影图</p>
-         </div>
-       </div>
-     </div> -->
   </div>
 </template>
 
@@ -105,7 +89,7 @@ onMounted(async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #F8FAFF;
+  background-color: #f8f9ff; /* surface */
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -124,20 +108,29 @@ onMounted(async () => {
   }
 }
 
-/* 背景圆环 - 已移除 */
-
 .glow-blob {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 600px;
-  height: 600px;
-  background-color: rgba(99, 102, 241, 0.15); /* indigo-500/15 */
+  width: 800px;
+  height: 800px;
   border-radius: 50%;
-  filter: blur(120px);
+  filter: blur(200px);
   pointer-events: none;
   z-index: 0;
+  opacity: 0.15;
+}
+
+.blob-1 {
+  top: -200px;
+  left: -200px;
+  background-color: #7c4dff; /* primary_container */
+}
+
+.blob-2 {
+  bottom: 20%;
+  right: -300px;
+  width: 600px;
+  height: 600px;
+  background-color: #a78bfa;
 }
 
 /* 文本区域 */
@@ -149,7 +142,7 @@ onMounted(async () => {
   .bar {
     width: 48px;
     height: 6px;
-    background-color: #4f46e5; /* indigo-600 */
+    background-color: #632ce5; /* primary */
     margin-bottom: 32px;
     border-radius: 999px;
   }
@@ -157,21 +150,22 @@ onMounted(async () => {
   .main-title {
     font-size: 50px;
     font-weight: 900;
-    color: #0f172a; /* slate-900 */
+    color: #191c20;
     line-height: 1.5;
+    letter-spacing: -0.02em;
 
     .text-slate-300 {
-      color: #cbd5e1;
+      color: #94a3b8;
     }
     
     .text-indigo {
-      color: #4f46e5;
+      color: #632ce5; /* primary */
     }
   }
 
   .sub-text {
     margin-top: 24px;
-    color: #94a3b8; /* slate-400 */
+    color: #64748b;
     font-weight: 700;
     font-size: 11px;
     letter-spacing: 0.4em;

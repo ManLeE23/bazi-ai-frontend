@@ -132,55 +132,49 @@ const getWuXingClass = (char: string | undefined) => {
 }
 
 .glass-card {
-  /* max-w-[280px] w-full glass-card p-5 rounded-[28px] rounded-tl-none shadow-sm border-white/80 */
-  width: 560rpx; /* 280px * 2 */
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 56rpx; /* 28px * 2 */
+  width: 560rpx;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 48rpx;
   border-top-left-radius: 0;
-  box-shadow: 0 2rpx 4rpx 0 rgba(0, 0, 0, 0.05);
-  padding: 40rpx; /* p-5 = 1.25rem = 20px = 40rpx */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
+  padding: 40rpx;
   box-sizing: border-box;
 }
 
 .bazi-grid {
-  /* grid grid-cols-4 gap-4 */
   display: flex;
   justify-content: space-between;
-  gap: 32rpx; /* gap-4 = 1rem = 16px = 32rpx */
+  gap: 32rpx;
 }
 
 .pillar-col {
-  /* flex flex-col items-center */
   display: flex;
   flex-direction: column;
   align-items: center;
   flex: 1;
   
   .label {
-    /* text-[9px] font-bold text-slate-300 mb-0.5 */
-    font-size: 24rpx; /* ~10px slightly readable than 9px */
+    font-size: 24rpx;
     font-weight: 700;
-    color: #cbd5e1; /* slate-300 */
+    color: #94a3b8; /* slate-400 */
     margin-bottom: 4rpx;
   }
 
   .ss {
-    /* text-[9px] font-bold text-slate-400 mb-2 */
     font-size: 24rpx;
     font-weight: 700;
     color: #94a3b8; /* slate-400 */
-    margin-bottom: 16rpx; /* mb-2 = 0.5rem = 8px = 16rpx */
+    margin-bottom: 16rpx;
     
     &.highlight {
-        /* Not in original design explicitly but useful? Original says '日主' is just ss. */
-        /* Keeping it simple as per design */
+        color: #632ce5; /* primary */
     }
   }
 
   .char-stack {
-    /* flex flex-col items-center leading-tight mb-2 */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -188,24 +182,22 @@ const getWuXingClass = (char: string | undefined) => {
     margin-bottom: 16rpx;
 
     .char {
-      /* text-xl font-black */
-      font-size: 40rpx; /* xl = 1.25rem = 20px = 40rpx */
+      font-size: 40rpx;
       font-weight: 900;
     }
   }
 }
 
 .detail-btn {
-  /* w-full mt-6 py-2.5 bg-slate-900 text-white rounded-full text-[11px] font-black tracking-widest active:scale-95 transition-all */
   width: 100%;
-  margin-top: 24rpx; /* mt-6 = 1.5rem = 24px = 48rpx */
-  padding: 20rpx 0; /* py-2.5 = 0.625rem = 10px = 20rpx */
-  background-color: #0f172a; /* slate-900 */
+  margin-top: 24rpx;
+  padding: 20rpx 0;
+  background-color: #7c4dff; /* primary_container */
   color: white;
   border-radius: 999rpx;
-  font-size: 28rpx; /* text-[11px] ~ 24rpx -> 24rpx for readability */
+  font-size: 28rpx;
   font-weight: 900;
-  letter-spacing: 0.1em; /* tracking-widest */
+  letter-spacing: 0.1em;
   border: none;
   line-height: 1.5;
   display: flex;
@@ -219,10 +211,10 @@ const getWuXingClass = (char: string | undefined) => {
 }
 
 /* Colors */
-.mu { color: #10B981; }
-.huo { color: #EF4444; }
-.tu { color: #B45309; }
-.jin { color: #D99014; }
-.shui { color: #3B82F6; }
+.mu { color: #059669; }
+.huo { color: #dc2626; }
+.tu { color: #d97706; }
+.jin { color: #b45309; }
+.shui { color: #2563eb; }
 
 </style>

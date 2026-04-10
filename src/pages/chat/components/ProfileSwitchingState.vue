@@ -24,9 +24,9 @@
   
   .loading-text {
     margin-top: 32rpx;
-    font-size: 28rpx;
-    color: #6366f1; /* indigo-500, matching app theme */
-    font-weight: 500;
+    font-size: 26rpx;
+    color: #64748b; /* slate-500 */
+    font-weight: 600;
     letter-spacing: 0.05em;
   }
 }
@@ -38,9 +38,9 @@
   gap: 12rpx;
   
   .dot {
-    width: 24rpx;
-    height: 24rpx;
-    background-color: #6366f1;
+    width: 20rpx;
+    height: 20rpx;
+    background-color: #7c4dff; /* primary purple */
     border-radius: 50%;
     animation: loader-bounce 1.4s infinite ease-in-out both;
     

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI 全量深度报告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F8F9FF;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        .progress-bar-container {
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="pb-32 overflow-x-hidden">
+
+    <!-- 背景装饰 -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[40%] bg-indigo-100/40 blur-[120px] rounded-full"></div>
+        <div class="absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-purple-100/40 blur-[120px] rounded-full"></div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-6 pointer-events-none">
+        <button class="w-10 h-10 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm flex items-center justify-center pointer-events-auto active:scale-95 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+        <div class="bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm flex items-center gap-2 pointer-events-auto border border-white/50">
+            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+            <span class="text-[11px] font-black text-slate-600">已生成报告</span>
+        </div>
+        <button class="w-10 h-10 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm flex items-center justify-center pointer-events-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 101.32-4.335 3 3 0 00-1.32 4.335z" />
+            </svg>
+        </button>
+    </nav>
+
+    <main class="max-w-md mx-auto px-6 pt-24 relative z-10 animate-fade-in">
+        
+        <!-- 1. 顶部汇总 -->
+        <header class="mb-10 text-center">
+            <div class="relative inline-block mb-6">
+                <div class="absolute inset-0 bg-indigo-400 blur-3xl opacity-20 scale-150"></div>
+                <div class="relative bg-slate-900 text-white w-24 h-24 flex items-center justify-center rounded-[32px] text-3xl font-black shadow-2xl tracking-tighter">
+                    INFJ
+                </div>
+            </div>
+            <h1 class="text-3xl font-black text-slate-900 mb-2">提倡者 / 理想主义者</h1>
+            <p class="text-sm font-bold text-slate-400 tracking-wide uppercase">温和而坚定的精神领袖</p>
+            <div class="flex flex-wrap justify-center gap-2 mt-6" id="keywords-container">
+                <!-- 关键词将由 JS 渲染 -->
+            </div>
+        </header>
+
+        <!-- 2. 四大双向维度 -->
+        <section class="mb-12">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-1.5 h-5 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200"></div>
+                <h3 class="text-lg font-black text-slate-900">核心维度得分</h3>
+            </div>
+            <div id="dimensions-container" class="space-y-2">
+                <!-- 维度条将由 JS 渲染 -->
+            </div>
+        </section>
+
+        <!-- 3. 稀有度报告 -->
+        <section class="mb-12">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-1.5 h-5 bg-rose-400 rounded-full shadow-lg shadow-rose-200"></div>
+                <h3 class="text-lg font-black text-slate-900">人格稀有度报告</h3>
+            </div>
+            <div class="glass-effect rounded-[40px] p-8 shadow-sm border border-white/60">
+                <div class="flex justify-between mb-8" id="rarity-rings-container">
+                    <!-- 环形图将由 JS 渲染 -->
+                </div>
+                <div class="p-5 bg-indigo-50/50 rounded-3xl border border-white/50">
+                    <div class="flex items-center gap-2 mb-2 text-indigo-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                        <span class="text-xs font-black">稀有度排名：9</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-medium italic">
+                        "你是16型人格中最稀有的类型，常感到孤独是你的宿命，但独特的洞察力是你的武器。"
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 代表人物 -->
+        <section class="mb-12">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-1.5 h-5 bg-orange-400 rounded-full shadow-lg shadow-orange-200"></div>
+                <h3 class="text-lg font-black text-slate-900">灵魂镜像人物</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-4" id="representative-container">
+                <!-- 人物卡片由 JS 渲染 -->
+            </div>
+        </section>
+
+        <!-- 5. 深度解析 -->
+        <div id="sections-container"></div>
+
+        <!-- 6. 底部解锁 -->
+        <section class="mt-16 bg-slate-900 rounded-[44px] p-8 text-white relative overflow-hidden shadow-2xl">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/30 blur-[60px]"></div>
+            <div class="relative z-10 text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 bg-white/10 rounded-2xl mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-black mb-2 tracking-tight">解锁完整深度报告</h3>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-8">包含 8 维功能倾向 & 潜在压力预警</p>
+                <button class="w-full py-5 bg-white text-slate-900 rounded-[24px] font-black text-xs tracking-[0.2em] hover:bg-indigo-50 transition-colors active:scale-95 shadow-xl">
+                    立即开启 (¥19.9)
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- 固定底部操作 -->
+    <div class="fixed bottom-8 left-0 w-full px-6 z-[100] pointer-events-none">
+        <button class="w-full h-16 bg-indigo-500 text-white rounded-[28px] font-black text-sm tracking-[0.2em] shadow-2xl shadow-indigo-200 flex items-center justify-center gap-3 pointer-events-auto active:scale-95 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 fill-current text-white" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+            </svg>
+            生成定制化人格海报
+        </button>
+    </div>
+
+    <script>
+        const reportData = {
+            keywords: ["冷漠清醒", "悲天悯人", "精神洁癖", "深度洞察", "完美主义"],
+            dimensions: [
+                { label: "能量来源", leftCode: "I", rightCode: "E", leftName: "内向", rightName: "外向", leftPercent: 85, rightPercent: 15, color: '#9292FF' },
+                { label: "认知方式", leftCode: "S", rightCode: "N", leftName: "感觉", rightName: "直觉", leftPercent: 22, rightPercent: 78, color: '#00D2A0' },
+                { label: "判断方式", leftCode: "T", rightCode: "F", leftName: "思考", rightName: "情感", leftPercent: 8, rightPercent: 92, color: '#FF9F43' },
+                { label: "生活态度", leftCode: "J", rightCode: "P", leftName: "判断", rightName: "知觉", leftPercent: 88, rightPercent: 12, color: '#4CC9F0' },
+            ],
+            representatives: [
+                { name: "李小龙", title: "武术家/哲学家", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=BruceLee" },
+                { name: "朱莉", title: "导演/演员", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Angelina" }
+            ],
+            sections: [
+                {
+                    title: "核心人格深度画像",
+                    items: [
+                        { subtitle: "精神洁癖", content: "你对自己和他人都有极高的道德要求。在社交中，你更倾向于追求质而不是量，无法忍受肤浅的寒暄。" },
+                        { subtitle: "深度洞察", content: "你天生具备看透谎言与伪善的能力，能够迅速抓取事物的本质逻辑，甚至在对方开口前就预判其意图。" }
+                    ]
+                },
+                {
+                    title: "职场表现与天赋",
+                    items: [
+                        { subtitle: "使命驱动", content: "你很难为了纯粹的金钱而工作。如果工作内容违背了你的价值观，你会陷入深度的精神内耗。" },
+                        { subtitle: "策略规划", content: "擅长长线思考，能将复杂的愿景转化为可执行的步骤，是团队中不可多得的军师角色。" }
+                    ]
+                }
+            ]
+        };
+
+        // 渲染关键词
+        const kwContainer = document.getElementById('keywords-container');
+        reportData.keywords.forEach(k => {
+            const span = document.createElement('span');
+            span.className = 'text-[10px] font-black text-indigo-500/70 px-4 py-2 bg-indigo-50/50 backdrop-blur-sm rounded-xl border border-indigo-100/50';
+            span.textContent = k;
+            kwContainer.appendChild(span);
+        });
+
+        // 渲染维度条
+        const dimContainer = document.getElementById('dimensions-container');
+        reportData.dimensions.forEach(dim => {
+            const isLeft = dim.leftPercent >= dim.rightPercent;
+            const barHtml = `
+                <div class="mb-6">
+                    <div class="flex justify-between items-end mb-2 px-1">
+                        <span class="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <span class="w-1 h-1 rounded-full" style="background-color: ${dim.color}"></span>
+                            ${dim.label}
+                        </span>
+                        <div class="flex gap-4">
+                            <span class="text-[11px] font-black ${isLeft ? 'text-slate-800' : 'text-slate-300'}">${dim.leftCode}</span>
+                            <span class="text-[11px] font-black ${!isLeft ? 'text-slate-800' : 'text-slate-300'}">${dim.rightCode}</span>
+                        </div>
+                    </div>
+                    <div class="relative h-10 w-full bg-white/40 rounded-2xl overflow-hidden border border-white/60 shadow-inner progress-bar-container">
+                        <div class="absolute h-full transition-all duration-1000 ease-out" 
+                             style="background-color: ${dim.color}; width: ${isLeft ? dim.leftPercent : dim.rightPercent}%; ${isLeft ? 'left:0;' : 'right:0;'} opacity: 0.8;"></div>
+                        <div class="absolute inset-0 flex justify-between items-center px-4 pointer-events-none">
+                            <span class="text-[10px] font-black ${isLeft ? 'text-white' : 'text-slate-400'}">${dim.leftName} ${dim.leftPercent}%</span>
+                            <span class="text-[10px] font-black ${!isLeft ? 'text-white' : 'text-slate-400'}">${dim.rightPercent}% ${dim.rightName}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            dimContainer.insertAdjacentHTML('beforeend', barHtml);
+        });
+
+        // 渲染稀有度环
+        const ringContainer = document.getElementById('rarity-rings-container');
+        const rings = [
+            { p: 1.5, l: '总人口', c: '#9292FF' },
+            { p: 1.2, l: '男性', c: '#4CC9F0' },
+            { p: 1.8, l: '女性', c: '#FF7EB3' }
+        ];
+        rings.forEach(r => {
+            const html = `
+                <div class="flex flex-col items-center">
+                    <div class="relative w-16 h-16 flex items-center justify-center bg-white rounded-full shadow-sm">
+                        <svg class="w-14 h-14 transform -rotate-90">
+                            <circle cx="28" cy="28" r="24" stroke="#F1F5F9" stroke-width="4" fill="transparent" />
+                            <circle cx="28" cy="28" r="24" stroke="${r.c}" stroke-width="4" fill="transparent" 
+                                    stroke-dasharray="150" stroke-dashoffset="${150 - (r.p / 100) * 150}" stroke-linecap="round" />
+                        </svg>
+                        <span class="absolute text-[10px] font-black text-slate-700">${r.p}%</span>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-400 mt-2">${r.l}</span>
+                </div>
+            `;
+            ringContainer.insertAdjacentHTML('beforeend', html);
+        });
+
+        // 渲染代表人物
+        const repContainer = document.getElementById('representative-container');
+        reportData.representatives.forEach(p => {
+            const html = `
+                <div class="group relative aspect-[3/4] rounded-[32px] overflow-hidden shadow-lg border-2 border-white">
+                    <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <div class="absolute bottom-4 left-4 text-white">
+                        <p class="text-xs font-black">${p.name}</p>
+                        <p class="text-[9px] text-white/60 uppercase font-bold mt-1 tracking-wider">${p.title}</p>
+                    </div>
+                </div>
+            `;
+            repContainer.insertAdjacentHTML('beforeend', html);
+        });
+
+        // 渲染解析部分
+        const sectionsContainer = document.getElementById('sections-container');
+        reportData.sections.forEach(s => {
+            let itemsHtml = s.items.map(item => `
+                <div class="glass-effect rounded-[30px] p-6 mb-4 border border-white/80">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-2 h-2 rounded-full bg-orange-400"></div>
+                        <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">${item.subtitle}</h4>
+                    </div>
+                    <p class="text-[12px] text-slate-500 leading-relaxed font-medium">${item.content}</p>
+                </div>
+            `).join('');
+
+            const sectionHtml = `
+                <section class="mb-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-1.5 h-5 bg-indigo-500 rounded-full"></div>
+                        <h3 class="text-lg font-black text-slate-900">${s.title}</h3>
+                    </div>
+                    <div class="space-y-4">${itemsHtml}</div>
+                </section>
+            `;
+            sectionsContainer.insertAdjacentHTML('beforeend', sectionHtml);
+        });
+    </script>
+</body>
+</html>

@@ -128,10 +128,12 @@ export function useMBTIReport() {
   );
 
   const archetypeImage = computed(
-    () => (core.value?.archetype as any)?.image || ''
+    () => (core.value?.archetype as any)?.image || '',
   );
 
-  const archetypeExamples = computed(() => core.value?.archetype?.examples || []);
+  const archetypeExamples = computed(
+    () => core.value?.archetype?.examples || [],
+  );
   const lettersList = computed(() => core.value?.letters || []);
 
   const dimensionsList = computed(() => dimensions.value || []);
@@ -147,26 +149,44 @@ export function useMBTIReport() {
       const vals = Object.values(contextData.value.clarity);
       if (!vals.length) return '';
       const high = vals.filter((v) => v === '高').length;
-      const mid = vals.filter((v) => v === '中').length;
-      if (high === vals.length) return '高度清晰';
-      if (mid > 0) return '中等清晰';
-      return '低度清晰';
+      const low = vals.filter((v) => v === '低').length;
+      if (high >= 3) return '高度清晰';
+      if (low >= 3) return '低度清晰';
+      return '中等清晰';
     }
-    const vals = dimensions.value.map((d) => d.clarity).filter((v) => !!v) as string[];
+    const vals = dimensions.value
+      .map((d) => d.clarity)
+      .filter((v) => !!v) as string[];
     if (!vals.length) return '';
     const high = vals.filter((v) => v === '高').length;
-    const mid = vals.filter((v) => v === '中').length;
-    if (high === vals.length) return '高度清晰';
-    if (mid > 0) return '中等清晰';
-    return '低度清晰';
+    const low = vals.filter((v) => v === '低').length;
+    if (high >= 3) return '高度清晰';
+    if (low >= 3) return '低度清晰';
+    return '中等清晰';
   });
 
   const selfInsightSections = computed(() => {
     const list = [
-      { id: 'world_view', title: '你如何看待自己和世界', body: core.value?.self_insight?.world_view || '' },
-      { id: 'relationships', title: '你在人际和沟通中的风格', body: core.value?.self_insight?.relationships || '' },
-      { id: 'decision_style', title: '你做选择时的习惯', body: core.value?.self_insight?.decision_style || '' },
-      { id: 'under_stress', title: '当你感到累/焦虑时，通常会发生什么', body: core.value?.self_insight?.under_stress || '' },
+      {
+        id: 'world_view',
+        title: '你如何看待自己和世界',
+        body: core.value?.self_insight?.world_view || '',
+      },
+      {
+        id: 'relationships',
+        title: '你在人际和沟通中的风格',
+        body: core.value?.self_insight?.relationships || '',
+      },
+      {
+        id: 'decision_style',
+        title: '你做选择时的习惯',
+        body: core.value?.self_insight?.decision_style || '',
+      },
+      {
+        id: 'under_stress',
+        title: '当你感到累/焦虑时，通常会发生什么',
+        body: core.value?.self_insight?.under_stress || '',
+      },
     ];
     return list.filter((s) => !!s.body);
   });
@@ -211,10 +231,18 @@ export function useMBTIReport() {
     } as any;
   };
 
-  const strengthsStatic = computed(() => core.value?.strengths_growth?.strengths_static || []);
-  const weaknessesStatic = computed(() => core.value?.strengths_growth?.weaknesses_static || []);
-  const strengthsFocusAi = computed(() => core.value?.strengths_growth?.strengths_focus_ai || []);
-  const growthAi = computed(() => core.value?.strengths_growth?.growth_ai || []);
+  const strengthsStatic = computed(
+    () => core.value?.strengths_growth?.strengths_static || [],
+  );
+  const weaknessesStatic = computed(
+    () => core.value?.strengths_growth?.weaknesses_static || [],
+  );
+  const strengthsFocusAi = computed(
+    () => core.value?.strengths_growth?.strengths_focus_ai || [],
+  );
+  const growthAi = computed(
+    () => core.value?.strengths_growth?.growth_ai || [],
+  );
 
   const makeFocusAuto = (dims: MBTIDimension[]) => {
     const tips: string[] = [];
@@ -224,12 +252,20 @@ export function useMBTIReport() {
       const diff = Math.abs(l - r);
       const label = dimLabelFromCode(d.dimension);
       if (diff <= 10 && tips.length < 2) {
-        tips.push('在' + label + '方面较为灵活，不走极端，更擅长因情境调整策略');
+        tips.push(
+          '在' + label + '方面较为灵活，不走极端，更擅长因情境调整策略',
+        );
       }
       const dominant = Math.max(l, r);
       const side = isLeftDominant(d) ? leftName(d) : rightName(d);
       if (dominant >= 90 && tips.length < 3) {
-        tips.push('你在“' + label + '：' + side + '”上优势明显，适合相关场景，但也要留意在不同语境下保持弹性');
+        tips.push(
+          '你在“' +
+            label +
+            '：' +
+            side +
+            '”上优势明显，适合相关场景，但也要留意在不同语境下保持弹性',
+        );
       }
     });
     return tips;
@@ -244,7 +280,13 @@ export function useMBTIReport() {
       const nonDominant = isLeftDominant(d) ? rightName(d) : leftName(d);
       const dominant = Math.max(l, r);
       if (dominant >= 90 && tips.length < 3) {
-        tips.push('在“' + label + '”上倾向较为单一，适当引入“' + nonDominant + '”视角，会让决策更全面');
+        tips.push(
+          '在“' +
+            label +
+            '”上倾向较为单一，适当引入“' +
+            nonDominant +
+            '”视角，会让决策更全面',
+        );
       }
     });
     return tips;
@@ -279,7 +321,8 @@ export function useMBTIReport() {
   });
 
   const getModule = (id: string) => modules.value.find((m) => m.id === id);
-  const getModuleSections = (id: string) => getModule(id)?.content?.sections || [];
+  const getModuleSections = (id: string) =>
+    getModule(id)?.content?.sections || [];
   const moduleBody = (id: string) => {
     const m = getModule(id);
     if (!m) return '';
@@ -292,7 +335,8 @@ export function useMBTIReport() {
     return sec?.body || '';
   };
 
-  const maskNeeded = (id: string) => id === 'career' || id === 'love' || id === 'advanced_guide';
+  const maskNeeded = (id: string) =>
+    id === 'career' || id === 'love' || id === 'advanced_guide';
 
   const loadReport = async (id?: string) => {
     isLoading.value = true;
@@ -362,6 +406,6 @@ export function useMBTIReport() {
     moduleBody,
     getModuleSectionBody,
     maskNeeded,
-    loadReport
+    loadReport,
   };
 }

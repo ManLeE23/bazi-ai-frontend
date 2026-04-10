@@ -1,34 +1,11 @@
 <template>
   <view class="root">
     <slot name="top"></slot>
-    <!-- Quick Actions -->
-    <view class="quick-actions" v-if="!isQuotaExhausted">
-      <view 
-        class="action-chip" 
-        :class="{ 'active': deepThinking }"
-        @click="emit('toggleDeepThinking')"
-      >
-        <view class="thinking-icon-wrapper" :class="{ 'active': deepThinking }">
-          <image 
-            :src="deepThinking ? deepActiveSvg : deepInactiveSvg" 
-            class="thinking-icon-img"
-            mode="aspectFit"
-          />
-        </view>
-        <text class="chip-text" :class="{ 'active-text': deepThinking }">深度思考</text>
-      </view>
-
-      <view class="action-chip" v-if="showBazi" @click="emit('showBazi')">
-        <image :src="baguaSvg" class="chip-icon-img" mode="aspectFit" />
-        <text class="chip-text">看生辰</text>
-      </view>
-    </view>
-
     <view class="input-wrapper">
 
       <!-- Input Field -->
       <textarea
-        :placeholder="isAISending ? '正在整理你的趋势建议...' : '快和知势畅所欲言吧～'"
+        :placeholder="placeholder || '输入好友邀请码'"
         class="input-field"
         :value="bindingValue"
         @input="onInput"
@@ -37,8 +14,8 @@
         :show-confirm-bar="false"
         :cursor-spacing="20"
         maxlength="1000"
-        :disabled="isAISending"
-        placeholder-style="color: #94a3b8; font-size: 28rpx" 
+        :disabled="isAISending || isQuotaExhausted"
+        placeholder-style="color: #94a3b8; font-size: 28rpx; font-weight: 400" 
       ></textarea>
 
       <!-- Right Send Button -->
@@ -47,13 +24,15 @@
         class="icon-btn send-btn"
         :class="{ 'sending': isAISending }"
       >
-        <view class="waveform" v-if="isAISending">
+        <view class="send-content" v-if="!isAISending">
+          <image :src="upSvg" class="send-icon-img" />
+        </view>
+        <view class="waveform" v-else>
           <view class="bar bar-1"></view>
           <view class="bar bar-2"></view>
           <view class="bar bar-3"></view>
           <view class="bar bar-4"></view>
         </view>
-        <image v-else :src="upSvg" style="width: 20px; height: 20px;" />
       </view>
     </view>
     
@@ -71,25 +50,19 @@ const upSvg = '/static/icon/up.svg';
 interface Props {
   modelValue?: string;
   placeholder?: string;
-  showBazi?: boolean;
   isAISending?: boolean;
-  deepThinking?: boolean;
   isQuotaExhausted?: boolean;
 }
 
 interface Emits {
   (e: 'confirm', value: string): void;
   (e: 'click', value: string): void;
-  (e: 'showBazi'): void;
-  (e: 'toggleDeepThinking'): void;
 }
 
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: '',
-  showBazi: true,
   isAISending: false,
-  deepThinking: false,
   isQuotaExhausted: false
 });
 
@@ -133,152 +106,103 @@ const onClear = () => {
 
 <style lang="scss" scoped>
 .root {
-  padding: 32rpx 32rpx 68rpx 32rpx;
-  position: fixed;
-  bottom: 0;
+  padding: 0 32rpx 68rpx 32rpx;
   width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(to top, #fbfbff 0%, #fbfbff 60%, transparent 100%);
-  z-index: 100;
-}
-
-.quick-actions {
-  padding: 0 0 16rpx 0;
-  display: flex;
-  gap: 16rpx;
-  
-  .action-chip {
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1rpx solid rgba(255, 255, 255, 0.5);
-    border-radius: 32rpx;
-    padding: 10rpx 24rpx;
-    display: flex;
-    align-items: center;
-    gap: 8rpx;
-    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-    transition: all 0.2s;
-    
-    &:active {
-        transform: scale(0.95);
-        background: rgba(255, 255, 255, 0.6);
-    }
-
-    &.active {
-      background: rgba(99, 102, 241, 0.1); /* indigo-500 with opacity */
-      border-color: #6366f1;
-    }
-
-    .chip-icon-img {
-        width: 28rpx;
-        height: 28rpx;
-        opacity: 0.8;
-    }
-
-    .chip-text {
-        font-size: 24rpx;
-        color: #475569;
-        font-weight: 500;
-
-        &.active-text {
-          color: #6366f1;
-          font-weight: 600;
-        }
-    }
-
-    .thinking-icon-wrapper {
-      width: 32rpx;
-      height: 32rpx;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      
-      .thinking-icon-img {
-        width: 32rpx;
-        height: 32rpx;
-      }
-    }
-  }
 }
 
 .input-wrapper {
   min-height: 112rpx; /* h-14 = 56px = 112rpx */
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1rpx solid rgba(255, 255, 255, 0.5);
-  border-radius: 56rpx; /* rounded-[28px] */
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
+  border-radius: 999rpx; /* Pill shape */
   display: flex;
-  align-items: flex-end; /* Align bottom for multi-line */
-  padding: 16rpx 16rpx; /* Add vertical padding */
+  align-items: center; /* Center horizontally instead of flex-end */
+  padding: 12rpx 12rpx 12rpx 32rpx; /* More left padding */
   gap: 24rpx;
-  box-shadow: 0 20rpx 40rpx -10rpx rgba(79, 70, 229, 0.15); /* shadow-xl shadow-indigo-50/50 */
+  box-shadow: 0 20px 40px rgba(124, 77, 255, 0.06);
+}
+
+.input-field {
+  flex: 1;
+  background: transparent;
+  font-size: 32rpx; /* body-lg */
+  font-weight: 500;
+  color: #191c20;
+  min-height: 48rpx;
+  max-height: 192rpx;
+  border: none;
+  outline: none;
+  padding: 0;
+  line-height: 1.5;
+  width: 100%;
 }
 
 .icon-btn {
-  width: 80rpx; /* w-10 = 40px = 80rpx */
-  height: 80rpx;
+  width: 88rpx; /* h-14 w-14 equivalent for icon btn? wait, the wrapper is 112rpx, button is smaller */
+  height: 88rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   flex-shrink: 0;
+  margin: 0;
 }
 
 .send-btn {
-  background-color: #0f172a; /* bg-slate-900 */
+  background-color: #7c4dff; /* primary_container */
   color: white;
   transition: transform 0.1s;
+  box-shadow: 0 4px 12px rgba(124, 77, 255, 0.2);
   
   &:active {
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
 
   &.sending {
     cursor: not-allowed;
-    background-color: #0f172a; // Keep black
+    background-color: #7c4dff;
+    border-radius: 50%;
   }
+}
+
+.send-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-icon-img {
+  width: 48rpx;
+  height: 48rpx;
+  filter: brightness(0) invert(1);
 }
 
 .waveform {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  height: 20px;
+  gap: 6rpx;
+  height: 40rpx;
 }
 
 .bar {
-  width: 3px;
+  width: 6rpx;
   background-color: white;
-  border-radius: 2px;
+  border-radius: 4rpx;
   animation: wave 1s ease-in-out infinite;
 }
 
-.bar-1 { height: 10px; animation-delay: 0.0s; }
-.bar-2 { height: 16px; animation-delay: 0.1s; }
-.bar-3 { height: 12px; animation-delay: 0.2s; }
-.bar-4 { height: 14px; animation-delay: 0.3s; }
+.bar-1 { height: 20rpx; animation-delay: 0.0s; }
+.bar-2 { height: 32rpx; animation-delay: 0.1s; }
+.bar-3 { height: 24rpx; animation-delay: 0.2s; }
+.bar-4 { height: 28rpx; animation-delay: 0.3s; }
 
 @keyframes wave {
   0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
   50% { transform: scaleY(1); opacity: 1; }
-}
-
-.input-field {
-  flex: 1;
-  background: transparent;
-  font-size: 28rpx; /* text-[14px] */
-  font-weight: 700; /* font-bold */
-  color: #334155; /* text-slate-700 */
-  min-height: 48rpx;
-  max-height: 192rpx; /* Max height before scrolling */
-  border: none;
-  outline: none;
-  padding: 16rpx 24rpx;
-  line-height: 48rpx;
-  width: 100%;
 }
 
 .input-field::placeholder {

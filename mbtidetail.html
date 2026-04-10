@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary-fixed": "#e8deff",
+            "on-primary-fixed": "#20005f",
+            "background": "#f8f9ff",
+            "on-secondary-fixed": "#20025c",
+            "on-primary-fixed-variant": "#4f00d0",
+            "on-background": "#191c20",
+            "error": "#ba1a1a",
+            "secondary-fixed": "#e8deff",
+            "tertiary": "#904500",
+            "inverse-surface": "#2e3135",
+            "on-error": "#ffffff",
+            "on-tertiary-fixed-variant": "#733600",
+            "on-surface-variant": "#494455",
+            "tertiary-fixed": "#ffdbc7",
+            "surface-variant": "#e1e2e8",
+            "tertiary-container": "#b55800",
+            "surface-bright": "#f8f9ff",
+            "secondary-container": "#bba6ff",
+            "secondary": "#6451a3",
+            "on-secondary-container": "#4a3788",
+            "primary-fixed-dim": "#cdbdff",
+            "on-surface": "#191c20",
+            "on-primary-container": "#fcf6ff",
+            "surface-container": "#eceef3",
+            "on-error-container": "#93000a",
+            "on-tertiary-container": "#fff7f4",
+            "secondary-fixed-dim": "#cdbdff",
+            "surface-container-lowest": "#ffffff",
+            "primary": "#632ce5",
+            "inverse-primary": "#cdbdff",
+            "inverse-on-surface": "#eff0f6",
+            "surface-tint": "#6833ea",
+            "surface-container-highest": "#e1e2e8",
+            "on-tertiary": "#ffffff",
+            "on-primary": "#ffffff",
+            "surface": "#f8f9ff",
+            "on-secondary-fixed-variant": "#4c3989",
+            "error-container": "#ffdad6",
+            "on-secondary": "#ffffff",
+            "surface-dim": "#d8dae0",
+            "surface-container-high": "#e7e8ee",
+            "outline": "#7a7487",
+            "primary-container": "#7c4dff",
+            "outline-variant": "#cac3d8",
+            "surface-container-low": "#f2f3f9",
+            "tertiary-fixed-dim": "#ffb688",
+            "on-tertiary-fixed": "#311300"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans"],
+            "body": ["Plus Jakarta Sans"],
+            "label": ["Plus Jakarta Sans"]
+          },
+          borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(24px);
+      border: 0.5px solid rgba(124, 77, 255, 0.2);
+    }
+    .aura-blob {
+      filter: blur(80px);
+      z-index: -1;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-white">
+<!-- Shared Component: TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/40 backdrop-blur-3xl border-b-[0.5px] border-[#7C4DFF]/20 shadow-[0_20px_40px_rgba(124,77,255,0.06)] h-20 flex items-center justify-between px-6">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-[#7C4DFF] hover:bg-[#7C4DFF]/5 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg tracking-tight text-on-surface">Personality Report</h1>
+</div>
+<div class="font-extrabold text-[#7C4DFF] tracking-tighter text-xl">ISFJ</div>
+</header>
+<!-- Ambient Aura Decoration -->
+<div class="fixed top-20 right-[-10%] w-[500px] h-[500px] rounded-full bg-primary-fixed/20 aura-blob"></div>
+<div class="fixed bottom-0 left-[-10%] w-[600px] h-[600px] rounded-full bg-primary-container/5 aura-blob"></div>
+<main class="pt-32 pb-24 px-6 max-w-2xl mx-auto space-y-32">
+<!-- Section 1: Results Overview -->
+<section class="flex flex-col items-center text-center" id="results-overview">
+<span class="text-primary font-label text-xs tracking-[0.2em] uppercase mb-4">Your Profile</span>
+<h2 class="text-[5rem] font-extrabold text-primary-container leading-none tracking-tighter mb-4">ISFJ</h2>
+<p class="text-on-surface-variant font-headline text-2xl font-bold max-w-sm mb-16 leading-tight">The Dedicated Protector &amp; Quiet Guardian</p>
+<div class="w-full space-y-8">
+<!-- Progress Bar: Introversion vs Extraversion -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<span class="text-primary font-bold text-sm">Introversion</span>
+<span class="text-primary-container font-extrabold text-lg">78%</span>
+<span class="text-on-surface-variant/40 font-bold text-sm">Extraversion</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 78%"></div>
+</div>
+</div>
+<!-- Progress Bar: Sensing vs Intuition -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<span class="text-primary font-bold text-sm">Sensing</span>
+<span class="text-primary-container font-extrabold text-lg">64%</span>
+<span class="text-on-surface-variant/40 font-bold text-sm">Intuition</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 64%"></div>
+</div>
+</div>
+<!-- Progress Bar: Feeling vs Thinking -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<span class="text-primary font-bold text-sm">Feeling</span>
+<span class="text-primary-container font-extrabold text-lg">82%</span>
+<span class="text-on-surface-variant/40 font-bold text-sm">Thinking</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 82%"></div>
+</div>
+</div>
+<!-- Progress Bar: Judging vs Perceiving -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<span class="text-primary font-bold text-sm">Judging</span>
+<span class="text-primary-container font-extrabold text-lg">91%</span>
+<span class="text-on-surface-variant/40 font-bold text-sm">Perceiving</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 91%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Situation Maps -->
+<section class="space-y-8" id="situation-maps">
+<div class="flex flex-col gap-2">
+<h3 class="text-3xl font-extrabold tracking-tight">Situation Maps</h3>
+<p class="text-on-surface-variant text-lg">How you manifest in different domains of life.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Daily Life Card -->
+<div class="glass-card p-8 rounded-xl flex flex-col gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="home_app_logo">home_app_logo</span>
+</div>
+<h4 class="text-xl font-bold">Daily Life</h4>
+<p class="text-on-surface-variant leading-relaxed">Systematic and grounded. You find comfort in rituals and maintaining an orderly home environment.</p>
+</div>
+<!-- Work Card -->
+<div class="glass-card p-8 rounded-xl flex flex-col gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="work">work</span>
+</div>
+<h4 class="text-xl font-bold">Work</h4>
+<p class="text-on-surface-variant leading-relaxed">The bedrock of the team. Meticulous attention to detail and a profound sense of duty.</p>
+</div>
+<!-- Social Card -->
+<div class="glass-card p-8 rounded-xl flex flex-col gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+</div>
+<h4 class="text-xl font-bold">Social</h4>
+<p class="text-on-surface-variant leading-relaxed">Warm and observant. You are the friend who remembers every birthday and small preference.</p>
+</div>
+<!-- Private Card -->
+<div class="glass-card p-8 rounded-xl flex flex-col gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="lock">lock</span>
+</div>
+<h4 class="text-xl font-bold">Private</h4>
+<p class="text-on-surface-variant leading-relaxed">Deeply reflective and sometimes self-critical. You need quiet time to recharge your emotional battery.</p>
+</div>
+</div>
+</section>
+<!-- Section 3: Deep Dive -->
+<section class="space-y-12" id="deep-dive">
+<div class="text-center">
+<h3 class="text-3xl font-extrabold tracking-tight mb-2">The Inner Architecture</h3>
+<p class="text-on-surface-variant">Unpacking your core drivers and energy flow.</p>
+</div>
+<div class="space-y-12">
+<div class="flex items-start gap-6">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="bolt">bolt</span>
+<div>
+<h5 class="text-lg font-bold mb-2">Energy Source</h5>
+<p class="text-on-surface-variant leading-relaxed">You draw strength from internal stability and meaningful, one-on-one interactions. Large crowds drain you quickly.</p>
+</div>
+</div>
+<div class="flex items-start gap-6">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="psychology">psychology</span>
+<div>
+<h5 class="text-lg font-bold mb-2">Decision Style</h5>
+<p class="text-on-surface-variant leading-relaxed">Decisions are filtered through a lens of past experience and the impact they have on people you care about.</p>
+</div>
+</div>
+<div class="flex items-start gap-6">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="auto_awesome">auto_awesome</span>
+<div>
+<h5 class="text-lg font-bold mb-2">Temperament</h5>
+<p class="text-on-surface-variant leading-relaxed">Melancholic-Phlegmatic: Patient, loyal, and persistent. You value harmony over winning an argument.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 4: Strengths & Growth -->
+<section class="grid grid-cols-1 gap-12" id="strengths-growth">
+<div class="space-y-6">
+<h3 class="text-2xl font-bold text-primary flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="star_border" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star_border</span>
+          Core Strengths
+        </h3>
+<ul class="space-y-6">
+<li class="flex gap-4">
+<span class="text-primary font-bold">01</span>
+<p class="text-on-surface-variant">Practical and thorough execution of tasks with high accuracy.</p>
+</li>
+<li class="flex gap-4">
+<span class="text-primary font-bold">02</span>
+<p class="text-on-surface-variant">Unwavering loyalty and reliability to friends and organizations.</p>
+</li>
+<li class="flex gap-4">
+<span class="text-primary font-bold">03</span>
+<p class="text-on-surface-variant">Strong observational skills focused on the needs of others.</p>
+</li>
+</ul>
+</div>
+<div class="space-y-6">
+<h3 class="text-2xl font-bold text-on-surface-variant/40 flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="visibility_off">visibility_off</span>
+          Blind Spots
+        </h3>
+<ul class="space-y-6">
+<li class="flex gap-4">
+<span class="text-on-surface-variant/40 font-bold">01</span>
+<p class="text-on-surface-variant">Reluctance to accept change and new, untested methods.</p>
+</li>
+<li class="flex gap-4">
+<span class="text-on-surface-variant/40 font-bold">02</span>
+<p class="text-on-surface-variant">Tendency to overload yourself with responsibilities without asking for help.</p>
+</li>
+</ul>
+</div>
+</section>
+<!-- Section 5: Self-Awareness -->
+<section class="bg-primary-container p-12 rounded-xl text-on-primary-container" id="self-awareness">
+<h3 class="text-3xl font-extrabold mb-8">Self-Awareness Hub</h3>
+<div class="space-y-10">
+<div>
+<h4 class="text-sm font-bold uppercase tracking-widest mb-3 opacity-70">Stress Habits</h4>
+<p class="text-lg">Under high stress, you may become uncharacteristically pessimistic or obsessed with catastrophic "what-if" scenarios.</p>
+</div>
+<div class="w-full h-[0.5px] bg-white/20"></div>
+<div>
+<h4 class="text-sm font-bold uppercase tracking-widest mb-3 opacity-70">Communication Style</h4>
+<p class="text-lg">Concrete and literal. You prefer clear instructions and dislike ambiguity or overly theoretical metaphors.</p>
+</div>
+</div>
+</section>
+<!-- Section 6: Career & Relationships -->
+<section class="space-y-16" id="career-relationships">
+<div class="space-y-8">
+<div class="flex items-center gap-4">
+<h3 class="text-3xl font-extrabold tracking-tight">Professional Path</h3>
+<div class="h-[1px] flex-grow bg-outline-variant"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-4">
+<h4 class="font-bold text-xl">Leadership Style</h4>
+<p class="text-on-surface-variant leading-relaxed">Leading by example. You aren't the loudest in the room, but you are the one people turn to for stability and wisdom.</p>
+</div>
+<div class="space-y-4">
+<h4 class="font-bold text-xl">Ideal Roles</h4>
+<p class="text-on-surface-variant leading-relaxed">Healthcare, Education, Administration, or Social Work—anywhere where service and detail meet.</p>
+</div>
+</div>
+</div>
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low p-8">
+<div class="flex flex-col md:flex-row gap-8 items-center">
+<img alt="Team connection" class="w-full md:w-48 h-48 object-cover rounded-lg shadow-lg" data-alt="Two people having a thoughtful conversation in a bright modern office with warm natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNTJklKoEwdcPs0nC61r6RLJz-tBvX6M9nHKKtlTxMjlSBgA2rJ92IxsnCYtVngpiPk3qiJ9gjPqcQsjFTk-HRfC20sgcGBCNsuxUhQHO5qIrgzSoYSB3gYN7ZmBi5b86-801DSEFTBReZHjKzhFtjxkJrNDkrqKFu9OMEUuF6e_DgbZVMLsYcvY0FWt1a7FWaKP3mniG13JS7_6ZtVv_FNs3G7lZD-uL9TZZglVawng5Tnf8WW_RHbTwZGVL9HvKn12GyOtPFRQ7d"/>
+<div class="space-y-4">
+<h4 class="text-2xl font-bold">Relationship Insights</h4>
+<p class="text-on-surface-variant">In relationships, you are a "Slow Burn." You take time to trust, but once you do, your commitment is absolute. You express love through acts of service.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 7: Advance Guide & Challenges -->
+<section class="space-y-12" id="challenges">
+<div class="text-center">
+<h3 class="text-3xl font-extrabold tracking-tight mb-4">Growth Challenges</h3>
+<p class="text-on-surface-variant">Step outside your comfort zone to evolve.</p>
+</div>
+<div class="grid grid-cols-1 gap-6">
+<!-- Interactive Challenge Item -->
+<button class="w-full text-left group p-8 rounded-xl border-[0.5px] border-primary-container/20 bg-white hover:bg-primary-container hover:text-white transition-all duration-300 flex items-center justify-between">
+<div>
+<div class="text-primary group-hover:text-white font-bold text-xs uppercase tracking-widest mb-1">Discipline</div>
+<h4 class="text-xl font-bold tracking-tight">The P → J Shift Challenge</h4>
+<p class="opacity-70 text-sm mt-2">Practice improvising for 30 minutes every day.</p>
+</div>
+<span class="material-symbols-outlined text-3xl group-hover:translate-x-2 transition-transform" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full text-left group p-8 rounded-xl border-[0.5px] border-primary-container/20 bg-white hover:bg-primary-container hover:text-white transition-all duration-300 flex items-center justify-between">
+<div>
+<div class="text-primary group-hover:text-white font-bold text-xs uppercase tracking-widest mb-1">Social</div>
+<h4 class="text-xl font-bold tracking-tight">Boundary Setting 101</h4>
+<p class="opacity-70 text-sm mt-2">Learn to say 'No' to one request this week.</p>
+</div>
+<span class="material-symbols-outlined text-3xl group-hover:translate-x-2 transition-transform" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Footer / Closing -->
+<footer class="text-center pt-20 border-t border-outline-variant/30">
+<div class="mb-8">
+<div class="font-extrabold text-[#7C4DFF] tracking-tighter text-3xl mb-2">Personality.ai</div>
+<p class="text-on-surface-variant/60 text-sm">Deeply personal insights, powered by your data.</p>
+</div>
+<button class="px-12 py-4 bg-primary-container text-white rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-[0_20px_40px_rgba(124,77,255,0.15)]">
+        Share Report
+      </button>
+</footer>
+</main>
+<!-- Bottom Padding for safe area -->
+<div class="h-20"></div>
+</body></html>

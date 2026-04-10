@@ -1,8 +1,9 @@
 <template>
-  <view class="mbti-page-container min-h-screen flex flex-col relative pb-6 bg-purple-light">
+  <view class="mbti-page-container min-h-screen flex flex-col relative pb-6 bg-surface">
     <!-- Ambient Background Elements -->
-    <view class="bg-shape shape-1"></view>
-    <view class="bg-shape shape-2"></view>
+    <div class="bg-blob bg-blob-primary"></div>
+    <div class="bg-blob bg-blob-secondary"></div>
+    <div class="bg-blob bg-blob-container"></div>
 
     <HeaderBar title="人格类型探索" :fixed="true" :placeholder="true" background-color="transparent" />
 
@@ -11,17 +12,17 @@
       <!-- Progress Bar -->
       <view class="flex justify-between items-end mb-3">
         <view class="flex items-baseline gap-1">
-          <text class="text-3xl font-black text-gray-800 leading-none">{{ currentIndex + 1 }}</text>
-          <text class="text-sm font-bold text-gray-400 leading-none">/ {{ questions.length }}</text>
+          <text class="text-3xl font-black text-on-surface leading-none question-title">{{ currentIndex + 1 }}</text>
+          <text class="text-sm font-bold text-outline-variant leading-none">/ {{ questions.length }}</text>
         </view>
       </view>
-      <view class="w-full h-2 bg-white-50 rounded-full overflow-hidden shadow-inner">
-        <view class="h-full bg-purple-gradient rounded-full transition-all duration-500 ease-out" :style="{ width: progressPercent + '%' }"></view>
+      <view class="w-full h-2 progress-bar rounded-full overflow-hidden">
+        <view class="h-full bg-primary rounded-full transition-all duration-500 ease-out" :style="{ width: progressPercent + '%' }"></view>
       </view>
 
       <!-- Question -->
       <view class="mt-3 text-center fade-in" :key="'q-' + currentIndex">
-        <view class="text-2xl font-bold text-gray-800 leading-relaxed px-2 min-h-question flex items-center justify-center">
+        <view class="text-2xl font-bold text-on-surface leading-relaxed px-2 min-h-question flex items-center justify-center" style="letter-spacing: -0.02em;">
           {{ currentQuestion.text }}
         </view>
       </view>
@@ -29,19 +30,19 @@
       <!-- Options -->
       <view class="mt-3 flex flex-col gap-4 fade-in" :key="'opt-' + currentIndex">
         <view 
-          class="option-card group w-full relative flex items-center p-5 rounded-3xl transition-all duration-300 border-2"
+          class="option-card group w-full relative flex items-center p-5 transition-all duration-300 border-2"
           :class="[
-            answers[currentIndex] === optionIndex ? 'option-active' : 'bg-white-60 border-transparent'
+            answers[currentIndex] === optionIndex ? 'option-active' : 'border-transparent'
           ]"
           v-for="(option, optionIndex) in currentQuestion.options" 
           :key="optionIndex"
           @click="selectOption(optionIndex)"
         >
           <view class="w-6 h-6 rounded-full border-2 mr-4 flex-shrink-0 flex items-center justify-center transition-colors"
-                :class="answers[currentIndex] === optionIndex ? 'border-purple-active bg-purple-active' : 'border-gray-300'">
+                :class="answers[currentIndex] === optionIndex ? 'border-primary bg-primary' : 'border-outline-variant'">
             <view class="w-2_5 h-2_5 bg-white rounded-full transition-transform duration-300" :class="answers[currentIndex] === optionIndex ? 'scale-100' : 'scale-0'"></view>
           </view>
-          <text class="option-label text-lg font-bold transition-colors text-left flex-1" :class="answers[currentIndex] === optionIndex ? 'text-purple-active' : 'text-gray-500'">
+          <text class="option-label text-lg font-bold transition-colors text-left flex-1" :class="answers[currentIndex] === optionIndex ? 'text-primary' : 'text-outline-variant'">
             {{ option }}
           </text>
         </view>
@@ -51,15 +52,23 @@
       <view class="mt-auto w-full pt-10 pb-2 flex gap-4 box-border" style="min-height: 120rpx;">
         <view 
           v-if="currentIndex > 0"
-          class="flex-1 h-16 rounded-full font-black text-sm tracking-widest transition-all active-scale-95 flex items-center justify-center uppercase bg-white text-gray-800 border border-gray-200 shadow-sm fade-in"
+          class="flex-1 h-16 rounded-full font-black text-sm tracking-widest transition-all flex items-center justify-center uppercase option-card text-on-surface fade-in"
+          :class="currentIndex > 0 ? 'active-scale-95' : 'opacity-50 pointer-events-none'"
           @click="prevQuestion"
         >
           <text>上一题</text>
         </view>
         <view 
-          v-if="currentIndex === questions.length - 1"
-          class="flex-1 h-16 rounded-full font-black text-sm tracking-widest transition-all flex items-center justify-center uppercase shadow-sm fade-in"
-          :class="isSubmitting ? 'bg-gray-300 text-gray-500 pointer-events-none' : 'active-scale-95 bg-purple-gradient text-white'"
+          v-if="currentIndex < questions.length - 1"
+          class="flex-1 h-16 rounded-full font-black text-sm tracking-widest transition-all flex items-center justify-center uppercase fade-in active-scale-95 bg-primary text-white shadow-primary"
+          @click="nextQuestion"
+        >
+          <text>下一题</text>
+        </view>
+        <view 
+          v-else
+          class="flex-1 h-16 rounded-full font-black text-sm tracking-widest transition-all flex items-center justify-center uppercase fade-in"
+          :class="isSubmitting ? 'bg-gray-300 text-gray-500 pointer-events-none' : 'active-scale-95 bg-primary text-white shadow-primary'"
           @click="submitAnswers"
         >
           <text>{{ isSubmitting ? '提交中...' : '提交' }}</text>
@@ -67,16 +76,22 @@
       </view>
       
       <!-- Footer Text -->
-      <view class="mt-2 opacity-30 text-xxs font-bold tracking-widest text-gray-500 uppercase text-center w-full pb-4">
-          已有 xx 人参与测试
+      <view class="mt-2 text-xxs font-bold tracking-widest text-outline-variant uppercase text-center w-full pb-4">
+          已有 10W+ 人参与测试
       </view>
 
     </view>
 
     <!-- Loading State -->
     <view class="flex-1 flex items-center justify-center mt-20" v-else>
-      <text class="text-base text-purple-400 font-medium tracking-widest">正在加载题目...</text>
+      <text class="text-base text-primary font-medium tracking-widest">正在加载题目...</text>
     </view>
+
+    <MBTIAnalysisLoading
+      v-model="showAnalysisLoading"
+      :status="analysisStatus"
+      @complete="handleAnalysisComplete"
+    />
 
     <!-- Payment Popup -->
     <MBTIPaymentPopup
@@ -95,6 +110,7 @@
 import { ref, computed, onMounted } from 'vue';
 import HeaderBar from '@/components/HeaderBar.vue';
 import MBTIPaymentPopup from './components/MBTIPaymentPopup.vue';
+import MBTIAnalysisLoading from './components/MBTIAnalysisLoading.vue';
 import { fetchMBTIQuestions, fetchMBTISubmit, fetchWechatOrderQuery } from '@/api/services';
 import { useMBTIReport } from '@/hooks/useMBTIReport';
 import { handleMBTIWechatPayment } from '@/utils/payment';
@@ -161,6 +177,22 @@ const prevQuestion = () => {
   }
 };
 
+const nextQuestion = () => {
+  if (answers.value[currentIndex.value] === undefined) {
+    uni.showToast({ title: '请先选择一个选项', icon: 'none' });
+    return; // Do not proceed if no option is selected
+  }
+
+  if (advanceTimer) {
+    clearTimeout(advanceTimer);
+    advanceTimer = null;
+  }
+  
+  if (currentIndex.value < questions.value.length - 1) {
+    currentIndex.value++;
+  }
+};
+
 
 
 onMounted(() => {
@@ -170,6 +202,10 @@ onMounted(() => {
 let isSubmitting = ref(false);
 
 const showPaymentPopup = ref(false);
+const showAnalysisLoading = ref(false);
+const analysisStatus = ref('analyzing');
+const isPaymentRequired = ref(false);
+
 const paymentInfo = ref({
   originalPrice: 0,
   discountPrice: 0,
@@ -178,6 +214,14 @@ const paymentInfo = ref({
 
 const closePaymentPopup = () => {
   showPaymentPopup.value = false;
+};
+
+const handleAnalysisComplete = () => {
+  if (isPaymentRequired.value) {
+    showPaymentPopup.value = true;
+  } else {
+    uni.redirectTo({ url: `/pages/mbti/report?reportId=${paymentInfo.value.reportId}` });
+  }
 };
 
 const submitAnswers = async () => {
@@ -217,21 +261,26 @@ const submitAnswers = async () => {
       
       // Request report interface to trigger generation process in background
       // showing analyzing process
-      uni.showLoading({ title: '报告分析中...', mask: true });
+      showAnalysisLoading.value = true;
+      analysisStatus.value = 'analyzing';
+      isPaymentRequired.value = false;
+      
       try {
         await loadReport(reportId);
         // If it successfully loads without 402, it means it's already paid or free
-        uni.hideLoading();
-        uni.navigateTo({ url: `/pages/mbti/report?reportId=${reportId}` });
+        analysisStatus.value = 'success';
       } catch (err: any) {
-        uni.hideLoading();
         // 402 means Payment Required, which is the expected flow for new reports
         if (err?.code === 402 || err?.statusCode === 402 || err?.message?.includes('402')) {
-          // Show payment popup after loading finishes with 402
-          showPaymentPopup.value = true;
+          // Mark as payment required, but still consider analysis "success" to finish animation
+          isPaymentRequired.value = true;
+          analysisStatus.value = 'success';
         } else if (err?.code === 401) {
+          showAnalysisLoading.value = false;
           uni.redirectTo({ url: '/pages/login/index' });
         } else {
+          analysisStatus.value = 'error';
+          showAnalysisLoading.value = false;
           uni.showToast({ title: err?.message || '分析失败，请重试', icon: 'none' });
         }
       }
@@ -240,7 +289,7 @@ const submitAnswers = async () => {
     }
     
   } catch (err: any) {
-    uni.hideLoading();
+    showAnalysisLoading.value = false;
     if (err?.code === 401) {
       uni.redirectTo({ url: '/pages/login/index' });
     } else {
@@ -289,7 +338,7 @@ const handlePayment = async () => {
     uni.showToast({ title: '支付成功', icon: 'success' });
     
     // Navigate to report
-    uni.navigateTo({ url: `/pages/mbti/report?reportId=${paymentInfo.value.reportId}` });
+    uni.redirectTo({ url: `/pages/mbti/report?reportId=${paymentInfo.value.reportId}` });
     
   } catch (err: any) {
     uni.hideLoading();
@@ -305,48 +354,48 @@ const handlePayment = async () => {
 </script>
 
 <style lang="scss" scoped>
-.bg-purple-light { background-color: #F5F3FF; }
-.bg-white-60 { background-color: rgba(255, 255, 255, 0.6); }
+.bg-surface { background-color: #F8F9FF; }
+.bg-white-40 { background-color: rgba(255, 255, 255, 0.4); }
 
 .mbti-page-container {
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  font-family: "Manrope", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
   overflow-y: hidden;
   overflow-x: hidden;
 }
 
-/* Background Decorative Elements */
-.bg-shape {
-  position: absolute;
+/* Ambient Background Blobs (Mobile Optimized) */
+.bg-blob {
+  position: fixed;
   border-radius: 50%;
-  filter: blur(60px);
+  filter: blur(80rpx);
   z-index: 0;
   pointer-events: none;
-  opacity: 0.6;
 }
-.shape-1 {
-  top: -5%;
-  right: -10%;
-  width: 500rpx;
-  height: 500rpx;
-  background-color: #E0E7FF;
+.bg-blob-primary {
+  top: -15%; left: -30%; width: 150vw; height: 150vw; 
+  background: radial-gradient(circle at 50% 50%, rgba(124, 77, 255, 0.15) 0%, rgba(124, 77, 255, 0) 60%);
 }
-.shape-2 {
-  bottom: 10%;
-  left: -10%;
-  width: 600rpx;
-  height: 600rpx;
-  background-color: #EDE9FE;
+.bg-blob-secondary {
+  top: 30%; right: -40%; width: 130vw; height: 130vw; 
+  background: radial-gradient(circle at 50% 50%, rgba(124, 77, 255, 0.12) 0%, rgba(124, 77, 255, 0) 60%);
+}
+.bg-blob-container {
+  bottom: -10%; left: -30%; width: 140vw; height: 140vw; 
+  background: radial-gradient(circle at 50% 50%, rgba(124, 77, 255, 0.1) 0%, rgba(124, 77, 255, 0) 60%);
 }
 
-/* Option Cards */
+/* Option Cards (Glassmorphism) */
 .option-card {
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.02);
+  background-color: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(202, 195, 216, 0.2);
+  border-radius: 40px; /* From Figma: 40px */
 }
 .option-active {
   background-color: #FFFFFF !important;
-  border-color: #8B5CF6 !important;
-  box-shadow: 0 10rpx 30rpx -10rpx rgba(139, 92, 246, 0.2) !important;
+  border-color: rgba(124, 77, 255, 0.3) !important;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05) !important; /* Subtle Figma style */
   transform: translateY(-4rpx);
 }
 .border-transparent { border-color: transparent; }
@@ -413,18 +462,20 @@ const handlePayment = async () => {
 
 .text-white { color: #FFFFFF; }
 .text-gray-300 { color: #D1D5DB; }
-.border-gray-300 { border-color: #D1D5DB; }
-.text-gray-400 { color: #9CA3AF; }
 .text-gray-500 { color: #6B7280; }
-.text-gray-800 { color: #1F2937; }
-.text-purple-400 { color: #C084FC; }
-.text-purple-active { color: #8B5CF6; }
-.border-purple-active { border-color: #8B5CF6; }
-.bg-purple-active { background-color: #8B5CF6; }
+.text-on-surface { color: #191c20; }
+.text-outline-variant { color: #494455; }
+.text-primary { color: #7c4dff; }
+.border-outline-variant { border-color: rgba(202, 195, 216, 0.4); }
+.border-primary { border-color: #7c4dff; }
+.bg-primary { background-color: #7c4dff; }
+
+.shadow-primary {
+  box-shadow: 0px 0px 40rpx 0px rgba(124, 77, 255, 0.1), 0px 0px 20rpx 0px rgba(124, 77, 255, 0.3);
+}
 
 .bg-white { background-color: #FFFFFF; }
 .bg-gray-100 { background-color: #F3F4F6; }
-.bg-purple-gradient { background: linear-gradient(to right, #C084FC, #8B5CF6); }
 
 .px-2 { padding-left: 16rpx; padding-right: 16rpx; }
 .px-3 { padding-left: 24rpx; padding-right: 24rpx; }
@@ -471,7 +522,7 @@ const handlePayment = async () => {
 .shadow-inner { box-shadow: inset 0 4rpx 8rpx 0 rgba(0,0,0,0.06); }
 
 .opacity-20 { opacity: 0.2; }
-.opacity-30 { opacity: 0.3; }
+.opacity-50 { opacity: 0.5; }
 .opacity-80 { opacity: 0.8; }
 .opacity-100 { opacity: 1; }
 
@@ -494,5 +545,14 @@ const handlePayment = async () => {
 @keyframes fadeIn {
   0% { opacity: 0; transform: translateY(15rpx); }
   100% { opacity: 1; transform: translateY(0); }
+}
+
+.progress-bar {
+  background: #E7E8EE;
+  height: 20rpx;
+}
+
+.question-title {
+  text-align: left;
 }
 </style>

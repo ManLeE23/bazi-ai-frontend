@@ -6,6 +6,7 @@
           <view class="dot"></view>
           <view class="dot"></view>
           <view class="dot"></view>
+          <text class="typing-text">正在为你整理建议...</text>
         </view>
       </view>
     </view>
@@ -42,7 +43,7 @@
 .typing-indicator {
   display: flex;
   align-items: center;
-  padding: 20rpx 24rpx !important;
+  padding: 16rpx 0 !important;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -51,7 +52,7 @@
 .dot {
   width: 12rpx;
   height: 12rpx;
-  background-color: #a5b4fc;
+  background-color: #a78bfa; /* lighter purple matching mockup */
   border-radius: 50%;
   margin-right: 12rpx;
   animation: bounce 1.5s infinite;
@@ -63,6 +64,14 @@
 
 .dot:nth-child(3) {
   animation-delay: 0.4s;
+}
+
+.typing-text {
+  font-size: 26rpx;
+  color: #94a3b8;
+  font-style: italic;
+  margin-left: 12rpx;
+  font-weight: 500;
 }
 
 @keyframes bounce {

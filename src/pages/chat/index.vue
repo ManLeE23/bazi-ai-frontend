@@ -1,19 +1,20 @@
 <template>
   <view class="root">
-    <!-- Background Blobs -->
+    <!-- Background Aura Blobs -->
     <view class="energy-blob blob-1"></view>
     <view class="energy-blob blob-2"></view>
 
     <!-- Custom Header -->
-    <HeaderBar :fixed="true" :show-back="false">
+    <HeaderBar :fixed="true" :show-back="true">
       <template #left>
-        <view class="header-left-group">
-          <button @click="handleBackToHome" class="sidebar-toggle-btn">
-            <view class="hamburger-icon">
-              <view class="bar long"></view>
-              <view class="bar short"></view>
-            </view>
-          </button>
+      </template>
+      <template #center>
+        <view class="header-title-container" @click="showThinkingModeSheet = true">
+          <text class="agent-name">{{ agentName }}</text>
+          <view class="mode-selector">
+            <text class="mode-text">{{ isDeepThinkingMode ? '深度思考' : '快速模式' }}</text>
+            <u-icon name="arrow-down" size="20" color="#94a3b8" class="mode-arrow"></u-icon>
+          </view>
         </view>
       </template>
     </HeaderBar>
@@ -48,6 +49,15 @@
 
     <!-- Upgrade Popup -->
     <UpgradePopup v-model="showUpgradePopup" />
+
+    <!-- Thinking Mode Selector -->
+    <u-action-sheet
+      :list="thinkingModeOptions"
+      v-model="showThinkingModeSheet"
+      @click="handleSelectThinkingMode"
+      :border-radius="48"
+      :safe-area-inset-bottom="true"
+    ></u-action-sheet>
 
     <!-- Chat Messages -->
     <view class="scroll-box" :style="{ paddingTop: (headerHeight + 16) + 'px' }">
@@ -119,51 +129,7 @@
         <!-- Typing indicator -->
         <view v-if="isTyping" class="message-wrapper">
           <view class="message-row justify-start">
-             <view class="bubble ai-bubble typing-bubble">
-                <LoadingIndicator />
-             </view>
-          </view>
-        </view>
-
-        <!-- Quick Questions -->
-        <view v-if="showQuickQuestions" class="quick-questions-container">
-          <!-- Header -->
-          <view class="quick-header">
-            <view class="quick-header-left">
-              <view class="quick-header-bar"></view>
-              <text class="quick-header-title">猜你想问</text>
-            </view>
-            <!-- <view class="quick-header-right" @click="loadQuickQuestions">
-              <view class="refresh-icon">
-                <image src="@/static/icon/refresh.svg" class="refresh-img" />
-              </view>
-              <text class="refresh-text">换一批</text>
-            </view> -->
-          </view>
-          
-          <!-- Questions List -->
-          <view class="quick-list" v-if="isLoadingQuickQuestions">
-            <view 
-              v-for="i in 3" 
-              :key="i" 
-              class="quick-card skeleton-card"
-            >
-              <view class="skeleton-badge"></view>
-              <view class="skeleton-text"></view>
-            </view>
-          </view>
-          <view class="quick-list" v-else>
-            <button 
-              v-for="(q, index) in quickQuestions" 
-              :key="index" 
-              class="quick-card"
-              @click="sendQuickQuestion(q)"
-            >
-              <!-- <view class="question-badge">
-                <text class="badge-text">Q{{ index + 1 }}</text>
-              </view> -->
-              <text class="question-text">{{ q }}</text>
-            </button>
+             <LoadingIndicator />
           </view>
         </view>
         
@@ -188,7 +154,7 @@
     >
       <!-- Handle -->
       <view class="drawer-handle-compact" @click.stop="toggleBaziDrawer">
-        <image :src="starShineSvg" class="handle-icon-compact" mode="aspectFit" />
+        <image :src="starShinePurpleSvg" class="handle-icon-compact" mode="aspectFit" />
       </view>
       
       <!-- Content -->
@@ -219,23 +185,44 @@
     </view>
 
     <!-- Chat Input -->
-    <InputWithButton 
-      :show-bazi="false"
-      :is-a-i-sending="isGenerating"
-      :deep-thinking="isDeepThinkingMode"
-      :is-quota-exhausted="isQuotaExhausted"
-      @click="getInputValue"
-      @confirm="getInputValue"
-      @show-bazi="handleShowBazi" 
-      @toggle-deep-thinking="handleToggleDeepThinking(!isDeepThinkingMode)"
-    >
-      <template #top>
-        <view v-if="isQuotaExhausted" class="quota-banner-inline">
-          <text class="quota-text">今日免费额度已用完，升级会员或邀请好友获取更多</text>
-          <view class="quota-btn" @click="handleOpenUserCenter">去获取</view>
+    <view class="bottom-action-area">
+      <!-- Quick Questions inside bottom area -->
+      <view v-if="showQuickQuestions" class="quick-questions-container">
+        <view class="quick-list" v-if="isLoadingQuickQuestions">
+          <view v-for="i in 3" :key="i" class="quick-card skeleton-card">
+            <view class="skeleton-text"></view>
+          </view>
         </view>
-      </template>
-    </InputWithButton>
+        <view class="quick-list" v-else>
+          <button 
+            v-for="(q, index) in quickQuestions" 
+            :key="index" 
+            class="quick-card"
+            @click="sendQuickQuestion(q)"
+          >
+            <text class="question-text">{{ q }}</text>
+          </button>
+        </view>
+      </view>
+
+      <InputWithButton 
+        :is-a-i-sending="isGenerating"
+        :is-quota-exhausted="isQuotaExhausted"
+        :placeholder="`快和${agentName}聊聊吧`"
+        @click="getInputValue"
+        @confirm="getInputValue"
+      >
+        <template #top>
+          <view v-if="isQuotaExhausted" class="quota-banner-inline">
+            <view class="quota-text-container">
+              <text class="quota-title">今日免费额度已用完</text>
+              <text class="quota-sub">升级会员或邀请好友获取更多</text>
+            </view>
+            <view class="quota-btn" @click="handleOpenUserCenter">去获取</view>
+          </view>
+        </template>
+      </InputWithButton>
+    </view>
   </view>
 </template>
 
@@ -259,6 +246,7 @@ import MarkDown from '../components/MarkDown/index.vue';
 import BaziCard from './components/BaziCard.vue';
 import downSvg from '@/static/icon/down.svg?url';
 import starShineSvg from '@/static/icon/star-shine.svg?url';
+import starShinePurpleSvg from '@/static/icon/star-shine-purple.svg?url';
 import debounce from 'lodash-es/debounce';
 
 // 适配小程序：移除 window 依赖，改用 ref 存储定时器（小程序无 window 对象）
@@ -333,6 +321,25 @@ const pendingAutoQuestion = ref('');
 // 思维链相关状态
 const isThinking = ref(false);
 const isDeepThinkingMode = ref(uni.getStorageSync('isDeepThinkingMode') === true);
+const showThinkingModeSheet = ref(false);
+
+const thinkingModeOptions = [
+  { text: '快速模式', value: false, subText: '极速响应，适合日常交流' },
+  { text: '深度思考', value: true, subText: '深度分析，适合复杂推演' }
+];
+
+const agentName = computed(() => {
+  if (currentAgentType.value === 'emotion') return '知心';
+  if (currentAgentType.value === 'career') return '知业';
+  return '知势'; // Default or life_trend
+});
+
+const handleSelectThinkingMode = (index: number) => {
+  const selectedMode = thinkingModeOptions[index].value;
+  if (isDeepThinkingMode.value !== selectedMode) {
+    handleToggleDeepThinking(selectedMode);
+  }
+};
 
 const handleToggleDeepThinking = (val: boolean) => {
   isDeepThinkingMode.value = val;
@@ -1108,7 +1115,6 @@ const getChatHistory = async () => {
         // 加载输入框上方的推荐问题
         if (!isQuotaExhausted.value) {
            loadQuickQuestions();
-           showQuickQuestions.value = true;
         }
       }
 
@@ -1416,7 +1422,6 @@ const sendQuestion = async (skipSuggestedQuestions = false, skipPush = false) =>
                   nextTick(() => {
                     if (!isQuotaExhausted.value && !skipSuggestedQuestions) {
                       loadQuickQuestions();
-                      showQuickQuestions.value = true;
                     } else {
                       showQuickQuestions.value = false;
                     }
@@ -1429,7 +1434,6 @@ const sendQuestion = async (skipSuggestedQuestions = false, skipPush = false) =>
                nextTick(() => {
                  if (!isQuotaExhausted.value && !skipSuggestedQuestions) {
                    loadQuickQuestions();
-                   showQuickQuestions.value = true;
                  } else {
                    showQuickQuestions.value = false;
                  }
@@ -1467,7 +1471,7 @@ const goToLogin = () => {
 .root {
   width: 100%;
   min-height: 100vh;
-  background-color: #f4f7ff;
+  background-color: #f8f9ff; /* surface */
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1542,31 +1546,30 @@ const goToLogin = () => {
   animation: fade-in 0.5s ease-out;
 }
 
-/* Energy Blobs - Updated for Soft Glow */
+/* Decorative Corner Element */
 .energy-blob {
   position: fixed;
-  width: 100vw;
+  width: 800rpx;
   height: 800rpx;
-  filter: blur(120px);
-  z-index: 0;
-  opacity: 0.5;
+  background-color: #7c4dff; /* primary_container to match mockup light purple */
   border-radius: 50%;
+  filter: blur(200rpx);
+  z-index: 0;
+  opacity: 0.15; /* Slightly increased for visibility against white */
   pointer-events: none;
 }
 
 .blob-1 {
-  background: radial-gradient(circle at center, #E0E7FF 0%, rgba(199, 210, 254, 0.5) 100%);
-  top: -20%;
-  left: 50%;
-  transform: translateX(-50%);
+  top: -200rpx;
+  left: -200rpx;
 }
 
 .blob-2 {
-  background: radial-gradient(circle at center, #F3E8FF 0%, rgba(233, 213, 255, 0.5) 100%);
-  top: -10%;
-  right: -20%;
+  bottom: 20%;
+  right: -300rpx;
   width: 600rpx;
   height: 600rpx;
+  background-color: #a78bfa; /* lighter purple for bottom blob */
 }
 
 /* Custom Header */
@@ -1664,35 +1667,57 @@ const goToLogin = () => {
 }
 
 .quota-banner-inline {
-  margin: 0 -32rpx 24rpx -32rpx;
-  background: #eef2ff;
-  padding: 20rpx 32rpx;
+  margin: 0 0 24rpx 0;
+  padding: 16rpx 20rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 4px;
-  // border-top: 1px solid rgba(99, 102, 241, 0.2);
-  // border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+  gap: 16rpx;
+  border-radius: 999rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
   
-  .quota-text {
-    font-size: 26rpx;
-    color: #6366f1;
-    font-weight: 500;
+  .quota-text-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 4rpx;
+    padding-left: 12rpx;
+  }
+
+  .quota-title {
+    font-size: 28rpx;
+    color: #1e293b;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .quota-sub {
+    font-size: 24rpx;
+    color: #64748b;
+    line-height: 1.4;
   }
   
   .quota-btn {
-    background: #6366f1;
+    background: #1e293b; /* almost black */
     color: #ffffff;
-    font-size: 24rpx;
-    padding: 8rpx 24rpx;
-    border-radius: 24rpx;
+    font-size: 26rpx;
+    font-weight: 600;
+    padding: 16rpx 40rpx;
+    border-radius: 999rpx;
     flex-shrink: 0;
+    
+    &:active {
+      transform: scale(0.96);
+    }
   }
 }
 
 /* Chat Message Styles */
 .chat-message-list {
-  padding: 0 16px;
+  padding: 0 32rpx; /* Increased padding */
 }
 
 .loading-icon {
@@ -1704,58 +1729,56 @@ const goToLogin = () => {
   &:last-child {
     margin-bottom: 0;
   }
-  margin-bottom: 32rpx;
+  margin-bottom: 48rpx; /* Increased spacing */
 }
 
 .message-content {
   display: flex;
   align-items: flex-start;
+  flex-direction: column; /* Stack vertically for AI message with label */
 }
 
 .ai-message {
-  flex-direction: row;
+  align-items: flex-start;
 }
 
 .user-message {
-  flex-direction: row-reverse;
+  align-items: flex-end;
 }
 
 .message-text {
   flex: 1;
   display: flex;
   flex-direction: column;
-  font-size: 28rpx;
-  line-height: 1.8;
+  font-size: 32rpx; /* body-lg */
+  line-height: 1.6;
 }
 
 .bubble {
-  padding: 24rpx;
-  border-radius: 24rpx;
-  max-width: 95%;
+  padding: 40rpx 48rpx; /* Larger padding for airy feel */
+  max-width: 90%;
   position: relative;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 20px 40px rgba(124, 77, 255, 0.04); /* Soft shadow */
 }
 
 .user-bubble {
-  background: #6366f1;
-  // background: linear-gradient(to bottom, #6366f1, #6b72e8, #8b5cf6);
-  color: white;
-  // border-bottom-right-radius: 8rpx;
-  margin-left: auto;
-  box-shadow: none;
-  border-radius: 24px;
-  border-top-right-radius: 4rpx;
-}
+    background: #7c4dff; /* primary_container */
+    color: white;
+    border-radius: 48rpx; /* rounded-3xl */
+    box-shadow: 0 20px 40px rgba(124, 77, 255, 0.15); /* shadow-[0_20px_40px_rgba(124,77,255,0.15)] */
+  }
 
 .ai-bubble {
-  background-color: rgba(255, 255, 255, 0.65);
-  color: #334155;
-  border-radius: 24rpx;
-  border-top-left-radius: 4rpx;
-  box-shadow: none;
-  border: none;
-  backdrop-filter: none;
-}
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    color: #191c20;
+    border-radius: 48rpx; /* Matches chatv2.html rounded-3xl */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+    border: 0.5px solid rgba(202, 195, 216, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
 
 .response-content {
   display: block;
@@ -1769,7 +1792,7 @@ const goToLogin = () => {
 .typing-indicator {
   display: flex;
   align-items: center;
-  padding: 20rpx 24rpx !important;
+  padding: 16rpx 0 !important;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -1778,7 +1801,7 @@ const goToLogin = () => {
 .dot {
   width: 12rpx;
   height: 12rpx;
-  background-color: #a5b4fc;
+  background-color: #a78bfa; /* lighter purple matching mockup */
   border-radius: 50%;
   margin-right: 12rpx;
   animation: bounce 1.5s infinite;
@@ -1790,6 +1813,14 @@ const goToLogin = () => {
 
 .dot:nth-child(3) {
   animation-delay: 0.4s;
+}
+
+.typing-text {
+  font-size: 26rpx;
+  color: #94a3b8;
+  font-style: italic;
+  margin-left: 12rpx;
+  font-weight: 500;
 }
 
 @keyframes bounce {
@@ -2372,6 +2403,41 @@ const goToLogin = () => {
   gap: 12px;
 }
 
+.header-title-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+}
+
+.agent-name {
+  font-size: 32rpx; /* title-md */
+  font-weight: 800; /* ExtraBold */
+  color: #191c20;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.mode-selector {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 4rpx 12rpx;
+  background-color: rgba(124, 77, 255, 0.05);
+  border-radius: 999rpx;
+}
+
+.mode-text {
+  font-size: 20rpx; /* label-sm */
+  font-weight: 600;
+  color: #7c4dff; /* primary_container */
+}
+
+.mode-arrow {
+  margin-top: 2rpx;
+}
+
 .sidebar-toggle-btn {
   width: 40px;
   height: 40px;
@@ -2421,11 +2487,23 @@ const goToLogin = () => {
   padding: 40px 20px;
 }
 
+/* Bottom Action Area */
+.bottom-action-area {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to top, #fbfbff 0%, #fbfbff 80%, transparent 100%);
+  z-index: 100;
+  padding-top: 32rpx; /* Added padding to compensate gradient fade */
+  display: flex;
+  flex-direction: column;
+}
+
 .quick-questions-container {
   display: flex;
   flex-direction: column;
   gap: 16rpx;
-  margin-bottom: 24rpx;
+  padding: 0 16rpx;
   animation: springUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.2) both;
 
   .quick-header {
@@ -2435,9 +2513,7 @@ const goToLogin = () => {
     padding: 0 8rpx;
 
     .quick-header-left {
-      display: flex;
-      align-items: center;
-      gap: 12rpx;
+      display: none; /* Hide header completely to match mockup */
     }
 
     .quick-header-bar {
@@ -2487,28 +2563,39 @@ const goToLogin = () => {
 
   .quick-list {
     display: flex;
-    flex-direction: column;
+    overflow-x: auto;
+    flex-wrap: nowrap; /* Horizontal scroll */
     gap: 16rpx;
+    padding-bottom: 16rpx; /* Space for invisible scrollbar if any */
+    /* Hide scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
   
   .quick-card {
     margin: 0;
-    width: 100%;
-    background-color: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 24rpx;
-    padding: 24rpx;
+    width: auto; /* Let it grow to content */
+    background-color: rgba(255, 255, 255, 0.4); /* glass-sheet */
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 999rpx; /* Pill shape */
+    padding: 24rpx 48rpx; /* Horizontal padding for pill */
     display: flex;
-    align-items: flex-start;
-    gap: 20rpx;
-    box-shadow: 0 4rpx 16rpx rgba(31, 38, 135, 0.05);
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    box-shadow: none;
     transition: all 0.2s ease;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 0.5px solid rgba(202, 195, 216, 0.2);
+    white-space: nowrap; /* Keep text on one line */
+    flex-shrink: 0; /* Prevent squishing */
     
     &:active {
       transform: scale(0.98);
-      background-color: rgba(255, 255, 255, 0.85);
+      background-color: rgba(124, 77, 255, 0.1); /* hover:bg-primary-container/10 */
     }
 
     &::after {
@@ -2516,29 +2603,23 @@ const goToLogin = () => {
     }
 
     .question-badge {
-      flex-shrink: 0;
-      width: 48rpx;
-      height: 48rpx;
-      border-radius: 50%;
-      background-color: #eef2ff; /* bg-indigo-50 */
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: none; /* Hide badge for pure text pill */
     }
 
     .badge-text {
-      font-size: 24rpx;
-      font-weight: 800;
-      color: #818cf8; /* text-indigo-400 */
-      font-style: italic;
+      display: none;
     }
 
     .question-text {
       font-size: 28rpx;
-      color: #1e293b;
+      font-weight: 600;
+      color: #632ce5; /* primary text color matching mockup */
       line-height: 1.4;
-      text-align: left;
-      padding-top: 4rpx;
+      text-align: center;
+      padding: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     &.skeleton-card {
@@ -2665,10 +2746,10 @@ const goToLogin = () => {
   z-index: 999;
   display: flex;
   align-items: center;
-  background-color: #1e293b; /* Slate 800 */
+  background: #ffffff;
   border-radius: 44rpx 0 0 44rpx;
   padding: 12rpx;
-  box-shadow: -4rpx 8rpx 24rpx rgba(0, 0, 0, 0.15);
+  box-shadow: -4rpx 4rpx 20rpx rgba(0, 0, 0, 0.06);
   transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   transform: translateX(calc(100% - 88rpx)); /* Only handle visible */
   width: auto;
@@ -2685,17 +2766,20 @@ const goToLogin = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(124, 77, 255, 0.05); /* very light purple glass */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(124, 77, 255, 0.1);
   border-radius: 50%;
   margin-right: 24rpx;
   flex-shrink: 0;
+  box-shadow: 0 4rpx 12rpx rgba(124, 77, 255, 0.05);
 }
 
 .handle-icon-compact {
-  width: 40rpx;
-  height: 40rpx;
-  opacity: 0.9;
-  filter: brightness(0) invert(1);
+  width: 48rpx;
+  height: 48rpx;
+  opacity: 1;
 }
 
 .drawer-content-compact {
@@ -2730,27 +2814,27 @@ const goToLogin = () => {
   font-weight: 600;
   line-height: 1.2;
   
-  &.year { color: #fbbf24; } /* Amber 400 */
-  &.day { color: #f87171; } /* Red 400 */
+  &.year { color: #d97706; } /* Darker Amber */
+  &.day { color: #dc2626; } /* Darker Red */
 }
 
 /* Wu Xing Colors */
-.mu { color: #10B981; }
-.huo { color: #EF4444; }
-.tu { color: #B45309; }
-.jin { color: #D99014; }
-.shui { color: #3B82F6; }
+.mu { color: #059669; }
+.huo { color: #dc2626; }
+.tu { color: #d97706; }
+.jin { color: #b45309; }
+.shui { color: #2563eb; }
 
 .divider-vertical {
   width: 1px;
   height: 48rpx;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .detail-btn-compact {
   font-size: 26rpx;
-  color: #1e293b;
-  background-color: #ffffff;
+  color: #ffffff;
+  background-color: #7c4dff; /* primary_container */
   padding: 0 32rpx;
   height: 64rpx;
   line-height: 64rpx;

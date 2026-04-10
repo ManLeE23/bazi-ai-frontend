@@ -3,14 +3,13 @@
     :modelValue="modelValue"
     @update:modelValue="$emit('update:modelValue', $event)"
     height="70vh"
-    background="#f8fafc"
-    title="档案列表"
+    background="#fbfbff"
   >
     <template #header-left>
       <view class="header-title-row">
         <text class="popup-title">档案列表</text>
         <view class="profile-add-btn-header" @click="navigateToAddProfile">
-          <u-icon name="plus" size="32" color="#6366f1"></u-icon>
+          <u-icon name="plus" size="32" color="#632ce5"></u-icon>
         </view>
       </view>
     </template>
@@ -131,24 +130,24 @@ onMounted(() => {
 }
 
 .popup-title {
-  font-size: 34rpx;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #191c20;
 }
 
 .profile-add-btn-header {
-  width: 56rpx;
-  height: 56rpx;
+  width: 64rpx;
+  height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(124, 77, 255, 0.1);
   border-radius: 50%;
   transition: all 0.2s;
   
   &:active {
     transform: scale(0.9);
-    background: rgba(99, 102, 241, 0.2);
+    background: rgba(124, 77, 255, 0.2);
   }
 }
 
@@ -176,7 +175,7 @@ onMounted(() => {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #6366f1;
+  background: #7c4dff; /* primary_container */
   animation: dot-bounce 1.4s infinite ease-in-out both;
 }
 
@@ -208,15 +207,19 @@ onMounted(() => {
 .profile-popup-item {
   display: flex;
   align-items: center;
-  padding: 32rpx;
-  background: #ffffff;
-  border-radius: 24rpx;
-  border: 2rpx solid rgba(226, 232, 240, 0.6);
+  padding: 40rpx;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 48rpx;
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
+  box-shadow: 0 4rpx 20rpx rgba(124, 77, 255, 0.03);
   transition: all 0.2s;
 
   &.active {
-    border-color: #6366f1;
-    background: #eef2ff;
+    border-color: rgba(124, 77, 255, 0.3);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8rpx 32rpx rgba(124, 77, 255, 0.08);
   }
   
   &:active {
@@ -228,8 +231,9 @@ onMounted(() => {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #6366f1;
+  background: #7c4dff; /* primary_container */
   margin-right: 24rpx;
+  box-shadow: 0 0 12rpx rgba(124, 77, 255, 0.4);
 }
 
 .profile-popup-info {
@@ -241,22 +245,22 @@ onMounted(() => {
 .profile-popup-name-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 16rpx;
 }
 
 .profile-popup-name {
   font-size: 32rpx;
-  font-weight: 600;
-  color: #1e293b;
+  font-weight: 800;
+  color: #191c20;
 }
 
 .profile-popup-self {
   font-size: 20rpx;
-  color: #6366f1;
-  background: rgba(99, 102, 241, 0.1);
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  font-weight: 500;
+  color: #632ce5; /* primary */
+  background: rgba(124, 77, 255, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  font-weight: 600;
 }
 
 .profile-popup-desc {
@@ -273,6 +277,7 @@ onMounted(() => {
 .profile-popup-empty-text {
   font-size: 28rpx;
   color: #94a3b8;
+  font-weight: 500;
 }
 
 </style>

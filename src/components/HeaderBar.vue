@@ -36,6 +36,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { safeNavigateBack } from '@/utils/navigate';
 
 const props = defineProps({
   title: {
@@ -88,9 +89,9 @@ onMounted(() => {
 });
 
 const goBack = () => {
-  // Allow parent to handle back if needed, otherwise default navigateBack
+  // Allow parent to handle back if needed, otherwise use safeNavigateBack
   emit('back');
-  uni.navigateBack();
+  safeNavigateBack();
 };
 </script>
 
@@ -139,7 +140,6 @@ const goBack = () => {
   align-items: center;
   justify-content: center;
   z-index: 1;
-  pointer-events: none; // Let clicks pass through to left/right buttons
 }
 
 .header-btn {

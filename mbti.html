@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 延续 Trenlify 核心背景与字体 */
+        body { 
+            background: #F1F4F9; 
+            background-image: radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
+            font-family: -apple-system, "PingFang SC", sans-serif; 
+            color: #1E293B;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 32px;
+        }
+
+        /* 强调色：Indigo 渐变 */
+        .primary-gradient {
+            background: linear-gradient(135deg, #6366F1, #818CF8);
+        }
+
+        /* 轴线样式 */
+        .timeline-line {
+            width: 2px;
+            background: rgba(99, 102, 241, 0.1);
+            left: 20px;
+        }
+        .timeline-dot {
+            width: 8px;
+            height: 8px;
+            background: #6366F1;
+            border-radius: 50%;
+            left: 17px;
+        }
+    </style>
+</head>
+<body class="p-5 max-w-md mx-auto pb-10">
+
+    <section class="glass-card primary-gradient p-7 mb-8 text-white shadow-xl shadow-indigo-100/50">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-black">MBTI® 官方性格测试</h1>
+                <p class="text-xs font-bold text-indigo-100 mt-2 tracking-widest uppercase">16 Personalities Assessment</p>
+            </div>
+            <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">🧠</div>
+        </div>
+        <p class="text-[13px] text-indigo-50 mt-6 leading-relaxed font-medium">
+            基于荣格心理学理论，深度探索您的能量获得、注意力指向、决策方式及行动模式。
+        </p>
+        <button class="w-full bg-white text-indigo-600 font-black py-4 rounded-2xl mt-8 shadow-lg active:scale-95 transition-transform">
+            立即开启测试 (约12分钟)
+        </button>
+    </section>
+
+    <nav class="flex justify-around mb-6 px-2">
+        <div class="flex flex-col items-center gap-1">
+            <span class="text-[13px] font-black text-indigo-600">理论背景</span>
+            <div class="w-8 h-1 bg-indigo-600 rounded-full"></div>
+        </div>
+        <span class="text-[13px] font-bold text-slate-400">发展历程</span>
+        <span class="text-[13px] font-bold text-slate-400">测试须知</span>
+    </nav>
+
+    <section class="glass-card p-6 mb-6">
+        <h3 class="text-[16px] font-black mb-5 flex items-center gap-2">
+            <span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span> 核心四个维度
+        </h3>
+        <div class="grid grid-cols-2 gap-3 text-[12px]">
+            <div class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+                <p class="text-slate-400 font-bold mb-1">能量来源</p>
+                <p class="font-black text-indigo-600">外向 (E) / 内向 (I)</p>
+            </div>
+            <div class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+                <p class="text-slate-400 font-bold mb-1">注意力指向</p>
+                <p class="font-black text-indigo-600">感觉 (S) / 直觉 (N)</p>
+            </div>
+            <div class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+                <p class="text-slate-400 font-bold mb-1">决策判断</p>
+                <p class="font-black text-indigo-600">思考 (T) / 情感 (F)</p>
+            </div>
+            <div class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+                <p class="text-slate-400 font-bold mb-1">采取行动</p>
+                <p class="font-black text-indigo-600">判断 (J) / 知觉 (P)</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="glass-card p-6 mb-6 overflow-hidden">
+        <h3 class="text-[16px] font-black mb-6 flex items-center gap-2">
+            <span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span> 发展历程
+        </h3>
+        <div class="relative pl-8 space-y-8">
+            <div class="absolute timeline-line h-full"></div>
+            <div class="relative">
+                <div class="absolute timeline-dot top-1.5"></div>
+                <h4 class="text-[14px] font-black text-slate-800">1943年</h4>
+                <p class="text-[11px] text-slate-400 font-medium mt-1">MBTI®测评第一个版本发布，标志着科学测评工具诞生</p>
+            </div>
+            <div class="relative">
+                <div class="absolute timeline-dot top-1.5"></div>
+                <h4 class="text-[14px] font-black text-slate-800">1977年</h4>
+                <p class="text-[11px] text-slate-400 font-medium mt-1">发布商业版本 Form G，在全球范围内得到广泛推广</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="space-y-4">
+        <h3 class="text-[13px] font-black text-slate-400 px-2 uppercase tracking-widest">Testing Rules</h3>
+        <div class="glass-card p-5 border-l-4 border-l-indigo-400">
+            <div class="flex gap-4">
+                <span class="text-indigo-300 font-black italic">01</span>
+                <p class="text-[12px] leading-relaxed text-slate-600 font-medium">
+                    保持放松和真实的态度，展现真实的性格和行为模式，不要试图猜测“更好”的答案。
+                </p>
+            </div>
+        </div>
+        <div class="glass-card p-5 border-l-4 border-l-indigo-400">
+            <div class="flex gap-4">
+                <span class="text-indigo-300 font-black italic">02</span>
+                <p class="text-[12px] leading-relaxed text-slate-600 font-medium">
+                    珍惜自我探索的过程，测试结果应作为自我认知的起点而非终点。
+                </p>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AURA CURATOR - 全景人格报告</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#7C4DFF",
+              "surface": "#FFFFFF",
+              "on-surface": "#1A1A1A",
+              "on-surface-variant": "#666666",
+              "surface-container": "#F8F7FF",
+              "outline-variant": "rgba(124, 77, 255, 0.1)",
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans", "PingFang SC", "sans-serif"],
+              "body": ["Plus Jakarta Sans", "PingFang SC", "sans-serif"],
+            },
+            borderRadius: {"DEFAULT": "1.25rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        width: 390px;
+        margin: 0 auto;
+        min-height: 844px;
+        background-color: #FBFBFF;
+        position: relative;
+        overflow-x: hidden;
+      }
+      /* Ethereal Background Elements */
+      .bg-aura-mesh {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background: 
+          radial-gradient(circle at 10% 10%, rgba(124, 77, 255, 0.08) 0%, transparent 40%),
+          radial-gradient(circle at 90% 30%, rgba(186, 166, 255, 0.12) 0%, transparent 50%),
+          radial-gradient(circle at 50% 60%, rgba(124, 77, 255, 0.05) 0%, transparent 60%),
+          radial-gradient(circle at 20% 85%, rgba(124, 77, 255, 0.08) 0%, transparent 40%);
+        filter: blur(80px);
+      }
+      .bg-texture {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border: 0.5px solid rgba(124, 77, 255, 0.2);
+        box-shadow: 0 8px 32px -4px rgba(124, 77, 255, 0.08);
+      }
+      .aura-gradient-text {
+        background: linear-gradient(135deg, #7C4DFF 0%, #BBA6FF 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="font-body text-on-surface antialiased">
+<div class="bg-texture"></div>
+<div class="bg-aura-mesh"></div>
+<!-- Top Navigation -->
+<header class="fixed top-0 w-[390px] z-50 bg-white/40 backdrop-blur-2xl border-b border-purple-50/50">
+<div class="flex justify-between items-center px-5 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="chevron_left">chevron_left</span>
+<div class="flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 rounded-full border border-primary/10">
+<span class="text-[11px] font-bold text-primary">本人</span>
+<span class="material-symbols-outlined text-[14px] text-primary" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<h1 class="text-sm font-black tracking-tighter text-primary">AURA CURATOR</h1>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="qr_code_scanner">qr_code_scanner</span>
+<span class="material-symbols-outlined text-primary text-xl" data-icon="more_horiz">more_horiz</span>
+</div>
+</div>
+</header>
+<main class="pt-20 pb-20 px-6 relative z-10">
+<!-- 1. Core Personality -->
+<section class="text-center py-10">
+<span class="text-[10px] tracking-[0.3em] text-primary/60 font-extrabold uppercase mb-4 block">Aura Type</span>
+<h2 class="text-8xl font-black tracking-tighter text-primary mb-4 leading-none drop-shadow-sm">ISFJ</h2>
+<p class="text-lg font-bold text-on-surface-variant tracking-tight mb-12">坚守信念的温暖守护者</p>
+<div class="space-y-6 px-2">
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-bold tracking-widest text-primary/50">
+<span>内倾 (I) 78%</span>
+<span>外倾 (E)</span>
+</div>
+<div class="h-1.5 w-full bg-white/50 rounded-full overflow-hidden backdrop-blur-md">
+<div class="h-full bg-primary w-[78%] rounded-full shadow-[0_0_12px_rgba(124,77,255,0.6)]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-bold tracking-widest text-primary/50">
+<span>实感 (S) 62%</span>
+<span>直觉 (N)</span>
+</div>
+<div class="h-1.5 w-full bg-white/50 rounded-full overflow-hidden backdrop-blur-md">
+<div class="h-full bg-primary w-[62%] rounded-full shadow-[0_0_12px_rgba(124,77,255,0.6)]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-bold tracking-widest text-primary/50">
+<span>情感 (F) 85%</span>
+<span>思考 (T)</span>
+</div>
+<div class="h-1.5 w-full bg-white/50 rounded-full overflow-hidden backdrop-blur-md">
+<div class="h-full bg-primary w-[85%] rounded-full shadow-[0_0_12px_rgba(124,77,255,0.6)]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-bold tracking-widest text-primary/50">
+<span>判断 (J) 70%</span>
+<span>感知 (P)</span>
+</div>
+<div class="h-1.5 w-full bg-white/50 rounded-full overflow-hidden backdrop-blur-md">
+<div class="h-full bg-primary w-[70%] rounded-full shadow-[0_0_12px_rgba(124,77,255,0.6)]"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. Situation Maps -->
+<section class="mt-12">
+<h3 class="text-sm font-black text-primary mb-8 border-l-4 border-primary pl-4 uppercase tracking-widest">情境图谱 · Situation Maps</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="glass-card p-5 rounded-3xl aspect-square flex flex-col justify-between">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="house">house</span>
+</div>
+<div>
+<h4 class="font-bold text-sm">日常状态</h4>
+<p class="text-[10px] text-on-surface-variant mt-1 leading-relaxed">细腻体贴，在秩序中寻找安稳感。</p>
+</div>
+</div>
+<div class="glass-card p-5 rounded-3xl aspect-square flex flex-col justify-between">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="work">work</span>
+</div>
+<div>
+<h4 class="font-bold text-sm">职场表现</h4>
+<p class="text-[10px] text-on-surface-variant mt-1 leading-relaxed">可靠支撑，对细节有极致追求。</p>
+</div>
+</div>
+<div class="glass-card p-5 rounded-3xl aspect-square flex flex-col justify-between">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="lock">lock</span>
+</div>
+<div>
+<h4 class="font-bold text-sm">私人领域</h4>
+<p class="text-[10px] text-on-surface-variant mt-1 leading-relaxed">精神花园，需要极高的情感安全。</p>
+</div>
+</div>
+<div class="glass-card p-5 rounded-3xl aspect-square flex flex-col justify-between">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="diversity_3">diversity_3</span>
+</div>
+<div>
+<h4 class="font-bold text-sm">社交模式</h4>
+<p class="text-[10px] text-on-surface-variant mt-1 leading-relaxed">温和倾听，慢热但极度忠诚。</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Core Analysis -->
+<section class="mt-20">
+<h3 class="text-sm font-black text-primary mb-8 border-l-4 border-primary pl-4 uppercase tracking-widest">核心人格解读 · Core</h3>
+<div class="space-y-4">
+<div class="glass-card p-6 rounded-[2rem]">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary" data-icon="psychology">psychology</span>
+<h4 class="font-bold text-sm">性格底色 · Temperament</h4>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed">如静谧深海，表面平和却蕴含巨大的包容力。你通过成就他人来确认自我价值，对社会准则有着天然的敬畏。</p>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="glass-card p-5 rounded-[2rem]">
+<h4 class="font-bold text-xs mb-2">能量来源</h4>
+<p class="text-[10px] text-on-surface-variant">独处、深度对话与帮助他人的正向反馈。</p>
+</div>
+<div class="glass-card p-5 rounded-[2rem]">
+<h4 class="font-bold text-xs mb-2">认知偏好</h4>
+<p class="text-[10px] text-on-surface-variant">敏锐的细节捕捉，信任可验证的过往经验。</p>
+</div>
+</div>
+<div class="glass-card p-6 rounded-[2rem]">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary" data-icon="auto_awesome">auto_awesome</span>
+<h4 class="font-bold text-sm">决策与生活 · Lifestyle</h4>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed">决策时将“他人的感受”置于首位。渴望高度可预测的环境，混乱与突变是你的主要压力源。</p>
+</div>
+</div>
+</section>
+<!-- 4. Strengths & Growth -->
+<section class="mt-20">
+<h3 class="text-sm font-black text-primary mb-8 border-l-4 border-primary pl-4 uppercase tracking-widest">优势与盲点 · Evolution</h3>
+<div class="space-y-6">
+<div class="glass-card p-6 rounded-[2.5rem] relative overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-[0.08]">
+<span class="material-symbols-outlined text-[10rem] text-primary" data-icon="diamond">diamond</span>
+</div>
+<h4 class="text-primary font-bold text-sm mb-4">核心优势</h4>
+<ul class="space-y-3">
+<li class="flex items-start gap-2 text-xs text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0"></span>
+<span>卓越的同理心与情感洞察力</span>
+</li>
+<li class="flex items-start gap-2 text-xs text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0"></span>
+<span>极高的执行稳定性与可靠度</span>
+</li>
+</ul>
+</div>
+<div class="glass-card p-6 rounded-[2.5rem] bg-orange-50/10 border-orange-200/30">
+<h4 class="text-orange-500 font-bold text-sm mb-4">潜在盲点</h4>
+<p class="text-xs text-on-surface-variant leading-relaxed mb-4">倾向于过度压抑个人需求，可能导致突发性的情绪爆发或慢性疲劳。</p>
+<div class="p-3 bg-orange-50/40 backdrop-blur-sm rounded-xl text-[10px] text-orange-600 font-medium italic border border-orange-200/20">
+                    “学会说‘不’，不是拒绝他人，而是保护自己的能量。”
+                </div>
+</div>
+</div>
+</section>
+<!-- 5. Self-Awareness -->
+<section class="mt-20">
+<h3 class="text-sm font-black text-primary mb-8 border-l-4 border-primary pl-4 uppercase tracking-widest">自我认知 · Self-Aware</h3>
+<div class="space-y-2">
+<div class="flex items-center gap-4 p-5 glass-card rounded-3xl">
+<span class="text-2xl opacity-40 font-black italic text-primary">01</span>
+<div>
+<h4 class="text-xs font-bold">世界观</h4>
+<p class="text-[10px] text-on-surface-variant">世界应当是有序且温情的，每个人都应各司其职。</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-5 glass-card rounded-3xl">
+<span class="text-2xl opacity-40 font-black italic text-primary">02</span>
+<div>
+<h4 class="text-xs font-bold">人际风格</h4>
+<p class="text-[10px] text-on-surface-variant">服务型社交，习惯在幕后默默支持他人。</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-5 glass-card rounded-3xl">
+<span class="text-2xl opacity-40 font-black italic text-primary">03</span>
+<div>
+<h4 class="text-xs font-bold">压力反应</h4>
+<p class="text-[10px] text-on-surface-variant">面对压力会陷入细节强迫，反复担忧可能出现的负面结果。</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. Career Roadmap -->
+<section class="mt-20">
+<div class="bg-primary rounded-[3rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-primary/30">
+<div class="relative z-10">
+<h3 class="text-[10px] font-black tracking-[0.3em] text-white/60 mb-8">CAREER MAPPING</h3>
+<div class="space-y-8">
+<div>
+<h4 class="flex items-center gap-2 font-bold mb-3">
+<span class="material-symbols-outlined text-xl" data-icon="stars">stars</span>
+                            推荐角色
+                        </h4>
+<p class="text-xs text-white/80 leading-relaxed">医疗专家、非营利组织经理、室内设计师、资深财务、学术研究者</p>
+</div>
+<div>
+<h4 class="flex items-center gap-2 font-bold mb-3">
+<span class="material-symbols-outlined text-xl" data-icon="leaderboard">leaderboard</span>
+                            领导力特质
+                        </h4>
+<p class="text-xs text-white/80 leading-relaxed">仆人式领导：通过感化与细节关怀凝聚团队，以稳定性驱动长期产出。</p>
+</div>
+<div>
+<h4 class="flex items-center gap-2 font-bold mb-3">
+<span class="material-symbols-outlined text-xl" data-icon="wb_sunny">wb_sunny</span>
+                            理想环境
+                        </h4>
+<p class="text-xs text-white/80 leading-relaxed">价值观导向、秩序井然、重视合作而非竞争的职场氛围。</p>
+</div>
+</div>
+</div>
+<div class="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-[100px]"></div>
+<div class="absolute -left-20 -top-20 w-40 h-40 bg-white/10 rounded-full blur-[60px]"></div>
+</div>
+</section>
+<!-- 7. Relationship Insight -->
+<section class="mt-20">
+<h3 class="text-sm font-black text-primary mb-8 border-l-4 border-primary pl-4 uppercase tracking-widest">亲密关系 · Relationship</h3>
+<div class="glass-card p-8 rounded-[2.5rem] relative overflow-hidden">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary fill-current" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-bold text-primary text-xs uppercase">Soul Connection</span>
+</div>
+<h4 class="text-lg font-bold mb-3">你是那个“情绪避风港”</h4>
+<p class="text-xs text-on-surface-variant leading-relaxed mb-8">
+                你擅长创造舒适的氛围，能瞬间察觉伴侣的细微不悦。你需要一个能看到你的付出、并主动给予你情感肯定的伴侣。
+            </p>
+<div class="flex flex-wrap gap-2">
+<span class="bg-primary/10 text-primary text-[10px] font-bold px-4 py-2 rounded-full border border-primary/20 backdrop-blur-sm">契合：ESFP</span>
+<span class="bg-primary/10 text-primary text-[10px] font-bold px-4 py-2 rounded-full border border-primary/20 backdrop-blur-sm">共振：ESTP</span>
+</div>
+<div class="absolute -right-10 -bottom-10 w-40 h-40 opacity-10 rotate-12">
+<img class="w-full h-full object-cover rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJAk_-YonhCD3IQ5zYfT4SClU-dHvaNbJbIGytR6mhSNqJYzor_YEHeRtF_UdXNMb00V1SYEajlako0txngJezRw5tRxqug6Q_-Ep4HLUB1WWks_zoBhc-gwawP3IU_LAUKtSWrCZqmKn1F7W9CX5od7qYlU_ROYNn6gQxMDYV53MA7xrKTJq2Mgp6hYqIV4kwklr8QHsNAKTN44Qoy6dHtnI8NS4f1JTlRvkXsnIKWivBVrFDhbgcZallV7H5Q0cMMEK3IUPPKNnQ"/>
+</div>
+</div>
+</section>
+<!-- 8. Growth Roadmap -->
+<section class="mt-20">
+<h3 class="text-sm font-black text-primary mb-8 border-l-4 border-primary pl-4 uppercase tracking-widest">成长路径 · Roadmap</h3>
+<div class="space-y-4">
+<div class="p-6 glass-card rounded-[2.25rem]">
+<h4 class="font-bold text-xs mb-3 flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-lg" data-icon="verified_user">verified_user</span>
+                    自我管理
+                </h4>
+<p class="text-[11px] text-on-surface-variant leading-loose">建立“自我关怀清单”，每天至少有30分钟不为任何人负责，仅为取悦自己。</p>
+</div>
+<div class="p-6 glass-card rounded-[2.25rem]">
+<h4 class="font-bold text-xs mb-3 flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-lg" data-icon="chat_bubble">chat_bubble</span>
+                    沟通升级
+                </h4>
+<p class="text-[11px] text-on-surface-variant leading-loose">练习直接表达需求而非期待对方“猜到”。使用“我感觉到...”句式来释放压力。</p>
+</div>
+<div class="p-6 glass-card rounded-[2.25rem]">
+<h4 class="font-bold text-xs mb-3 flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-lg" data-icon="trending_up">trending_up</span>
+                    职业发展
+                </h4>
+<p class="text-[11px] text-on-surface-variant leading-loose">主动承担需要宏观视野的项目，跳出执行层，练习从系统层面解决问题。</p>
+</div>
+</div>
+</section>
+<!-- 9. Challenge Entry -->
+<section class="mt-20 pb-12">
+<h3 class="text-sm font-black text-primary mb-8 border-l-4 border-primary pl-4 uppercase tracking-widest">人格挑战入口 · Challenge</h3>
+<div class="space-y-3">
+<button class="w-full bg-primary text-white py-5 rounded-full flex items-center justify-between px-8 active:scale-[0.98] transition-all shadow-xl shadow-primary/20">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined" data-icon="task_alt">task_alt</span>
+<span class="font-bold text-sm">自律打卡 · Focus Mode</span>
+</div>
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full bg-white/40 backdrop-blur-md border border-primary/20 text-primary py-5 rounded-full flex items-center justify-between px-8 active:scale-[0.98] transition-all">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+<span class="font-bold text-sm">社交大冒险 · Growth</span>
+</div>
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full bg-white/40 backdrop-blur-md border border-primary/20 text-primary py-5 rounded-full flex items-center justify-between px-8 active:scale-[0.98] transition-all">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined" data-icon="diversity_1">diversity_1</span>
+<span class="font-bold text-sm">身份互换 · Perspective</span>
+</div>
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Footer -->
+<footer class="text-center py-12">
+<div class="flex justify-center gap-2 mb-6">
+<div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-primary/40"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-primary/10"></div>
+</div>
+<p class="text-[9px] uppercase tracking-[0.5em] font-black text-primary/30">AURA CURATOR IDENTITY REPORT V2.4</p>
+</footer>
+</main>
+</body></html>

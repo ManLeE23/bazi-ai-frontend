@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI人格类型探索</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .option-active {
+            background-color: white !important;
+            box-shadow: 0 15px 30px -10px rgba(0,0,0,0.05) !important;
+            transform: translateY(-2px);
+            border-width: 2px !important;
+        }
+        .bg-blur-circle {
+            filter: blur(60px);
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="bg-[#FBFBFF] min-h-screen flex flex-col items-center overflow-x-hidden pb-10 relative">
+
+    <!-- 柔和的背景渐变光圈 -->
+    <div class="absolute top-[-5%] right-[-10%] w-72 h-72 bg-[#EEF2FF] rounded-full bg-blur-circle opacity-60"></div>
+    <div class="absolute bottom-[10%] left-[-10%] w-80 h-80 bg-[#FFF1F2] rounded-full bg-blur-circle opacity-60"></div>
+
+    <!-- 导航栏 -->
+    <nav class="w-full max-w-md flex justify-between items-center px-6 mt-12 relative z-10">
+        <button class="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm border border-gray-50 active:scale-90 transition-transform">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div class="flex flex-col items-center text-center">
+            <span class="text-[10px] font-bold text-gray-300 tracking-[0.2em] mb-1 uppercase">PERSONALITY</span>
+            <span class="text-sm font-black text-gray-800">人格类型探索</span>
+        </div>
+        <button class="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm border border-gray-50">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </button>
+    </nav>
+
+    <!-- 进度展示 -->
+    <div class="w-full max-w-md px-8 mt-10 relative z-10">
+        <div class="flex justify-between items-end mb-3">
+            <div class="flex items-baseline gap-1">
+                <span id="current-step-text" class="text-3xl font-black text-gray-800">1</span>
+                <span class="text-gray-300 font-bold text-sm">/ 48</span>
+            </div>
+            <div id="progress-percent" class="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded-md uppercase tracking-tighter">
+                Progress 2%
+            </div>
+        </div>
+        <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div id="progress-bar" class="h-full bg-gray-800 rounded-full transition-all duration-500 ease-out" style="width: 2%"></div>
+        </div>
+    </div>
+
+    <!-- 题目区域 -->
+    <div class="w-full max-w-md px-8 mt-14 relative z-10 text-center">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-100 rounded-full shadow-sm mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="#818CF8" stroke="#818CF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            <span class="text-[10px] font-bold text-gray-400 tracking-wider uppercase">Scene Exploration</span>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 leading-relaxed">
+            在社交场合中，你通常是那个<br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-rose-400">更倾向于倾听</span> 的人吗？
+        </h2>
+    </div>
+
+    <!-- 选项区域 -->
+    <div id="options-container" class="w-full max-w-md px-8 mt-12 space-y-4 relative z-10">
+        <!-- 选项 A -->
+        <button onclick="selectOption('A', '#818CF8')" class="option-card group w-full relative flex items-center justify-between p-5 rounded-[24px] transition-all duration-300 bg-white/40 border border-white hover:bg-white/60">
+            <div class="flex flex-col items-start text-left">
+                <span class="option-label text-lg font-bold text-gray-500 transition-colors">完全符合</span>
+                <span class="text-[10px] font-medium text-gray-300 uppercase tracking-widest mt-0.5">Strongly Agree</span>
+            </div>
+            <div class="indicator w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 opacity-20 bg-[#818CF8]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="hidden check-icon"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+        </button>
+
+        <!-- 选项 B -->
+        <button onclick="selectOption('B', '#A78BFA')" class="option-card group w-full relative flex items-center justify-between p-5 rounded-[24px] transition-all duration-300 bg-white/40 border border-white hover:bg-white/60">
+            <div class="flex flex-col items-start text-left">
+                <span class="option-label text-lg font-bold text-gray-500 transition-colors">比较符合</span>
+                <span class="text-[10px] font-medium text-gray-300 uppercase tracking-widest mt-0.5">Agree</span>
+            </div>
+            <div class="indicator w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 opacity-20 bg-[#A78BFA]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="hidden check-icon"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+        </button>
+
+        <!-- 选项 C -->
+        <button onclick="selectOption('C', '#F472B6')" class="option-card group w-full relative flex items-center justify-between p-5 rounded-[24px] transition-all duration-300 bg-white/40 border border-white hover:bg-white/60">
+            <div class="flex flex-col items-start text-left">
+                <span class="option-label text-lg font-bold text-gray-500 transition-colors">不太符合</span>
+                <span class="text-[10px] font-medium text-gray-300 uppercase tracking-widest mt-0.5">Disagree</span>
+            </div>
+            <div class="indicator w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 opacity-20 bg-[#F472B6]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="hidden check-icon"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+        </button>
+
+        <!-- 选项 D -->
+        <button onclick="selectOption('D', '#FB7185')" class="option-card group w-full relative flex items-center justify-between p-5 rounded-[24px] transition-all duration-300 bg-white/40 border border-white hover:bg-white/60">
+            <div class="flex flex-col items-start text-left">
+                <span class="option-label text-lg font-bold text-gray-500 transition-colors">完全不符合</span>
+                <span class="text-[10px] font-medium text-gray-300 uppercase tracking-widest mt-0.5">Strongly Disagree</span>
+            </div>
+            <div class="indicator w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 opacity-20 bg-[#FB7185]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="hidden check-icon"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+        </button>
+    </div>
+
+    <!-- 底部导航按钮 -->
+    <div class="mt-auto w-full max-w-md px-8 pt-6 relative z-10 flex gap-4">
+        <button onclick="prevStep()" class="w-16 h-16 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-300 hover:text-gray-500 transition-colors shadow-sm active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <button id="next-btn" onclick="nextStep()" disabled class="flex-1 h-16 rounded-2xl font-black text-sm tracking-[0.3em] transition-all active:scale-95 bg-gray-100 text-gray-300 cursor-not-allowed uppercase">
+            下一题 NEXT
+        </button>
+    </div>
+
+    <!-- 页脚小字 -->
+    <div class="mt-8 opacity-20 text-[9px] font-bold tracking-[0.4em] text-gray-500 uppercase">
+        Step into your inner world
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 48;
+        let selectedId = null;
+
+        function selectOption(id, color) {
+            selectedId = id;
+            const cards = document.querySelectorAll('.option-card');
+            
+            cards.forEach(card => {
+                const indicator = card.querySelector('.indicator');
+                const label = card.querySelector('.option-label');
+                const check = card.querySelector('.check-icon');
+
+                // 重置所有样式
+                card.classList.remove('option-active');
+                card.style.borderColor = 'transparent';
+                indicator.classList.add('opacity-20');
+                indicator.classList.remove('scale-110', 'shadow-inner');
+                label.classList.replace('text-gray-800', 'text-gray-500');
+                check.classList.add('hidden');
+
+                // 应用选中样式
+                if (card.getAttribute('onclick').includes(`'${id}'`)) {
+                    card.classList.add('option-active');
+                    card.style.borderColor = color;
+                    indicator.classList.remove('opacity-20');
+                    indicator.classList.add('scale-110', 'shadow-inner');
+                    label.classList.replace('text-gray-500', 'text-gray-800');
+                    check.classList.remove('hidden');
+                }
+            });
+
+            // 激活下一步按钮
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = false;
+            nextBtn.classList.replace('bg-gray-100', 'bg-gray-800');
+            nextBtn.classList.replace('text-gray-300', 'text-white');
+            nextBtn.classList.add('shadow-xl');
+            nextBtn.classList.remove('cursor-not-allowed');
+        }
+
+        function updateUI() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('current-step-text').innerText = currentStep;
+            document.getElementById('progress-percent').innerText = `Progress ${Math.round(progress)}%`;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            
+            // 重置选项和按钮
+            const cards = document.querySelectorAll('.option-card');
+            cards.forEach(card => {
+                card.classList.remove('option-active');
+                card.style.borderColor = 'transparent';
+                card.querySelector('.indicator').classList.add('opacity-20');
+                card.querySelector('.option-label').classList.replace('text-gray-800', 'text-gray-500');
+                card.querySelector('.check-icon').classList.add('hidden');
+            });
+            
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = true;
+            nextBtn.classList.replace('bg-gray-800', 'bg-gray-100');
+            nextBtn.classList.replace('text-white', 'text-gray-300');
+            nextBtn.classList.remove('shadow-xl');
+            nextBtn.classList.add('cursor-not-allowed');
+            
+            if(currentStep === totalSteps) {
+                nextBtn.innerText = '完成测试';
+            } else {
+                nextBtn.innerText = '下一题 NEXT';
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                selectedId = null;
+                updateUI();
+            } else {
+                // 模拟跳转结果页
+                const message = document.createElement('div');
+                message.className = 'fixed inset-0 bg-white flex items-center justify-center z-50 text-2xl font-bold text-indigo-500 p-10 text-center';
+                message.innerText = '分析中... 你的性格原力正在觉醒 ✨';
+                document.body.appendChild(message);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                selectedId = null;
+                updateUI();
+            }
+        }
+    </script>
+</body>
+</html>

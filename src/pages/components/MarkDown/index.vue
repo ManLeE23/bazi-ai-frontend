@@ -92,63 +92,144 @@ const htmlContent = computed(() => {
 
 <style lang="scss" scoped>
 .markdown-body {
-  font-size: 30rpx;
-  line-height: 1.8;
-  color: #1e293b;
+  font-size: 32rpx; /* body-lg */
+  line-height: 1.6; /* 160% line-height */
+  color: #191c20; /* on-surface */
   word-break: break-all;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   
   /* Deep selector to style rich-text content */
-  :deep(.md-p) { margin-bottom: 1em; }
-  :deep(.md-strong) { color: #4f46e5; }
-  :deep(.md-h1), :deep(.md-h2), :deep(.md-h3), :deep(.md-h4), :deep(.md-h5), :deep(.md-h6) {
-    font-weight: bold;
-    margin-top: 12rpx;
-    margin-bottom: 8rpx;
-    line-height: 1.4;
+  :deep(.md-p:last-child),
+  :deep(.md-pre:last-child),
+  :deep(.md-ul:last-child),
+  :deep(.md-ol:last-child),
+  :deep(.md-blockquote:last-child),
+  :deep(.md-table:last-child),
+  :deep(.md-h1:last-child),
+  :deep(.md-h2:last-child),
+  :deep(.md-h3:last-child),
+  :deep(.md-h4:last-child),
+  :deep(.md-h5:last-child),
+  :deep(.md-h6:last-child) {
+    margin-bottom: 0 !important;
   }
+  
+  :deep(.md-p) { margin-bottom: 24rpx; }
+  
+  :deep(.md-strong) { 
+    color: #632ce5; /* primary */
+    font-weight: 800; 
+  }
+  
+  :deep(.md-h1), :deep(.md-h2), :deep(.md-h3), :deep(.md-h4), :deep(.md-h5), :deep(.md-h6) {
+    font-weight: 800; /* ExtraBold */
+    color: #191c20;
+    margin-top: 40rpx;
+    margin-bottom: 24rpx;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+  }
+  
+  :deep(.md-h1) { font-size: 48rpx; }
+  :deep(.md-h2) { font-size: 40rpx; }
+  :deep(.md-h3) { font-size: 36rpx; }
+  
   :deep(.md-h1:first-child), :deep(.md-h2:first-child), :deep(.md-h3:first-child),
   :deep(.md-h4:first-child), :deep(.md-h5:first-child), :deep(.md-h6:first-child) { margin-top: 0; }
-  :deep(.md-p) { margin: 0 0 12rpx; }
-  :deep(.md-p:first-child) { margin-top: 0; }
-  :deep(.md-ul), :deep(.md-ol) { margin: 12rpx 0; }
+  
+  :deep(.md-ul), :deep(.md-ol) { margin: 24rpx 0; padding-left: 16rpx; } 
   :deep(.md-ul:first-child), :deep(.md-ol:first-child) { margin-top: 0; }
-  :deep(.md-li) { margin-bottom: 8rpx; position: relative; }
-  :deep(.md-li::before) { background-color: #818cf8; }
-  :deep(.md-ul .md-li) { padding-left: 24rpx; }
+  :deep(.md-li) { margin-bottom: 16rpx; position: relative; }
+  
+  :deep(.md-ul .md-li) { padding-left: 32rpx; }
   :deep(.md-ul .md-bullet) {
     position: absolute;
     left: 0;
-    top: 0.9em;
-    width: 10rpx;
-    height: 10rpx;
+    top: 0.8em;
+    width: 12rpx;
+    height: 12rpx;
     border-radius: 50%;
-    background-color: #4f46e5;
+    background-color: #7c4dff; /* primary_container */
     transform: translateY(-50%);
   }
+  
   :deep(.md-code) {
-    background-color: #f5f5f5;
-    padding: 0.2em 0.4em;
-    border-radius: 4rpx;
-    font-family: monospace;
-    font-size: 0.9em;
-  }
-  :deep(.md-pre) {
-    background-color: #f5f5f5;
-    padding: 1em;
+    background-color: rgba(124, 77, 255, 0.08);
+    color: #632ce5;
+    padding: 4rpx 12rpx;
     border-radius: 8rpx;
+    font-family: monospace;
+    font-size: 28rpx;
+  }
+  
+  :deep(.md-pre) {
+    background-color: #f8f9ff; /* surface */
+    padding: 32rpx;
+    border-radius: 24rpx;
     overflow-x: auto;
-    margin-bottom: 1em;
+    margin-bottom: 32rpx;
+    border: 0.5px solid rgba(202, 195, 216, 0.3);
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .md-code {
+      background-color: transparent;
+      color: #494455;
+      padding: 0;
+      border-radius: 0;
+    }
   }
+  
   :deep(.md-blockquote) {
-    margin: 24rpx 0;
-    padding: 16rpx 32rpx;
-    border-left: 8rpx solid #e0e7ff;
+    margin: 32rpx 0;
+    padding: 24rpx 32rpx;
+    border-left: 8rpx solid #7c4dff;
+    background-color: rgba(124, 77, 255, 0.04);
+    border-radius: 0 16rpx 16rpx 0;
     color: #64748b;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
-  :deep(.md-a) { color: #4f46e5; text-decoration: none; }
-  :deep(.md-img) { max-width: 100%; height: auto; border-radius: 8rpx; }
-  :deep(.md-table) { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
-  :deep(.md-th), :deep(.md-td) { border: 1px solid #e0e7ff; padding: 0.5em; text-align: left; }
-  :deep(.md-th) { background-color: #f3f4f680; font-weight: bold; }
+  
+  :deep(.md-a) { 
+    color: #7c4dff; 
+    text-decoration: none; 
+    border-bottom: 1px solid rgba(124, 77, 255, 0.3);
+  }
+  
+  :deep(.md-img) { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 24rpx; 
+    margin: 24rpx 0;
+  }
+  
+  :deep(.md-table) { 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin-bottom: 32rpx; 
+    border-radius: 16rpx;
+    overflow: hidden;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  :deep(.md-th), :deep(.md-td) { 
+    border: 0.5px solid rgba(202, 195, 216, 0.3); 
+    padding: 20rpx; 
+    text-align: left; 
+  }
+  
+  :deep(.md-th) { 
+    background-color: rgba(124, 77, 255, 0.05); 
+    font-weight: 800; 
+    color: #632ce5;
+  }
 }
 </style>

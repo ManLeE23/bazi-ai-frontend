@@ -82,8 +82,11 @@ defineEmits(['click']);
 
 <style lang="scss" scoped>
 .immersive-card {
-  background: #FFFFFF;
-  border-radius: 40rpx;
+  background: rgba(255, 255, 255, 0.4);
+  /* 移除 backdrop-filter 以避免在 scroll-view 中出现边缘渲染黑影 */
+  /* backdrop-filter: blur(24px); */
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 48rpx;
   padding: 32rpx;
   position: relative;
   overflow: hidden;
@@ -92,11 +95,11 @@ defineEmits(['click']);
   justify-content: flex-start;
   align-items: center;
   min-height: auto;
-  box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.02);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0); /* 开启硬件加速，防止滚动撕裂 */
   
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.98) translateZ(0);
   }
 }
 
@@ -123,7 +126,7 @@ defineEmits(['click']);
 .card-title {
   font-size: 34rpx;
   font-weight: 800;
-  color: #1e293b;
+  color: #191C20;
   letter-spacing: -0.02em;
   line-height: 1.2;
   margin-bottom: 12rpx;
@@ -131,7 +134,7 @@ defineEmits(['click']);
 
 .card-subtitle {
   font-size: 28rpx;
-  color: #94a3b8;
+  color: #494455;
   line-height: 1.4;
 }
 

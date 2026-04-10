@@ -54,6 +54,10 @@ export const processWechatPaymentData = (
         }
       },
     } as any);
+          }
+        },
+      } as any);
+    }
   });
 };
 

@@ -1,11 +1,7 @@
 <template>
-  <view v-if="currentQuestion" class="recent-question-banner" @click="handleAsk">
-    <view class="banner-left">
-      <text class="question-text fade-in" :key="currentQuestion.text">{{ currentQuestion.text }}</text>
-    </view>
-    <view class="action-btn">
-      <text class="btn-text">问一问</text>
-    </view>
+  <view class="input-banner" @click="handleAsk">
+    <text class="placeholder-text fade-in" :key="currentQuestion?.text">{{ currentQuestion ? currentQuestion.text : '最近整体节奏怎么样?' }}</text>
+    <view class="ask-btn">问一问</view>
   </view>
 </template>
 
@@ -42,7 +38,12 @@ const startRotation = () => {
 };
 
 const handleAsk = () => {
-  if (!currentQuestion.value) return;
+  if (!currentQuestion.value) {
+    uni.navigateTo({
+      url: `/pages/chat/index?question=最近整体节奏怎么样?`
+    });
+    return;
+  }
   uni.navigateTo({
     url: `/pages/chat/index?question=${encodeURIComponent(currentQuestion.value.text)}&agentType=${currentQuestion.value.agent_type || ''}`
   });
@@ -58,61 +59,45 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.recent-question-banner {
+.input-banner {
   margin-top: 24rpx;
   background: rgba(255, 255, 255, 0.4);
-  border-radius: 999rpx;
-  padding: 24rpx 32rpx;
+  border-radius: 32rpx;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  padding: 12rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 
-    inset 0 2rpx 6rpx rgba(168, 85, 247, 0.1), 
-    inset 0 -2rpx 4rpx rgba(255, 255, 255, 0.5),
-    0 8rpx 20rpx rgba(168, 85, 247, 0.05);
   transition: transform 0.2s;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 16rpx 32rpx rgba(124, 77, 255, 0.05);
 
   &:active {
     transform: scale(0.98);
   }
 }
 
-.banner-left {
-  display: flex;
-  align-items: center;
+.placeholder-text {
   flex: 1;
-  overflow: hidden;
-  margin-right: 24rpx;
-}
-
-/* Removed icon-box style */
-
-.question-text {
   font-size: 28rpx;
   color: #64748B;
+  font-weight: 500;
+  padding: 0 32rpx;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: 0.5rpx;
 }
 
-.action-btn {
+.ask-btn {
   display: flex;
   align-items: center;
-  background: #4f46e5;
-  padding: 10rpx 28rpx;
+  background: #7C4DFF;
+  padding: 24rpx 48rpx;
   border-radius: 999rpx;
-  border: none;
-  box-shadow: 0 4rpx 12rpx rgba(109, 40, 217, 0.25);
-}
-
-.btn-text {
-  font-size: 24rpx;
   color: #ffffff;
-  font-weight: 500;
-  letter-spacing: 1rpx;
+  font-size: 28rpx;
+  font-weight: 700;
 }
 
 .fade-in {

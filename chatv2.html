@@ -1,0 +1,265 @@
+<!doctype html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Energy Analysis - AI Insight</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'on-tertiary-container': '#fff7f4',
+              'tertiary-container': '#b55800',
+              'primary-container': '#7c4dff',
+              'on-secondary': '#ffffff',
+              'on-primary': '#ffffff',
+              'outline-variant': '#cac3d8',
+              'surface-container-high': '#e7e8ee',
+              'primary-fixed': '#e8deff',
+              outline: '#7a7487',
+              error: '#ba1a1a',
+              'inverse-surface': '#2e3135',
+              'on-primary-fixed': '#20005f',
+              'surface-container-low': '#f2f3f9',
+              'surface-tint': '#6833ea',
+              'on-tertiary': '#ffffff',
+              'on-surface': '#191c20',
+              'surface-container': '#eceef3',
+              'on-primary-fixed-variant': '#4f00d0',
+              'inverse-on-surface': '#eff0f6',
+              'surface-dim': '#d8dae0',
+              'on-primary-container': '#fcf6ff',
+              'on-secondary-container': '#4a3788',
+              'surface-bright': '#f8f9ff',
+              'on-background': '#191c20',
+              tertiary: '#904500',
+              'error-container': '#ffdad6',
+              'surface-container-lowest': '#ffffff',
+              'on-tertiary-fixed': '#311300',
+              'surface-variant': '#e1e2e8',
+              'surface-container-highest': '#e1e2e8',
+              surface: '#f8f9ff',
+              'tertiary-fixed-dim': '#ffb688',
+              'on-secondary-fixed-variant': '#4c3989',
+              'secondary-container': '#bba6ff',
+              secondary: '#6451a3',
+              'on-surface-variant': '#494455',
+              'on-secondary-fixed': '#20025c',
+              'on-error-container': '#93000a',
+              'inverse-primary': '#cdbdff',
+              'tertiary-fixed': '#ffdbc7',
+              'secondary-fixed': '#e8deff',
+              'on-tertiary-fixed-variant': '#733600',
+              'on-error': '#ffffff',
+              background: '#f8f9ff',
+              'secondary-fixed-dim': '#cdbdff',
+              'primary-fixed-dim': '#cdbdff',
+              primary: '#632ce5',
+            },
+            fontFamily: {
+              headline: ['Plus Jakarta Sans'],
+              body: ['Plus Jakarta Sans'],
+              label: ['Plus Jakarta Sans'],
+            },
+            borderRadius: {
+              DEFAULT: '1rem',
+              lg: '2rem',
+              xl: '3rem',
+              full: '9999px',
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24;
+        display: inline-block;
+        line-height: 1;
+        vertical-align: middle;
+      }
+      .glass-sheet {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 0.5px solid rgba(202, 195, 216, 0.2);
+      }
+      .aura-glow {
+        position: fixed;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(124, 77, 255, 0.12) 0%,
+          rgba(124, 77, 255, 0) 70%
+        );
+        z-index: -1;
+        filter: blur(60px);
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+    <style>
+      body {
+        min-height: max(884px, 100dvh);
+      }
+    </style>
+  </head>
+  <body
+    class="bg-surface font-body text-on-surface min-h-screen overflow-x-hidden"
+  >
+    <!-- Background Aura Blobs -->
+    <div class="aura-glow -top-48 -left-48"></div>
+    <div class="aura-glow -bottom-48 -right-48"></div>
+    <!-- TopAppBar -->
+    <nav
+      class="fixed top-0 w-full z-50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl border-b-[0.5px] border-white/20 dark:border-slate-700/20 shadow-[0_20px_40px_rgba(124,77,255,0.06)]"
+    >
+      <div class="flex justify-between items-center px-6 py-4 w-full">
+        <div class="flex items-center gap-4">
+          <button
+            class="active:scale-95 transition-transform text-[#7C4DFF] hover:bg-[#7C4DFF]/10 p-2 rounded-full"
+          >
+            <span class="material-symbols-outlined" data-icon="arrow_back"
+              >arrow_back</span
+            >
+          </button>
+        </div>
+        <!-- <h1 class="text-xl font-['Plus_Jakarta_SANS'] font-extrabold tracking-tight text-slate-900">AI 洞察</h1> -->
+        <div class="flex items-center gap-2">
+          <button
+            class="active:scale-95 transition-transform text-slate-500 hover:bg-[#7C4DFF]/10 p-2 rounded-full"
+          >
+            <span class="material-symbols-outlined" data-icon="more_vert"
+              >more_vert</span
+            >
+          </button>
+        </div>
+      </div>
+    </nav>
+    <!-- Main Content Canvas -->
+    <main class="pt-24 pb-44 px-6 max-w-4xl mx-auto flex flex-col gap-12">
+      <!-- AI Message Bubble -->
+      <div class="flex flex-col gap-4 self-start max-w-[85%] md:max-w-[70%]">
+        <div class="glass-sheet p-8 rounded-xl shadow-sm rounded-3xl">
+          <p class="text-body-lg leading-relaxed text-on-surface">
+            根据你今天的能量趋势，目前正处于‘专注力’的高峰期。建议你在这个时间段处理最棘手的任务。
+          </p>
+        </div>
+      </div>
+      <!-- User Message Bubble -->
+      <div class="flex flex-col gap-4 self-end max-w-[85%] md:max-w-[70%]">
+        <div
+          class="bg-primary-container p-8 rounded-xl shadow-[0_20px_40px_rgba(124,77,255,0.15)] rounded-3xl"
+        >
+          <p class="text-body-lg leading-relaxed text-on-primary">
+            那我下午 3 点适合开会吗？
+          </p>
+        </div>
+      </div>
+      <!-- AI Thinking State -->
+      <div class="flex flex-col gap-4 self-start">
+        <div class="flex items-center gap-4 ml-2 text-slate-400">
+          <div class="flex gap-1.5">
+            <div
+              class="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse"
+            ></div>
+            <div
+              class="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse"
+              style="animation-delay: 0.2s"
+            ></div>
+            <div
+              class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"
+              style="animation-delay: 0.4s"
+            ></div>
+          </div>
+          <span class="text-sm font-medium italic">正在为你整理建议...</span>
+        </div>
+      </div>
+    </main>
+    <!-- Fixed Bottom Action Area -->
+    <div
+      class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-surface via-surface/90 to-transparent"
+    >
+      <div class="max-w-4xl mx-auto flex flex-col gap-6">
+        <!-- Suggested Questions (Horizontal Scroll) -->
+        <div class="flex overflow-x-auto gap-3 hide-scrollbar pb-2">
+          <button
+            class="whitespace-nowrap glass-sheet px-6 py-3 rounded-full text-sm font-semibold text-primary hover:bg-primary-container/10 transition-colors active:scale-95 duration-200"
+          >
+            怎么减少外界消耗？
+          </button>
+          <button
+            class="whitespace-nowrap glass-sheet px-6 py-3 rounded-full text-sm font-semibold text-primary hover:bg-primary-container/10 transition-colors active:scale-95 duration-200"
+          >
+            下午专注工作有什么好方法？
+          </button>
+          <button
+            class="whitespace-nowrap glass-sheet px-6 py-3 rounded-full text-sm font-semibold text-primary hover:bg-primary-container/10 transition-colors active:scale-95 duration-200"
+          >
+            最近怎么判断机会？
+          </button>
+        </div>
+        <!-- Chat Input Field -->
+        <div
+          class="glass-sheet p-3 pl-8 rounded-full flex items-center justify-between shadow-[0_20px_40px_rgba(124,77,255,0.06)] border-outline-variant/30"
+        >
+          <input
+            class="bg-transparent border-none focus:ring-0 w-full text-body-lg placeholder:text-slate-400 text-on-surface"
+            placeholder="快和知势畅所欲言吧~"
+            type="text"
+          />
+          <button
+            class="bg-primary-container hover:bg-primary text-on-primary py-4 rounded-full font-bold tracking-wide active:scale-95 transition-all shadow-lg flex items-center gap-2 w-14 h-14 flex items-center justify-center p-0"
+          >
+            <span
+              class="material-symbols-outlined text-[24px]"
+              style="font-variation-settings: 'FILL' 1"
+              >arrow_upward</span
+            >
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Decorative Corner Element -->
+    <div class="fixed top-32 right-0 pointer-events-none opacity-40">
+      <div
+        class="w-32 h-32 border-[0.5px] border-primary/20 rounded-full flex items-center justify-center"
+      >
+        <div
+          class="w-24 h-24 border-[0.5px] border-primary/10 rounded-full flex items-center justify-center"
+        >
+          <div
+            class="w-16 h-16 border-[0.5px] border-primary/5 rounded-full"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

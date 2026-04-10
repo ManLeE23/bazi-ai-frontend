@@ -280,8 +280,6 @@ const startAnalysis = async () => {
       throw new Error(res.msg || '创建用户失败')
     }
     
-    // uni.hideLoading(); // Using button loading instead
-    
     // Construct userInfo object to pass to home page
     const userInfo = {
       ...(res.data || {}),
@@ -292,6 +290,18 @@ const startAnalysis = async () => {
       birth_location: form.birthAddress,
       mode: form.mode
     };
+
+    // Update store with new profile
+    userStore.setUserInfo(userInfo);
+    // Ensure the profile list gets updated
+    const currentProfiles = [...(userStore.profiles || [])];
+    currentProfiles.push(userInfo);
+    userStore.setProfiles(currentProfiles);
+
+    // If this is the very first profile, mark it as self
+    if (!userStore.selfProfileId) {
+      userStore.setSelfProfileId(userInfo.id);
+    }
 
     // Create session
     const sessionParams: any = {
@@ -326,15 +336,45 @@ const startAnalysis = async () => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #fbfcff;
+  background-color: #f8f9ff; /* surface */
   overflow: hidden;
+  position: relative;
 }
 
-// .mesh-bg {
-//   background-image: 
-//     radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.4) 0, transparent 40%),
-//     radial-gradient(at 100% 100%, rgba(245, 232, 255, 0.4) 0, transparent 40%);
-// }
+.mesh-bg::before {
+  content: '';
+  position: absolute;
+  top: -200rpx;
+  left: -200rpx;
+  width: 800rpx;
+  height: 800rpx;
+  background-color: #7c4dff; /* primary_container */
+  border-radius: 50%;
+  filter: blur(200rpx);
+  z-index: 0;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.mesh-bg::after {
+  content: '';
+  position: absolute;
+  bottom: 20%;
+  right: -300rpx;
+  width: 600rpx;
+  height: 600rpx;
+  background-color: #a78bfa;
+  border-radius: 50%;
+  filter: blur(200rpx);
+  z-index: 0;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.header, .step-content, .footer {
+  position: relative;
+  z-index: 1;
+}
 
 .content-wrapper {
   flex: 1;
@@ -369,11 +409,15 @@ const startAnalysis = async () => {
   width: 40px;
   height: 40px;
   border-radius: 9999px;
-  background-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8; /* text-slate-400 */
+  color: #191c20;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .icon-back, .icon-close {
@@ -401,13 +445,13 @@ const startAnalysis = async () => {
   height: 6px;
   border-radius: 9999px;
   transition: all 0.5s;
-  background-color: #e2e8f0; /* bg-slate-200 */
+  background-color: rgba(202, 195, 216, 0.4);
   width: 6px;
 
   &.active {
     width: 24px;
-    background-color: #6366f1; /* bg-indigo-500 */
-    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+    background-color: #7c4dff; /* primary_container */
+    box-shadow: 0 0 12px rgba(124, 77, 255, 0.3);
   }
 }
 
@@ -455,14 +499,14 @@ const startAnalysis = async () => {
 .title {
   font-size: 32px;
   line-height: 1.2;
-  font-weight: 700;
-  color: #1e293b; /* text-slate-800 */
+  font-weight: 800;
+  color: #191c20;
   letter-spacing: -0.025em;
   display: block;
 }
 
 .subtitle {
-  color: #94a3b8; /* text-slate-400 */
+  color: #64748b;
   margin-top: 16px; /* mt-4 */
   font-size: 16px; /* text-base */
   font-weight: 500;
@@ -496,20 +540,23 @@ const startAnalysis = async () => {
   width: 100%;
   height: 64px; /* h-16 */
   padding: 0 24px; /* px-6 */
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1.5px solid rgba(99, 102, 241, 0.2);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
   border-radius: 24px;
   font-size: 18px; /* text-lg */
   font-weight: 600; /* font-semibold */
-  color: #334155; /* text-slate-700 */
+  color: #191c20;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 
   &:focus {
     background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 10px 25px -5px rgba(124, 77, 255, 0.1);
     transform: translateY(-1px);
+    border-color: rgba(124, 77, 255, 0.3);
   }
 }
 
@@ -520,6 +567,7 @@ const startAnalysis = async () => {
 .picker-display {
   display: flex;
   align-items: center;
+  justify-content: flex-start; /* Ensure text aligns properly */
 }
 
 /* Privacy Tip */
@@ -533,7 +581,7 @@ const startAnalysis = async () => {
   width: 32px;
   height: 32px;
   border-radius: 9999px;
-  background-color: #6366f1; /* bg-indigo-500 */
+  background-color: #7c4dff; /* primary_container */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -571,16 +619,19 @@ const startAnalysis = async () => {
   justify-content: center;
   gap: 16px;
   transition: all 0.5s;
-  background-color: rgba(255, 255, 255, 0.6);
-  border: 1px solid #ffffff;
-  color: #94a3b8; /* text-slate-400 */
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
+  color: #64748b;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 
   &.active {
-    background-color: #4f46e5; /* bg-indigo-600 */
+    background-color: #7c4dff; /* primary_container */
     color: #ffffff;
-    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.03); /* soft-shadow */
+    box-shadow: 0 20px 50px -12px rgba(124, 77, 255, 0.2);
     transform: scale(1.05);
-    border-color: transparent;
+    border-color: rgba(124, 77, 255, 0.3);
   }
   
   &:active {
@@ -617,34 +668,37 @@ const startAnalysis = async () => {
 .btn-back {
   width: 72px;
   height: 72px;
-  border-radius: 26px;
-  background-color: #ffffff;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
   
   &:active {
     transform: scale(0.95);
-    background-color: #f8fafc;
+    background: rgba(255, 255, 255, 0.6);
   }
 }
 
 .icon-back {
   font-size: 24px;
-  color: #1e293b;
+  color: #191c20;
 }
 
 .btn-primary {
   flex: 1;
   width: auto;
   height: 72px; /* h-18 */
-  background-color: #4f46e5; /* bg-indigo-600 */
+  background-color: #7c4dff; /* primary_container */
   color: #ffffff;
-  border-radius: 26px;
+  border-radius: 999rpx;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.1em;
   display: flex;
   align-items: center;
@@ -670,18 +724,21 @@ const startAnalysis = async () => {
 
 /* Info Card & Warning */
 .info-card {
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 24px;
-  padding: 8px 24px;
-  border: 1px solid #ffffff;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
+  border-radius: 32px;
+  padding: 8px 32px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .info-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  padding: 24px 0;
+  border-bottom: 0.5px solid rgba(202, 195, 216, 0.2);
 
   &:last-child {
     border-bottom: none;
@@ -701,8 +758,8 @@ const startAnalysis = async () => {
 
 .info-value {
   font-size: 16px;
-  font-weight: 500;
-  color: #1e293b; /* text-slate-800 */
+  font-weight: 600;
+  color: #191c20;
 }
 
 .warning-box {

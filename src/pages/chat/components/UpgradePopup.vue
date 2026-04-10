@@ -2,18 +2,13 @@
   <view>
     <CommonPopup
       v-model="show"
-      background="linear-gradient(180deg, #dbeafe 0%, #ede9fe 100%)"
+      background="#f8f9ff"
       @close="handleClose"
     >
-      <!-- Avatar & Title -->
+      <!-- Header Section -->
       <view class="header-section">
-        <UserAvatar 
-          :name="userInfo?.nickname || 'Q'" 
-          size="large"
-          style="margin-bottom: 32rpx;" 
-        />
         <text class="main-title">人生趋势会员</text>
-        <text class="sub-title">升级后解锁全部功能</text>
+        <text class="sub-title">开启您的数字策展之旅</text>
       </view>
 
       <!-- Pricing Cards -->
@@ -22,35 +17,29 @@
           v-for="plan in plans"
           :key="plan.id"
           class="plan-card" 
-          :class="{ 'premium-card': plan.id === 'vip_yearly', 'active': selectedPlanId === plan.id }"
+          :class="{ 'active': selectedPlanId === plan.id }"
           @click="selectPlan(plan.id)"
         >
-          <view class="tag-badge" :class="{ 'premium-tag': plan.id === 'vip_yearly' }">
-            <text class="tag-text">{{ plan.id === 'vip_yearly' ? '省 30%' : '热门' }}</text>
+          <view class="plan-card-header">
+            <text class="plan-duration">{{ plan.duration_days > 360 ? Math.floor(plan.duration_days / 30) + '个月' : plan.duration_days + '天' }}</text>
+            <view class="tag-badge" v-if="plan.id === 'vip_yearly' || plan.id === 'vip_monthly'">
+              <text class="tag-text">{{ plan.id === 'vip_yearly' ? '省 30%' : '热门' }}</text>
+            </view>
           </view>
           
-          <view class="plan-content">
-            <view class="price-row">
-               <text class="plan-duration-num">{{ plan.duration_days > 360 ? Math.floor(plan.duration_days / 30) : plan.duration_days }}</text>
-               <text class="plan-duration-unit">{{ plan.duration_days > 360 ? '个月' : '天' }}</text>
-            </view>
-            
-            <text class="plan-price">¥{{ (plan.price_cents / 100).toFixed(2) }}</text>
-            
-            <view class="plan-desc-wrapper">
-               <text class="plan-desc">{{ plan.membership_mode === MembershipMode.VIP_YEARLY ? '年付' : '月付' }}</text>
-            </view>
+          <view class="plan-price-row">
+            <text class="price-symbol">¥</text>
+            <text class="plan-price">{{ (plan.price_cents / 100).toFixed(2) }}</text>
           </view>
         </view>
       </view>
 
       <!-- Plan Benefits List -->
       <view class="benefits-section" v-if="selectedPlan">
-         <text class="benefits-title">{{ selectedPlan.name }}权益</text>
          <view class="benefits-list">
             <view class="benefit-row" v-for="(benefit, index) in selectedPlan.benefits" :key="index">
-              <view class="benefit-icon-wrapper" :class="{ 'premium-icon': true }">
-                <u-icon name="checkmark" size="20" color="#ffffff"></u-icon>
+              <view class="benefit-icon-wrapper">
+                <u-icon name="checkbox-mark" size="24" color="#ffffff"></u-icon>
               </view>
               <text class="benefit-text">{{ benefit }}</text>
             </view>
@@ -279,230 +268,160 @@ $white: #ffffff;
   flex-direction: column;
   align-items: center;
   margin-top: 16rpx;
-  margin-bottom: 40rpx;
+  margin-bottom: 64rpx;
 }
 
 .main-title {
-  font-size: 48rpx; /* text-2xl */
-  font-weight: 900; /* font-black */
-  color: $slate-800;
-  letter-spacing: -0.025em; /* tracking-tight */
-  margin-bottom: 8rpx;
+  font-size: 56rpx; /* display-like */
+  font-weight: 800; /* ExtraBold */
+  color: #191c20;
+  letter-spacing: -0.02em; /* tracking-tight */
+  margin-bottom: 16rpx;
 }
 
 .sub-title {
-  font-size: 26rpx; /* text-[13px] approx */
-  color: $slate-400;
-  letter-spacing: 1px;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
 }
 
 /* Pricing Cards */
 .pricing-container {
   display: flex;
-  gap: 32rpx; /* gap-4 = 1rem = 16px = 32rpx */
-  margin-bottom: 32rpx;
+  flex-direction: column; /* Stacked vertically */
+  gap: 32rpx;
+  margin-bottom: 48rpx;
 }
 
 .plan-card {
-  flex: 1;
   position: relative;
-  background-color: $white;
-  border: 4rpx solid $slate-100; /* border-2 */
-  border-radius: 48rpx; /* Reduced from 64rpx for better proportion */
-  padding: 40rpx 24rpx;
+  background-color: #ffffff;
+  border-radius: 48rpx; /* 3rem */
+  padding: 48rpx 40rpx;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  box-shadow: 0 20px 40px rgba(124, 77, 255, 0.04);
+  border: none;
+  outline: 0.5px solid rgba(202, 195, 216, 0.2);
   
-  /* Active State - Strong Highlight */
+  /* Active State */
   &.active {
-    border-color: $indigo-600;
-    background-color: #eef2ff; /* indigo-50 */
-    box-shadow: 0 12rpx 32rpx -8rpx rgba(79, 70, 229, 0.3);
-    transform: translateY(-4rpx);
+    background-color: #7c4dff; /* primary_container */
+    box-shadow: 0 20px 40px rgba(124, 77, 255, 0.15);
+    outline: none;
     
-    /* Ensure tag badge blends or stands out */
+    .plan-duration, .price-symbol, .plan-price {
+      color: #ffffff;
+    }
+
     .tag-badge {
-      background-color: $indigo-600;
-      .tag-text { color: $white; }
+      background-color: rgba(255, 255, 255, 0.2);
+      .tag-text { color: #ffffff; }
     }
   }
-  
-  /* Premium Card Styles (Unselected base) */
-  &.premium-card {
-    /* Subtle difference for premium even when unselected */
-    background-color: rgba(238, 242, 255, 0.6); /* indigo-50 with opacity */
-    
-    &.active {
-       /* Premium Active */
-       background-color: #eef2ff; /* indigo-50 - Matches border family */
-       border-color: $indigo-600; /* Keep consistent active border */
-       /* Shadow using indigo tone (79, 70, 229) instead of violet */
-       box-shadow: 0 20rpx 40rpx -10rpx rgba(79, 70, 229, 0.25);
-    }
-  }
+}
+
+.plan-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.plan-duration {
+  font-size: 32rpx; /* body-lg */
+  font-weight: 600;
+  color: #191c20;
+  transition: color 0.3s ease;
 }
 
 .tag-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 8rpx 20rpx;
-  background-color: $slate-100;
-  border-bottom-left-radius: 24rpx;
+  padding: 8rpx 24rpx;
+  background-color: #f1f5f9;
+  border-radius: 999rpx; /* rounded-full */
   transition: all 0.3s ease;
-  
-  &.premium-tag {
-    background-color: $indigo-100; /* Lighter when unselected */
-    .tag-text { color: $indigo-600; }
-  }
 }
 
 .tag-text {
-  font-size: 20rpx;
-  font-weight: 800;
-  color: $slate-500;
+  font-size: 24rpx; /* label-md */
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.plan-content {
-  margin-top: 24rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.price-row {
+.plan-price-row {
   display: flex;
   align-items: baseline;
-  justify-content: center;
 }
 
-.plan-duration-num {
-  font-size: 40rpx;
-  font-weight: 700;
-  color: $slate-700;
-  
-  .active & {
-    color: $indigo-600;
-  }
-}
-
-.plan-duration-unit {
-  font-size: 24rpx;
-  font-weight: 700;
-  color: $slate-400;
-  margin-left: 4rpx;
-  
-  .active & {
-    color: $indigo-500;
-  }
+.price-symbol {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #191c20;
+  margin-right: 8rpx;
+  transition: color 0.3s ease;
 }
 
 .plan-price {
-  font-size: 36rpx;
-  font-weight: 900;
-  color: $slate-800;
-  display: block;
-  margin-top: 8rpx;
-  
-  .active & {
-    color: $indigo-900;
-  }
-}
-
-.plan-desc-wrapper {
-  margin-top: 24rpx;
-  text-align: center;
-}
-
-.plan-desc {
-  font-size: 22rpx;
-  font-weight: 500;
-  color: $slate-400;
-  line-height: 1.4;
-  display: block;
-  
-  &.highlight {
-    font-weight: 700;
-    color: $indigo-500;
-  }
-  
-  .active & {
-    color: $slate-600;
-    &.highlight { color: $indigo-600; }
-  }
+  font-size: 72rpx; /* display-lg like */
+  font-weight: 800; /* ExtraBold */
+  color: #191c20;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  transition: color 0.3s ease;
 }
 
 /* Benefits Section */
 .benefits-section {
-  background-color: rgba(248, 250, 252, 0.5); /* bg-slate-50/50 */
-  border: 2rpx solid $slate-100;
-  border-radius: 64rpx; /* rounded-[32px] */
-  padding: 48rpx; /* p-6 */
-  margin-bottom: 32rpx;
-}
-
-.benefits-title {
-  font-size: 24rpx; /* text-[11px] */
-  font-weight: 900; /* font-black */
-  color: $slate-400;
-  text-transform: uppercase;
-  letter-spacing: 0.2em; /* tracking-[0.2em] */
-  margin-bottom: 32rpx;
-  margin-left: 8rpx;
-  display: block;
+  padding: 0 32rpx;
+  margin-bottom: 48rpx;
 }
 
 .benefits-list {
   display: flex;
   flex-direction: column;
-  gap: 24rpx; /* space-y-3 */
+  gap: 40rpx; 
 }
 
 .benefit-row {
   display: flex;
   align-items: center;
-  gap: 24rpx; /* gap-3 */
+  gap: 32rpx;
 }
 
 .benefit-icon-wrapper {
-  width: 40rpx; /* w-5 */
-  height: 40rpx; /* h-5 */
+  width: 48rpx;
+  height: 48rpx;
   border-radius: 50%;
-  background-color: rgba(199, 210, 254, 1); /* indigo-200 (fallback) */
+  background-color: #7c4dff; /* primary_container */
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  
-  &.premium-icon {
-    background-color: $indigo-500;
-    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
-  }
 }
 
 .benefit-text {
-  font-size: 26rpx; /* text-xs */
-  font-weight: 700; /* font-bold */
-  color: $slate-600;
+  font-size: 32rpx; /* body-lg */
+  font-weight: 500;
+  color: #191c20;
 }
 
 /* Subscribe Button */
 .subscribe-btn {
   width: 100%;
   padding: 32rpx 0;
-  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
-  color: $white;
-  font-size: 28rpx; /* text-sm */
-  font-weight: 900; /* font-black */
-  border-radius: 32rpx; /* rounded-2xl */
-  letter-spacing: 0.1em; /* tracking-[0.1em] */
-  box-shadow: 0 20rpx 40rpx -10rpx rgba(99, 102, 241, 0.4);
+  background-color: #7c4dff; /* primary_container */
+  color: #ffffff;
+  font-size: 32rpx; /* body-lg */
+  font-weight: 600;
+  border-radius: 999rpx; /* rounded-full */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
   margin-bottom: 24rpx;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   border: none;
   display: flex;
   align-items: center;
@@ -510,15 +429,15 @@ $white: #ffffff;
   
   &:active {
     transform: scale(0.98);
-    opacity: 0.9;
   }
   
   &[disabled] {
     opacity: 0.8;
     color: #ffffff !important;
-    /* Maintain gradient background for loading state */
-    /* background: $slate-300; */
-    box-shadow: 0 10rpx 20rpx -5rpx rgba(99, 102, 241, 0.4);
+  }
+  
+  &::after {
+    border: none;
   }
 }
 

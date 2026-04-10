@@ -10,7 +10,7 @@
       <view class="content">
         <view class="header-section">
           <view class="icon-wrapper">
-            <u-icon name="account-fill" size="52" color="#6366f1"></u-icon>
+            <u-icon name="account-fill" size="52" color="#632ce5"></u-icon>
           </view>
           <view class="text-wrapper">
             <text class="title">建立人生趋势档案</text>
@@ -80,15 +80,15 @@ const handleClick = () => {
 }
 
 .guide-card {
-  background: linear-gradient(135deg, #e0e7ff 0%, #f3f4ff 100%);
-  border-radius: 56rpx;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
+  border-radius: 48rpx;
   padding: 48rpx;
   position: relative;
   overflow: hidden;
-  // border: 1rpx solid rgba(99, 102, 241, 0.2);
-  box-shadow: 
-    0 20rpx 40rpx -8rpx rgba(79, 70, 229, 0.1),
-    0 8rpx 16rpx -4rpx rgba(79, 70, 229, 0.05);
+  box-shadow: 0 4rpx 20rpx rgba(124, 77, 255, 0.05);
 }
 
 .badge-wrapper {
@@ -99,16 +99,16 @@ const handleClick = () => {
 }
 
 .badge {
-  background: rgba(79, 70, 229, 0.05);
-  color: #4f46e5;
+  background: rgba(124, 77, 255, 0.05);
+  color: #632ce5; /* primary */
   font-size: 22rpx;
   font-weight: 900;
   padding: 20rpx 32rpx;
-  border-bottom-left-radius: 56rpx;
+  border-bottom-left-radius: 48rpx;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  border-left: 1rpx solid rgba(224, 231, 255, 0.5);
-  border-bottom: 1rpx solid rgba(224, 231, 255, 0.5);
+  border-left: 0.5px solid rgba(202, 195, 216, 0.2);
+  border-bottom: 0.5px solid rgba(202, 195, 216, 0.2);
 }
 
 .blur-circle {
@@ -117,8 +117,8 @@ const handleClick = () => {
   right: -32rpx;
   width: 160rpx;
   height: 160rpx;
-  background: #c7d2fe;
-  opacity: 0.3;
+  background: #7c4dff; /* primary_container */
+  opacity: 0.15;
   border-radius: 50%;
   filter: blur(64rpx);
   pointer-events: none;
@@ -142,12 +142,12 @@ const handleClick = () => {
   width: 96rpx;
   height: 96rpx;
   border-radius: 32rpx;
-  background: white;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1rpx solid #e0e7ff;
-  box-shadow: 0 4rpx 12rpx rgba(79, 70, 229, 0.1);
+  border: 0.5px solid rgba(202, 195, 216, 0.2);
+  box-shadow: 0 4rpx 12rpx rgba(124, 77, 255, 0.05);
 }
 
 .text-wrapper {
@@ -158,8 +158,8 @@ const handleClick = () => {
 
 .title {
   font-size: 40rpx;
-  font-weight: 900;
-  color: #1e293b;
+  font-weight: 800;
+  color: #191c20;
   line-height: 1.2;
   margin-bottom: 8rpx;
 }
@@ -183,10 +183,10 @@ const handleClick = () => {
 }
 
 .action-btn {
-  background: #4f46e5;
+  background: #7c4dff; /* primary_container */
   color: #ffffff;
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: 800;
   padding: 0 48rpx;
   height: 96rpx;
   letter-spacing: 1px;
@@ -194,9 +194,9 @@ const handleClick = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 32rpx;
+  border-radius: 999rpx;
   border: none;
-  box-shadow: 0 4rpx 12rpx rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(124, 77, 255, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   &::after {
@@ -206,7 +206,7 @@ const handleClick = () => {
 
 .btn-hover {
   transform: translateY(2rpx) scale(0.99);
-  box-shadow: 0 2rpx 6rpx rgba(79, 70, 229, 0.2);
+  box-shadow: 0 2rpx 6rpx rgba(124, 77, 255, 0.1);
   opacity: 0.9;
 }
 

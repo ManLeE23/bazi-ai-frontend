@@ -22,19 +22,34 @@ withDefaults(defineProps<Props>(), {
 
 <style lang="scss" scoped>
 /* Colors */
-$indigo-50: #eef2ff;
-$indigo-500: #6366f1;
+$primary-container: #7c4dff;
+$on-primary: #ffffff;
+$primary-10: rgba(124, 77, 255, 0.1);
 
 .avatar-ring {
   border-radius: 50%;
-  background-color: $indigo-50;
+  background-color: $primary-10;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
   
   &.has-shadow {
-    /* ring-8 ring-indigo-50/50 */
-    box-shadow: 0 0 0 16rpx rgba(238, 242, 255, 0.5);
+    /* Diffused tinted shadow per spec */
+    box-shadow: 0 20px 40px rgba(124, 77, 255, 0.15);
   }
 
   /* Sizes */
@@ -43,7 +58,7 @@ $indigo-500: #6366f1;
     height: 80rpx;
     
     .avatar-text {
-      font-size: 32rpx;
+      font-size: 36rpx; /* display-like scaling */
     }
   }
 
@@ -52,7 +67,7 @@ $indigo-500: #6366f1;
     height: 96rpx;
     
     .avatar-text {
-      font-size: 40rpx;
+      font-size: 44rpx;
     }
   }
 
@@ -61,14 +76,18 @@ $indigo-500: #6366f1;
     height: 112rpx;
     
     .avatar-text {
-      font-size: 48rpx;
+      font-size: 52rpx;
     }
   }
   
   .avatar-text {
-    font-weight: 900; /* font-black */
-    font-style: italic;
-    color: $indigo-500;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; /* ExtraBold */
+    font-style: normal;
+    color: $primary-container;
+    position: relative;
+    z-index: 1;
+    letter-spacing: -0.02em; /* locked-in feel */
   }
 }
 </style>

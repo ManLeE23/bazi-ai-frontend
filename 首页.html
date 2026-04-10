@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>我的看板 - Transcendental Ether</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface": "#f8f9ff",
+              "inverse-primary": "#cdbdff",
+              "background": "#f8f9ff",
+              "on-primary-fixed-variant": "#4f00d0",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#494455",
+              "tertiary-fixed-dim": "#ffb688",
+              "secondary-container": "#bba6ff",
+              "on-tertiary-fixed": "#311300",
+              "on-secondary-fixed-variant": "#4c3989",
+              "primary-fixed": "#e8deff",
+              "tertiary": "#904500",
+              "primary-fixed-dim": "#cdbdff",
+              "on-tertiary-container": "#fff7f4",
+              "on-background": "#191c20",
+              "on-secondary-fixed": "#20025c",
+              "tertiary-fixed": "#ffdbc7",
+              "error-container": "#ffdad6",
+              "surface-container-highest": "#e1e2e8",
+              "secondary": "#6451a3",
+              "surface-bright": "#f8f9ff",
+              "surface-variant": "#e1e2e8",
+              "surface-container-low": "#f2f3f9",
+              "on-secondary-container": "#4a3788",
+              "outline-variant": "#cac3d8",
+              "inverse-on-surface": "#eff0f6",
+              "tertiary-container": "#b55800",
+              "surface-container-high": "#e7e8ee",
+              "inverse-surface": "#2e3135",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "on-primary-container": "#fcf6ff",
+              "error": "#ba1a1a",
+              "on-primary-fixed": "#20005f",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed-variant": "#733600",
+              "on-surface": "#191c20",
+              "surface-dim": "#d8dae0",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#cdbdff",
+              "primary": "#7c4dff",
+              "outline": "#7a7487",
+              "surface-tint": "#6833ea",
+              "surface-container": "#eceef3",
+              "on-secondary": "#ffffff",
+              "secondary-fixed": "#e8deff",
+              "primary-container": "#7c4dff"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f8f9ff;
+        color: #191c20;
+      }
+      .aura-blob {
+        position: fixed;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(124, 77, 255, 0.08) 0%, rgba(124, 77, 255, 0) 70%);
+        filter: blur(80px);
+        z-index: -1;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 8px 32px 0 rgba(124, 77, 255, 0.05);
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        display: inline-block;
+        line-height: 1;
+        text-transform: none;
+        letter-spacing: normal;
+        word-wrap: normal;
+        white-space: nowrap;
+        direction: ltr;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+      .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+    </style>
+</head>
+<body class="bg-surface selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen">
+<div class="aura-blob -top-48 -right-48"></div>
+<div class="aura-blob -bottom-48 -left-48"></div>
+<!-- TopAppBar Section -->
+<header class="fixed top-0 w-full z-50 bg-white/60 backdrop-blur-3xl border-b border-white/40 flex items-center justify-between px-6 py-4">
+<!-- Left: Menu Icon -->
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm border border-slate-100 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-slate-800" data-icon="menu">menu</span>
+</button>
+<!-- Center: Switch Profile Dropdown -->
+<button class="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-100 active:scale-95 transition-transform">
+<span class="text-sm font-bold text-slate-800">本人</span>
+<span class="material-symbols-outlined text-xs text-slate-400" style="font-size: 16px;">keyboard_arrow_down</span>
+</button>
+<!-- Right: Actions -->
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm border border-slate-100 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-slate-800" data-icon="more_horiz">more_horiz</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm border border-slate-100 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-slate-800" data-icon="radio_button_checked">radio_button_checked</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-12 px-6 max-w-lg mx-auto space-y-10">
+<!-- Section 1: Energy Status -->
+<section class="glass-card rounded-3xl p-8">
+<div class="flex justify-between items-start mb-8">
+<div>
+<p class="text-on-surface-variant font-label text-xs tracking-widest uppercase mb-1">当前能量状态</p>
+<div class="flex items-baseline gap-3">
+<span class="text-6xl font-extrabold text-primary">90</span>
+<span class="text-xl font-bold text-slate-600">极佳</span>
+</div>
+</div>
+<div class="w-12 h-12 flex items-center justify-center bg-primary/10 rounded-2xl">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="bolt" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+</div>
+<!-- Updated Visualization: Ensuring all 5 bars are complete with consistent purple shades -->
+<div class="flex justify-between items-end h-36 gap-3 px-1">
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/10 rounded-full relative overflow-hidden h-28">
+<div class="absolute bottom-0 w-full bg-primary rounded-full transition-all duration-1000" style="height: 85%;"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">专注</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/10 rounded-full relative overflow-hidden h-24">
+<div class="absolute bottom-0 w-full bg-primary/80 rounded-full transition-all duration-1000" style="height: 70%;"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">情绪</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/10 rounded-full relative overflow-hidden h-32">
+<div class="absolute bottom-0 w-full bg-primary rounded-full transition-all duration-1000" style="height: 95%;"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">关系</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/10 rounded-full relative overflow-hidden h-20">
+<div class="absolute bottom-0 w-full bg-primary/40 rounded-full transition-all duration-1000" style="height: 50%;"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">机缘</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/10 rounded-full relative overflow-hidden h-26">
+<div class="absolute bottom-0 w-full bg-primary/60 rounded-full transition-all duration-1000" style="height: 75%;"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">变量</span>
+</div>
+</div>
+</section>
+<!-- Section 2: Input Area -->
+<section>
+<div class="glass-card rounded-2xl p-1.5 flex items-center">
+<input class="flex-1 bg-transparent border-none focus:ring-0 px-5 text-on-surface placeholder:text-slate-300 font-medium text-sm" placeholder="最近整体节奏怎么样?" type="text"/>
+<button class="bg-primary text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all">
+                问一问
+            </button>
+</div>
+</section>
+<!-- Section 3: Service Cards -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="text-xl font-bold text-slate-800">洞察中心</h3>
+<button class="text-primary text-xs font-bold uppercase tracking-widest">全部</button>
+</div>
+<div class="grid grid-cols-1 gap-4">
+<!-- 知势 -->
+<div class="glass-card rounded-2xl p-6 flex items-center gap-5 border-l-4 border-l-primary group cursor-pointer active:scale-[0.98] transition-transform">
+<div class="w-14 h-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl" data-icon="explore">explore</span>
+</div>
+<div>
+<h4 class="text-lg font-bold text-slate-800">知势</h4>
+<p class="text-sm text-slate-400 leading-relaxed">看清人生阶段与方向</p>
+</div>
+</div>
+<!-- 知心 -->
+<div class="glass-card rounded-2xl p-6 flex items-center gap-5 border-l-4 border-l-secondary group cursor-pointer active:scale-[0.98] transition-transform">
+<div class="w-14 h-14 rounded-2xl bg-secondary/5 flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl" data-icon="favorite">favorite</span>
+</div>
+<div>
+<h4 class="text-lg font-bold text-slate-800">知心</h4>
+<p class="text-sm text-slate-400 leading-relaxed">理解关系、情绪、沟通</p>
+</div>
+</div>
+<!-- 知业 -->
+<div class="glass-card rounded-2xl p-6 flex items-center gap-5 border-l-4 border-l-tertiary-container group cursor-pointer active:scale-[0.98] transition-transform">
+<div class="w-14 h-14 rounded-2xl bg-tertiary-container/5 flex items-center justify-center text-tertiary-container group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl" data-icon="work">work</span>
+</div>
+<div>
+<h4 class="text-lg font-bold text-slate-800">知业</h4>
+<p class="text-sm text-slate-400 leading-relaxed">分析事业 choice 与成长路径</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 4: Self Exploration -->
+<section class="space-y-6">
+<h3 class="text-xl font-bold text-slate-800">自我探索</h3>
+<div class="space-y-4">
+<!-- MBTI -->
+<div class="glass-card rounded-2xl p-6 flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-5">
+<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center shadow-inner">
+<img alt="MBTI" class="w-10 h-10 object-contain rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBA4kVH9JVYF2m791OIENJbx9-PQLDXut2wNYiKSWe7pl2jFwLgvYz71JKuFYkrrXOnjriD5zbuWnVKxuvhj5ZkHScOqJGFG4gWxKYFVdE0edHUcy_EVOw-WcY0qz17G-sm1blbR5PA-g9FxLTvK-shv1ou06ZKB1uyHb-awuxRop3aLCNpR9vbXbf9jUpHxFcvNIxwWMp9LSbZkgBLHIk2FiezlzaxmtFwboA35DrUDB11uuaYGYWuUV5UwhYfvf_CIVwalaqSbBeo"/>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h4 class="text-lg font-bold text-slate-800">MBTI</h4>
+<span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[8px] font-extrabold uppercase">New</span>
+</div>
+<p class="text-sm text-slate-400 font-medium">深层人格特质解析</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+</div>
+<!-- Personal Profile -->
+<div class="glass-card rounded-2xl p-6 flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-5">
+<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center shadow-inner overflow-hidden">
+<img alt="用户头像" class="w-full h-full object-cover" data-alt="Close-up portrait of a serene young woman with clean skin" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRRMAaAaGk7gyaBiWJNC3-0asreGBIvkGlpn7pg7T8eaIEKFCxaCVHCx_jUWwSTA78K7oNVymIHVT6lAQjBBeJ-WAVO_Wx7S0i8PlGjOGDvQFJwtUWna0aLFVaEqUrS6oXvZvc2X7y1xQUDvu_Ulr9-JelbmwqjE1XKODx-PbulKDaN9KomUwQv21vFQwMcHZfz9BtBiqzudkcaEpXvB88ysm76LXNLdtelQVbgR9-3NG1xKfrYZcrlzUnp5G2IFIgiQewy3rK8ut_"/>
+</div>
+<div>
+<h4 class="text-lg font-bold text-slate-800">个人档案</h4>
+<p class="text-sm text-slate-400 font-medium">完善基础生命信息</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="pt-8 pb-4 text-center">
+<p class="text-[10px] text-slate-300 font-bold uppercase tracking-[0.2em]">© 2024 Transcendental Ether</p>
+</footer>
+</main>
+<aside class="fixed top-0 left-0 h-full w-80 bg-white/90 backdrop-blur-3xl z-[100] shadow-2xl transform -translate-x-full transition-transform duration-500 ease-in-out">
+<!-- Drawer content -->
+</aside>
+</body></html>
